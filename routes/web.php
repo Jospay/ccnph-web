@@ -10,6 +10,7 @@ use App\Http\Controllers\Web\BusinessTrainingController;
 use App\Http\Controllers\Web\LoanAssistanceController;
 use App\Http\Controllers\Web\LoanScheduleController;
 use App\Http\Controllers\Web\IntellectualPropertyController;
+use App\Http\Controllers\Web\SuperAdmin\CoopMembershipController;
 
 Route::inertia('/', 'Home', [
     'canRegister' => Features::enabled(Features::registration()),
@@ -34,16 +35,32 @@ Route::middleware([
     })->name('join-us');
 
 });
+
+Route::middleware([
+    'auth',
+    'role:' . UserType::SUPER_ADMIN
+])->group(function () {
+
+    // Cooperative Membership Domain
+    Route::middleware(['service_access:coop-membership'])->group(function () {
+        Route::get('/coop-membership', [CoopMembershipController::class, 'index'])
+            ->name('coop-membership.index');
+
+        Route::get('/coop-membership/users/{user}', [CoopMembershipController::class, 'show'])
+            ->name('coop-membership.users.show');
+        Route::patch('/coop-membership/users/{user}/status', [CoopMembershipController::class, 'updateStatus'])
+            ->name('coop-membership.users.update-status');
+    });
+
+});
+
 Route::middleware([
     'auth', 
     'role:' . UserType::SUPER_ADMIN . ',' . UserType::ADMIN
 ])->group(function () {
+
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard.index');
-    Route::get('/dashboard/users/{user}', [DashboardController::class, 'show'])
-        ->name('dashboard.users.show');
-    Route::patch('/dashboard/users/{user}/status', [DashboardController::class, 'updateStatus'])
-        ->name('dashboard.users.update-status');
 
     // Business Training Domain
     Route::middleware(['service_access:business-training'])->group(function () {

@@ -2,7 +2,7 @@ export * from './auth';
 export * from './navigation';
 export * from './ui';
 export * from './loan';
-export * from './dashboard';
+export * from './coop-membership';
 export * from './business-training';
 export * from './intellectual-property';
 
