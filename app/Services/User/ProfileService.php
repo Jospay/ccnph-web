@@ -46,7 +46,7 @@ class ProfileService
 
         // 4. Update Status logic
         if ($user->user_type_id === UserType::BASIC) {
-            $data['status_id'] = Status::PENDING_FOR_MEMBER;
+            $data['status_id'] = Status::FOR_APPROVAL;
         }
 
         // 5. Perform the update
