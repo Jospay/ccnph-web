@@ -46,7 +46,7 @@ const props = defineProps<{
 }>();
 
 // state for select filters
-const selectedStatus = ref(props.filters.status || 'pending_for_member');
+const selectedStatus = ref(props.filters.status || 'for_approval');
 const selectedType = ref(props.filters.type || 'basic');
 
 // --- Watchers to Update URL ---
@@ -165,9 +165,7 @@ const userDetails = computed(() =>
             <SelectValue placeholder="Filter by..." />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="pending_for_member"
-              >Pending for member</SelectItem
-            >
+            <SelectItem value="for_approval">For approval</SelectItem>
             <SelectItem value="active">Active</SelectItem>
           </SelectContent>
         </Select>

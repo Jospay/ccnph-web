@@ -14,7 +14,8 @@ import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-vue-next';
 
 const STATUS_STYLES: Record<string, string> = {
-  pending_for_member: 'bg-amber-500 hover:bg-amber-600',
+  for_approval: 'bg-amber-500 hover:bg-amber-600',
+  approved: 'bg-green-500 hover:bg-green-600',
   active: 'bg-blue-500 hover:bg-blue-600',
 };
 
@@ -108,7 +109,7 @@ export const getMemberUserColumns = ({
               },
               () => 'View User Details',
             ),
-            user.status_name === 'pending_for_member'
+            user.status_name === 'for_approval'
               ? [
                   h(DropdownMenuSeparator),
                   h(

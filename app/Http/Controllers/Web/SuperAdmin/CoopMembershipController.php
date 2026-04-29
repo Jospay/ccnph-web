@@ -20,13 +20,13 @@ class CoopMembershipController extends Controller
     {
         // Validate all filters
         $validated = $request->validate([
-            'status' => ['sometimes', 'string', Rule::in(['pending_for_member', 'active'])],
+            'status' => ['sometimes', 'string', Rule::in(['for_approval', 'approved', 'active'])],
             'type' => ['sometimes', 'string', Rule::in(['basic', 'member'])],
         ]);
 
         // Set defaults
         $filters = [
-            'status' => $validated['status'] ?? 'pending_for_member',
+            'status' => $validated['status'] ?? 'for_approval',
             'type' => $validated['type'] ?? 'basic',
         ];
 

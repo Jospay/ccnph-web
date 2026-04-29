@@ -25,6 +25,6 @@ export type MemberUserDetail = {
   created_at: string;
 };
 
-export type MemberStatus = 'active' | 'pending_for_member';
+export type MemberStatus = 'active' | 'for_approval' | 'approved';
 
 export type MemberType = 'basic' | 'member';
