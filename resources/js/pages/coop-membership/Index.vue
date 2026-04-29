@@ -46,8 +46,21 @@ const props = defineProps<{
 }>();
 
 // state for select filters
-const selectedStatus = ref(props.filters.status || 'for_approval');
 const selectedType = ref(props.filters.type || 'basic');
+const selectedStatus = ref(
+  props.filters.status ||
+    (selectedType.value === 'basic' ? 'for_approval' : 'active'),
+);
+
+const statusOptions = computed(() => {
+  return selectedType.value === 'basic'
+    ? [
+        { label: 'For approval', value: 'for_approval' },
+        { label: 'Approved', value: 'approved' },
+        { label: 'Active', value: 'active' },
+      ]
+    : [{ label: 'Active', value: 'active' }];
+});
 
 // --- Watchers to Update URL ---
 const updateFilters = () => {
@@ -66,6 +79,17 @@ const updateFilters = () => {
 
 // Watch for select filter changes (debounced)
 const debouncedUpdate = useDebounceFn(updateFilters, 300);
+watch(selectedType, (type) => {
+  if (type === 'basic') {
+    if (
+      !['for_approval', 'approved', 'active'].includes(selectedStatus.value)
+    ) {
+      selectedStatus.value = 'for_approval';
+    }
+  } else {
+    selectedStatus.value = 'active';
+  }
+});
 watch([selectedStatus, selectedType], debouncedUpdate);
 
 // state for details
@@ -165,8 +189,13 @@ const userDetails = computed(() =>
             <SelectValue placeholder="Filter by..." />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="for_approval">For approval</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
+            <SelectItem
+              v-for="option in statusOptions"
+              :key="option.value"
+              :value="option.value"
+            >
+              {{ option.label }}
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>

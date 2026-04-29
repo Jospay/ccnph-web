@@ -24,12 +24,23 @@ class CoopMembershipController extends Controller
             'type' => ['sometimes', 'string', Rule::in(['basic', 'member'])],
         ]);
 
+        // Determine type & enforce allowed statuses
+        $type = $validated['type'] ?? 'basic';
+        $allowedStatuses = $type === 'basic'
+            ? ['for_approval', 'approved', 'active']
+            : ['active'];
+
+        // Resolve status safely
+        $status = $validated['status'] ?? null;
+        if (!$status || !in_array($status, $allowedStatuses)) {
+            $status = $type === 'basic' ? 'for_approval' : 'active';
+        }
+
         // Set defaults
         $filters = [
-            'status' => $validated['status'] ?? 'for_approval',
-            'type' => $validated['type'] ?? 'basic',
+            'type' => $type,
+            'status' => $status,
         ];
-
         $memberUsers = $this->buildBaseQuery($filters)->get();
 
         return Inertia::render('coop-membership/Index', [
