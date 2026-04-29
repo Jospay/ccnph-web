@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Support\Facades\DB;
 
 class MemberMembership extends Model
 {
@@ -56,16 +57,26 @@ class MemberMembership extends Model
     // called by MembershipSchedule::onPaymentSuccess after each paid schedule
     public function tryActivate(): void
     {
-        $hasUnpaid = $this->schedules()
-            ->where('status_id', '!=', Status::PAID)
-            ->exists();
+        $schedules = $this->schedules();
 
-        if (!$hasUnpaid) {
+        $hasSchedules = $schedules->exists();
+        $hasUnpaid = $schedules->where('status_id', '!=', Status::PAID)->exists();
+
+        if (!$hasSchedules || $hasUnpaid) {
+            return;
+        }
+
+        DB::transaction(function () {
             $this->update([
                 'status_id' => Status::ACTIVE,
                 'activated_at' => now(),
                 'expires_at' => now()->addYear(),
             ]);
-        }
+
+            $this->user->update([
+                'status_id' => Status::ACTIVE,
+                'user_type_id' => UserType::MEMBER,
+            ]);
+        });
     }
 }
