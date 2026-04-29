@@ -1,14 +1,14 @@
-export interface PendingUser {
+export interface MemberUser {
   id: number;
   name: string;
   email: string;
   phone: string;
   address: string;
-  status_name: UserStatus;
+  status_name: MemberStatus;
   user_type_name: string;
 }
 
-export type PendingUserDetail = {
+export type MemberUserDetail = {
   id: number;
   name: string;
   avatar: string;
@@ -16,7 +16,7 @@ export type PendingUserDetail = {
   phone: string;
   gender: string;
   address: string;
-  status_name: UserStatus;
+  status_name: MemberStatus;
   user_type_name: string;
   valid_id_type: string;
   valid_id_number: string;
@@ -25,4 +25,6 @@ export type PendingUserDetail = {
   created_at: string;
 };
 
-export type UserStatus = 'active' | 'pending_for_member';
+export type MemberStatus = 'active' | 'pending_for_member';
+
+export type MemberType = 'basic' | 'member';
