@@ -11,19 +11,19 @@ class ServiceSeeder extends Seeder
     public function run(): void
     {
         $services = [
+            'Coop Membership',
             'Business Training',
             'Intellectual Property Assistance',
-            'Funding & Invest Opportunities',
-            'Licensing & Permit Assistance',
-            'R & D Collaboration',
-            'Ask an Expert Assistance',
-            'Loan Assistance',
-            'FISMPC Online Store',
-            'Product Validation Services',
-            'Lost & Found',
-            'Suggest Service',
-            'Coop Membership',
-            'News & Events',
+            // 'Funding & Invest Opportunities',
+            // 'Licensing & Permit Assistance',
+            // 'R & D Collaboration',
+            // 'Ask an Expert Assistance',
+            // 'Loan Assistance',
+            // 'FISMPC Online Store',
+            // 'Product Validation Services',
+            // 'Lost & Found',
+            // 'Suggest Service',
+            // 'News & Events',
         ];
 
         foreach ($services as $service) {
