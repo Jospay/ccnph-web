@@ -32,7 +32,8 @@ class MembershipController extends Controller
             ->whereIn('status_id', [
                 Status::PENDING,
                 Status::ACTIVE,
-                Status::APPROVED
+                Status::APPROVED,
+                Status::PAID
             ])
             ->with([
                 'status',
@@ -106,7 +107,9 @@ class MembershipController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Payment initiated.',
-                'data' => new ApiMembershipScheduleResource($schedule),
+                'data' => [
+                'schedule' => new ApiMembershipScheduleResource($schedule),
+                'payment' => $result['payment'],],
                 'next_action' => $result['next_action'] ?? null,
             ]);
 
