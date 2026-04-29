@@ -1,6 +1,6 @@
 import { h } from 'vue';
 import type { ColumnDef } from '@tanstack/vue-table';
-import type { PendingUser } from '@/types';
+import type { MemberUser } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
@@ -18,7 +18,7 @@ const STATUS_STYLES: Record<string, string> = {
   active: 'bg-blue-500 hover:bg-blue-600',
 };
 
-export const getPendingUserColumns = ({
+export const getMemberUserColumns = ({
   showUserDetails,
   approveUser,
   declineUser,
@@ -26,7 +26,7 @@ export const getPendingUserColumns = ({
   showUserDetails: (userId: number) => void;
   approveUser: (userId: number) => void;
   declineUser: (userId: number) => void;
-}): ColumnDef<PendingUser>[] => [
+}): ColumnDef<MemberUser>[] => [
   {
     accessorKey: 'name',
     header: 'Name',
