@@ -1,14 +1,28 @@
 <script setup lang="ts">
 import { Head, router, useHttp, useForm } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import { useDebounceFn } from '@vueuse/core';
+import { ref, watch, computed } from 'vue';
 import { toast } from 'vue-sonner';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import DataTable from '@/components/DataTable.vue';
 import DetailsDialog from '@/components/DetailsDialog.vue';
-import { getPendingUserColumns } from '@/features/coop-membership/columns';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { getMemberUserColumns } from '@/features/coop-membership/columns';
 import { getUserDetails } from '@/features/coop-membership/details';
 import coopMembership from '@/routes/coop-membership';
-import type { PendingUser, PendingUserDetail, ApiResponse } from '@/types';
+import type {
+  MemberUser,
+  MemberType,
+  MemberStatus,
+  MemberUserDetail,
+  ApiResponse,
+} from '@/types';
 
 defineOptions({
   layout: {
@@ -22,13 +36,40 @@ defineOptions({
 });
 
 const props = defineProps<{
-  pendingUsers: {
-    data: PendingUser[];
+  member_users: {
+    data: MemberUser[];
+  };
+  filters: {
+    status: MemberStatus;
+    type: MemberType;
   };
 }>();
 
+// state for select filters
+const selectedStatus = ref(props.filters.status || 'pending_for_member');
+const selectedType = ref(props.filters.type || 'basic');
+
+// --- Watchers to Update URL ---
+const updateFilters = () => {
+  router.get(
+    coopMembership.index(),
+    {
+      status: selectedStatus.value,
+      type: selectedType.value,
+    },
+    {
+      preserveScroll: true,
+      replace: true,
+    },
+  );
+};
+
+// Watch for select filter changes (debounced)
+const debouncedUpdate = useDebounceFn(updateFilters, 300);
+watch([selectedStatus, selectedType], debouncedUpdate);
+
 // state for details
-const selectedUser = ref<PendingUserDetail | null>(null);
+const selectedUser = ref<MemberUserDetail | null>(null);
 const isDetailsOpen = ref(false);
 // inertia http
 const http = useHttp();
@@ -41,7 +82,7 @@ const showUserDetails = async (id: number) => {
   try {
     const response = (await http.get(
       coopMembership.users.show.url(id),
-    )) as ApiResponse<PendingUserDetail>;
+    )) as ApiResponse<MemberUserDetail>;
 
     selectedUser.value = response.data;
   } catch (error) {
@@ -85,7 +126,7 @@ const handleUserAction = () => {
   });
 };
 
-const columns = getPendingUserColumns({
+const columns = getMemberUserColumns({
   showUserDetails,
   approveUser,
   declineUser,
@@ -98,16 +139,44 @@ const userDetails = computed(() =>
 
 <template>
   <Head title="Coop Membership" />
+  <div class="flex h-full flex-1 flex-col gap-4 p-6">
+    <div
+      class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <div>
+        <h1 class="text-2xl font-bold">Membership Users</h1>
+        <p class="text-muted-foreground">
+          Manage members & users waiting for approval.
+        </p>
+      </div>
 
-  <div class="flex flex-col gap-4 p-6">
-    <div>
-      <h1 class="text-2xl font-bold">Pending Users</h1>
-      <p class="text-muted-foreground">Users waiting for approval.</p>
+      <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:gap-4">
+        <Select v-model="selectedType">
+          <SelectTrigger class="w-full cursor-pointer sm:w-38 sm:shrink-0">
+            <SelectValue placeholder="Filter by..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="basic">Basic</SelectItem>
+            <SelectItem value="member">Member</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select v-model="selectedStatus">
+          <SelectTrigger class="w-full cursor-pointer sm:w-38 sm:shrink-0">
+            <SelectValue placeholder="Filter by..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="pending_for_member"
+              >Pending for member</SelectItem
+            >
+            <SelectItem value="active">Active</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
     </div>
 
     <DataTable
       :columns="columns"
-      :data="pendingUsers.data"
+      :data="member_users.data"
       search-placeholder="Search name, email..."
     />
   </div>
