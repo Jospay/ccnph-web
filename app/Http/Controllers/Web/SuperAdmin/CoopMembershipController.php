@@ -78,14 +78,13 @@ class CoopMembershipController extends Controller
     {
         $action = $request->input('action');
 
-        if ($action === 'approve') {
+        if ($action === 'approve' && $user->status_id === Status::FOR_APPROVAL) {
             $user->update([
-                'user_type_id' => UserType::MEMBER,
-                'status_id' => Status::ACTIVE,
+                'status_id' => Status::APPROVED,
             ]);
         }
 
-        if ($action === 'decline') {
+        if ($action === 'decline' && $user->status_id === Status::FOR_APPROVAL) {
             $user->update([
                 'status_id' => Status::ACTIVE,
             ]);
