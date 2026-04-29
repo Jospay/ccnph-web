@@ -18,7 +18,7 @@ class Status extends Model
     public const PAID = 7;
     public const UNPAID = 8;
     public const OVERDUE = 9;
-    public const PENDING_FOR_MEMBER = 10;
+    public const FOR_APPROVAL = 10;
 
     public const SUCCESS = 11;
 

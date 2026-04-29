@@ -23,7 +23,7 @@ class StatusSeeder extends Seeder
             ['id' => 7, 'name' => 'paid'],
             ['id' => 8, 'name' => 'unpaid'],
             ['id' => 9, 'name' => 'overdue'],
-            ['id' => 10, 'name' => 'pending_for_member'],
+            ['id' => 10, 'name' => 'for_approval'],
             ['id' => 11, 'name' => 'success'],
             ['id' => 12, 'name' => 'failed'],
             ['id' => 13, 'name' => 'archived'],
