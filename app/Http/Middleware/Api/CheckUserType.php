@@ -18,7 +18,7 @@ class CheckUserType
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
         $user = Auth::user();
-        $validStatuses = [Status::ACTIVE, Status::FOR_APPROVAL];
+        $validStatuses = [Status::ACTIVE, Status::FOR_APPROVAL, Status::APPROVED];
 
         if ($user && in_array($user->status_id, $validStatuses) && in_array((string) $user->user_type_id, $roles)) {
             return $next($request);
