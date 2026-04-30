@@ -18,6 +18,7 @@ export type User = {
 
 export type Auth = {
   user: User;
+  userType: string;
   managed_services: Service[];
 };
 

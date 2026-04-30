@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, FolderGit2, LayoutGrid, Box } from 'lucide-vue-next';
+import { FolderDot, LayoutGrid, Box } from 'lucide-vue-next';
 import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
@@ -16,18 +16,34 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import dashboard from '@/routes/dashboard';
+import adminManagement from '@/routes/admin-management';
 import type { NavItem, Auth, Service } from '@/types';
 
 const page = usePage<{ auth: Auth }>();
+const isSuperAdmin = computed(() => {
+  return page.props.auth.userType === 'super_admin';
+});
 
 // static items
-const platformNavItems: NavItem[] = [
-  {
-    title: 'Dashboard',
-    href: dashboard.index(),
-    icon: LayoutGrid,
-  },
-];
+const platformNavItems = computed<NavItem[]>(() => {
+  const items: NavItem[] = [
+    {
+      title: 'Dashboard',
+      href: dashboard.index(),
+      icon: LayoutGrid,
+    },
+  ];
+
+  if (isSuperAdmin.value) {
+    items.push({
+      title: 'Admin Management',
+      href: adminManagement.index(),
+      icon: FolderDot,
+    });
+  }
+
+  return items;
+});
 
 // dynamic items
 const serviceNavItems = computed(() => {

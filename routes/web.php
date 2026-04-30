@@ -11,6 +11,7 @@ use App\Http\Controllers\Web\LoanAssistanceController;
 use App\Http\Controllers\Web\LoanScheduleController;
 use App\Http\Controllers\Web\IntellectualPropertyController;
 use App\Http\Controllers\Web\SuperAdmin\CoopMembershipController;
+use App\Http\Controllers\Web\SuperAdmin\AdminManagementController;
 
 Route::inertia('/', 'Home', [
     'canRegister' => Features::enabled(Features::registration()),
@@ -41,15 +42,21 @@ Route::middleware([
     'role:' . UserType::SUPER_ADMIN
 ])->group(function () {
 
+    Route::get('/admin-management', [AdminManagementController::class, 'index'])
+            ->name('admin-management.index');
+
     // Cooperative Membership Domain
     Route::middleware(['service_access:coop-membership'])->group(function () {
+
         Route::get('/coop-membership', [CoopMembershipController::class, 'index'])
             ->name('coop-membership.index');
 
         Route::get('/coop-membership/users/{user}', [CoopMembershipController::class, 'show'])
             ->name('coop-membership.users.show');
+
         Route::patch('/coop-membership/users/{user}/status', [CoopMembershipController::class, 'updateStatus'])
             ->name('coop-membership.users.update-status');
+
     });
 
 });
