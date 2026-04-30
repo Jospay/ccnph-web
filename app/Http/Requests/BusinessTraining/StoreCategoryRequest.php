@@ -54,11 +54,11 @@ class StoreCategoryRequest extends FormRequest
             // MODULE 3
             'modules.2.budget' => 'array|max:10',
             'modules.2.budget.*.item' => 'required|string|max:255',
-            'modules.2.budget.*.min_cost' => 'required|numeric|min:0|max:1000000000',
-            'modules.2.budget.*.max_cost' => 'required|numeric|min:0|max:1000000000',
+            'modules.2.budget.*.min_cost' => 'required|numeric|min:1|max:1000000000',
+            'modules.2.budget.*.max_cost' => 'required|numeric|min:1|max:1000000000',
 
-            'modules.2.min_cost' => 'required|numeric|min:0|max:1000000000',
-            'modules.2.max_cost' => 'required|numeric|min:0|max:1000000000',
+            'modules.2.min_cost' => 'required|numeric|min:1|max:1000000000',
+            'modules.2.max_cost' => 'required|numeric|min:1|max:1000000000',
         ];
     }
 }
