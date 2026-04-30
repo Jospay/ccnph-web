@@ -20,7 +20,7 @@ class BusinessTrainingController extends Controller
     // for write permission
     private function canMutate(): bool
     {
-        return Auth::user()->user_type_id === UserType::SUPER_ADMIN;
+        return Auth::user()->user_type_id === UserType::ADMIN;
     }
 
     public function index()
