@@ -24,6 +24,13 @@ class RegistrationService
      */
     public function initiateRegistration(string $name, string $phone): array
     {
+        $normalizedPhone = str_starts_with($phone, '63') ? '0' . substr($phone, 2) : $phone;
+        $existingUser = User::where('phone', $normalizedPhone)->exists();
+
+        if ($existingUser) {
+            throw new \RuntimeException('An account with this phone number already exists.', 409);
+        }
+
         $pending = PendingRegistration::where('phone', $phone)->first();
 
         // Resend cooldown — 5 minutes
