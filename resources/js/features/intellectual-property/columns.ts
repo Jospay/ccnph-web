@@ -25,10 +25,12 @@ export const getIPColumns = ({
   showIPDetails,
   approveIP,
   declineIP,
+  canMutate,
 }: {
   showIPDetails: (id: number) => void;
   approveIP: (ip: IntellectualProperty) => void;
   declineIP: (ip: IntellectualProperty) => void;
+  canMutate: boolean;
 }): ColumnDef<IntellectualProperty>[] => [
   {
     accessorKey: 'user_name',
@@ -97,7 +99,7 @@ export const getIPColumns = ({
               },
               () => 'View Intellectual Property Details',
             ),
-            IntellectualProperty.status_name === 'pending'
+            canMutate && IntellectualProperty.status_name === 'pending'
               ? [
                   h(DropdownMenuSeparator),
                   h(

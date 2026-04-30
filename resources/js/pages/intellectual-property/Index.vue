@@ -150,6 +150,7 @@ const columns = getIPColumns({
   showIPDetails,
   approveIP,
   declineIP,
+  canMutate: props.can_mutate,
 });
 
 const ipDetails = computed(() =>

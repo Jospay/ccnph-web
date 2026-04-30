@@ -28,10 +28,12 @@ export const getAssistanceColumns = ({
   navigateToSchedule,
   approveLoan,
   declineLoan,
+  canMutate,
 }: {
   navigateToSchedule: (id: number) => void;
   approveLoan: (id: number) => void;
   declineLoan: (id: number) => void;
+  canMutate: boolean;
 }): ColumnDef<LoanAssistance>[] => [
   {
     accessorKey: 'user_name',
@@ -113,7 +115,7 @@ export const getAssistanceColumns = ({
               },
               () => 'View Loan Details',
             ),
-            loan.status_name === 'pending'
+            canMutate && loan.status_name === 'pending'
               ? [
                   h(DropdownMenuSeparator),
                   h(

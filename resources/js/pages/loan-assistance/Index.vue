@@ -142,6 +142,7 @@ const columns = getAssistanceColumns({
   navigateToSchedule,
   approveLoan,
   declineLoan,
+  canMutate: props.can_mutate,
 });
 </script>
 
