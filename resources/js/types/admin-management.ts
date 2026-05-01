@@ -2,9 +2,20 @@ export interface AdminUser {
   id: number;
   name: string;
   email: string;
-  phone: string;
-  status_name: AdminStatus | null;
+  phone: string | null;
+  status_name: AdminStatus;
   services: AdminService[];
+}
+
+export interface AdminUserDetail extends AdminUser {
+  avatar: string;
+  gender: string | null;
+  address: string | null;
+  valid_id_type: string | null;
+  valid_id_number: string | null;
+  front_id_url: string | null;
+  back_id_url: string | null;
+  created_at: string | null;
 }
 
 export type AdminStatus = 'active';

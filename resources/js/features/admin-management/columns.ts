@@ -34,6 +34,10 @@ export const getAdminUserColumns = ({
   {
     accessorKey: 'phone',
     header: 'Phone',
+    cell: ({ row }) => {
+      const phone = row.getValue('phone') as string | null;
+      return h('div', phone ?? '-');
+    },
   },
   {
     accessorKey: 'services',

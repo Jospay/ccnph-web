@@ -14,8 +14,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { getAdminUserColumns } from '@/features/admin-management/columns';
+import { getUserDetails } from '@/features/admin-management/details';
 import adminManagement from '@/routes/admin-management';
-import type { AdminUser, AdminStatus, ApiResponse } from '@/types';
+import type {
+  AdminUser,
+  AdminStatus,
+  AdminUserDetail,
+  ApiResponse,
+} from '@/types';
 
 defineOptions({
   layout: {
@@ -58,13 +64,35 @@ const updateFilters = () => {
 const debouncedUpdate = useDebounceFn(updateFilters, 300);
 watch([selectedStatus], debouncedUpdate);
 
+// state for details
+const selectedUser = ref<AdminUserDetail | null>(null);
+const isDetailsOpen = ref(false);
+// inertia http
+const http = useHttp();
+
+// fetch user
 const showUserDetails = async (id: number) => {
-  //
+  isDetailsOpen.value = true;
+  selectedUser.value = null;
+
+  try {
+    const response = (await http.get(
+      adminManagement.users.show.url(id),
+    )) as ApiResponse<AdminUserDetail>;
+
+    selectedUser.value = response.data;
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 const columns = getAdminUserColumns({
   showUserDetails,
 });
+
+const userDetails = computed(() =>
+  selectedUser.value ? getUserDetails(selectedUser.value) : [],
+);
 </script>
 
 <template>
@@ -98,4 +126,26 @@ const columns = getAdminUserColumns({
       search-placeholder="Search name, email..."
     />
   </div>
+
+  <DetailsDialog
+    v-model:open="isDetailsOpen"
+    title="User Details"
+    :loading="http.processing || !selectedUser"
+    :items="userDetails"
+    show-default
+  >
+    <!-- CUSTOM TOP (Avatar) -->
+    <template #top>
+      <div class="mb-4 flex justify-center">
+        <div class="h-20 w-20 overflow-hidden rounded-full">
+          <a :href="selectedUser?.avatar" target="_blank">
+            <img
+              :src="selectedUser?.avatar"
+              class="h-full w-full object-cover transition hover:scale-105"
+            />
+          </a>
+        </div>
+      </div>
+    </template>
+  </DetailsDialog>
 </template>

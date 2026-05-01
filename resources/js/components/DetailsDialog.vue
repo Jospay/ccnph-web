@@ -98,7 +98,7 @@ const emit = defineEmits(['update:open']);
 
               <!-- TEXT -->
               <p v-else :class="['font-semibold wrap-break-word', item.class]">
-                {{ item.value }}
+                {{ item.value || '-' }}
               </p>
             </div>
           </div>
