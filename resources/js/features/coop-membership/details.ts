@@ -1,6 +1,6 @@
-import type { PendingUserDetail, DetailItem } from '@/types';
+import type { MemberUserDetail, DetailItem } from '@/types';
 
-export function getUserDetails(u: PendingUserDetail): DetailItem[] {
+export function getUserDetails(u: MemberUserDetail): DetailItem[] {
   return [
     { label: 'Name', value: u.name },
     { label: 'Email', value: u.email },
