@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('services', function (Blueprint $table) {
             $table->id();
             $table->boolean('is_active')->default(true);
+            $table->boolean('is_super_admin_only')->default(false);
             $table->string('name')->unique();
             $table->string('slug')->unique();
             $table->text('description')->nullable();

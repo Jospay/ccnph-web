@@ -63,7 +63,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Create admin for each service
-        $services = Service::all();
+        $services = Service::where('is_super_admin_only', false)->get();
         foreach ($services as $service) {
             $admin = User::factory()->create([
                 'name' => $service->name . " Admin",

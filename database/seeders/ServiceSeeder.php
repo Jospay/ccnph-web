@@ -10,6 +10,10 @@ class ServiceSeeder extends Seeder
 {
     public function run(): void
     {
+        $superAdminOnly = [
+            'Coop Membership',
+        ];
+
         $services = [
             'Coop Membership',
             'Business Training',
@@ -31,6 +35,7 @@ class ServiceSeeder extends Seeder
                 'name' => $service,
                 'slug' => Str::slug($service),
                 'is_active' => true,
+                'is_super_admin_only' => in_array($service, $superAdminOnly),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
