@@ -5,6 +5,7 @@ export * from './loan';
 export * from './coop-membership';
 export * from './business-training';
 export * from './intellectual-property';
+export * from './admin-management';
 
 export type ApiResponse<T> = {
   data: T;
