@@ -48,4 +48,14 @@ class AdminManagementController extends Controller
 
         return $query;
     }
+
+    public function show(User $user)
+    {
+        $user->loadMissing([
+            'status:id,name',
+            'services:id,name',
+        ]);
+
+        return AdminUserDetailResource::make($user);
+    }
 }

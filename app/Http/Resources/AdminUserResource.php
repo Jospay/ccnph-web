@@ -18,8 +18,8 @@ class AdminUserResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'email' => $this->email,
-            'phone' => $this->phone ?? '-',
-            'status_name' => $this->status?->name,
+            'phone' => $this->phone,
+            'status_name' => $this->status->name,
             'services' => $this->services->pluck('name'),
         ];
     }

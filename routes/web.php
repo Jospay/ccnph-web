@@ -45,6 +45,9 @@ Route::middleware([
     Route::get('/admin-management', [AdminManagementController::class, 'index'])
             ->name('admin-management.index');
 
+    Route::get('/admin-management/users/{user}', [AdminManagementController::class, 'show'])
+            ->name('admin-management.users.show');
+
     // Cooperative Membership Domain
     Route::middleware(['service_access:coop-membership'])->group(function () {
 
