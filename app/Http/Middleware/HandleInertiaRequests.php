@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use App\Models\Service;
+use App\Models\User;
 use App\Models\UserType;
 
 class HandleInertiaRequests extends Middleware
@@ -52,7 +53,7 @@ class HandleInertiaRequests extends Middleware
     }
 
     // sidebar purposes
-    protected function getManagedServices($user)
+    protected function getManagedServices(User $user)
     {
         // Super Admin sees all active services
         if ($user->user_type_id === UserType::SUPER_ADMIN) {
