@@ -37,7 +37,6 @@ use Laravel\Sanctum\HasApiTokens;
     'valid_id_number',
     'front_valid_id_picture',
     'back_valid_id_picture',
-    'is_active',
 ])]
 
 #[Hidden([
@@ -84,7 +83,8 @@ class User extends Authenticatable
     // relationship to services, many to many
     public function services(): BelongsToMany
     {
-        return $this->belongsToMany(Service::class);
+        return $this->belongsToMany(Service::class)
+            ->withTimestamps();
     }
 
     // relationship to loans, one to many
@@ -118,7 +118,7 @@ class User extends Authenticatable
     }
 
     // checker for service management
-    public function managesService($serviceId): bool
+    public function managesService(int $serviceId): bool
     {
         // Super Admins bypass
         if ($this->user_type_id === UserType::SUPER_ADMIN && $this->status_id === Status::ACTIVE) {
