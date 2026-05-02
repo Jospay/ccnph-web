@@ -21,18 +21,25 @@ export interface DetailItem {
 
 export type FormFieldType =
   | 'text'
+  | 'email'
+  | 'password'
   | 'textarea'
   | 'number'
   | 'select'
   | 'file'
   | 'money';
 
+export type FormFieldOptions = {
+  label: string;
+  value: string | number;
+};
+
 export interface FormField {
   type: FormFieldType;
   name: string;
   label: string;
   placeholder?: string;
-  options?: { label: string; value: string | number }[];
+  options?: FormFieldOptions[];
   required?: boolean;
   col?: number;
   accept?: string;

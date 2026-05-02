@@ -188,10 +188,15 @@ const handleSubmit = () => {
           >
             <Label>{{ field.label }}</Label>
 
-            <!-- TEXT -->
+            <!-- TEXT / EMAIL / PASSWORD -->
             <Input
-              v-if="field.type === 'text'"
+              v-if="
+                field.type === 'text' ||
+                field.type === 'email' ||
+                field.type === 'password'
+              "
               v-model="form[field.name]"
+              :type="field.type"
               :placeholder="field.placeholder"
             />
 
@@ -247,7 +252,7 @@ const handleSubmit = () => {
               v-else-if="field.type === 'select'"
               v-model="form[field.name]"
             >
-              <SelectTrigger>
+              <SelectTrigger class="w-full cursor-pointer">
                 <SelectValue :placeholder="field.placeholder" />
               </SelectTrigger>
 
