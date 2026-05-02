@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { Head, router, useHttp, useForm } from '@inertiajs/vue3';
+import { PlusIcon } from 'lucide-vue-next';
 import { useDebounceFn } from '@vueuse/core';
 import { ref, watch, computed } from 'vue';
 import { toast } from 'vue-sonner';
+import { Button } from '@/components/ui/button';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import FormDialog from '@/components/FormDialog.vue';
 import DataTable from '@/components/DataTable.vue';
 import DetailsDialog from '@/components/DetailsDialog.vue';
 import {
@@ -15,11 +18,13 @@ import {
 } from '@/components/ui/select';
 import { getAdminUserColumns } from '@/features/admin-management/columns';
 import { getUserDetails } from '@/features/admin-management/details';
+import { getAdminUserFields } from '@/features/admin-management/fields';
 import adminManagement from '@/routes/admin-management';
 import type {
   AdminUser,
   AdminStatus,
   AdminUserDetail,
+  AdminService,
   ApiResponse,
 } from '@/types';
 
@@ -41,6 +46,7 @@ const props = defineProps<{
   filters: {
     status: AdminStatus;
   };
+  services: AdminService[];
 }>();
 
 // state for select filters
@@ -93,6 +99,17 @@ const columns = getAdminUserColumns({
 const userDetails = computed(() =>
   selectedUser.value ? getUserDetails(selectedUser.value) : [],
 );
+
+// state for create
+const isCreateOpen = ref(false);
+// options for select service
+const serviceOptions = computed(() =>
+  props.services.map((s) => ({
+    label: s.name,
+    value: s.id,
+  })),
+);
+const fields = computed(() => getAdminUserFields(serviceOptions.value));
 </script>
 
 <template>
@@ -124,7 +141,16 @@ const userDetails = computed(() =>
       :columns="columns"
       :data="admin_users.data"
       search-placeholder="Search name, email..."
-    />
+    >
+      <template #custom-actions>
+        <div class="flex w-full items-center gap-3 sm:w-auto sm:gap-4">
+          <Button class="shrink-0" @click="isCreateOpen = true">
+            <PlusIcon class="h-4 w-4" />
+            <span>Add Admin</span>
+          </Button>
+        </div>
+      </template>
+    </DataTable>
   </div>
 
   <DetailsDialog
@@ -148,4 +174,16 @@ const userDetails = computed(() =>
       </div>
     </template>
   </DetailsDialog>
+
+  <!-- create form -->
+  <FormDialog
+    v-model:open="isCreateOpen"
+    title="Create Admin"
+    description="Add a new admin user with service permissions."
+    show-default
+    :fields="fields"
+    method="post"
+    :endpoint="adminManagement.users.store.url()"
+    @success="toast.success('Admin user created successfully!')"
+  />
 </template>

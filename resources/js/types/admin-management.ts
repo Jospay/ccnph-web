@@ -4,7 +4,7 @@ export interface AdminUser {
   email: string;
   phone: string | null;
   status_name: AdminStatus;
-  services: AdminService[];
+  services: AdminServiceName[];
 }
 
 export interface AdminUserDetail extends AdminUser {
@@ -18,9 +18,14 @@ export interface AdminUserDetail extends AdminUser {
   created_at: string | null;
 }
 
+export interface AdminService {
+  id: number;
+  name: AdminServiceName;
+}
+
 export type AdminStatus = 'active';
 
-export type AdminService =
+export type AdminServiceName =
   | 'Business Training'
   | 'Intellectual Property Assistance'
   | 'Loan Assistance';
