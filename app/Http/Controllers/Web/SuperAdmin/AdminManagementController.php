@@ -87,4 +87,16 @@ class AdminManagementController extends Controller
         
         return back();
     }
+
+    public function updateServices(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'service_ids' => ['required', 'array'],
+            'service_ids.*' => ['exists:services,id'],
+        ]);
+
+        $user->services()->sync($validated['service_ids']);
+
+        return back();
+    }
 }

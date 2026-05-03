@@ -43,13 +43,16 @@ Route::middleware([
 ])->group(function () {
 
     Route::get('/admin-management', [AdminManagementController::class, 'index'])
-            ->name('admin-management.index');
+        ->name('admin-management.index');
 
     Route::get('/admin-management/users/{user}', [AdminManagementController::class, 'show'])
-            ->name('admin-management.users.show');
+        ->name('admin-management.users.show');
 
     Route::post('/admin-management/users', [AdminManagementController::class, 'store'])
-            ->name('admin-management.users.store');
+        ->name('admin-management.users.store');
+
+    Route::patch('/admin-management/{user}/services', [AdminManagementController::class, 'updateServices'])
+        ->name('admin-management.users.update-services');
 
     // Cooperative Membership Domain
     Route::middleware(['service_access:coop-membership'])->group(function () {

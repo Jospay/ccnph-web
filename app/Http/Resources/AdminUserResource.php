@@ -20,7 +20,10 @@ class AdminUserResource extends JsonResource
             'email' => $this->email,
             'phone' => $this->phone,
             'status_name' => $this->status->name,
-            'services' => $this->services->pluck('name'),
+            'services' => $this->services->map(fn ($service) => [
+                'id' => $service->id,
+                'name' => $service->name,
+            ]),
         ];
     }
 }
