@@ -55,7 +55,7 @@ const handleDelete = () => {
   if (!deletingType.value) {
     return;
   }
-  
+
   isDeleting.value = true;
 
   router.delete(
@@ -166,6 +166,7 @@ const handleDelete = () => {
       :fields="businessTrainingTypeFields"
       :endpoint="businessTraining.types.update({ slug: editingType.slug })"
       method="patch"
+      force-form-data
       :initialValues="{
         name: editingType.name,
         icon: editingType.icon,
@@ -180,6 +181,7 @@ const handleDelete = () => {
       title="Create Training Type"
       description="Add a new training type."
       show-default
+      method="post"
       :fields="businessTrainingTypeFields"
       :endpoint="businessTraining.types.store.url()"
       @success="toast.success('Training type created successfully!')"

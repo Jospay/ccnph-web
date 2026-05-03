@@ -127,7 +127,7 @@ const handleSubmit = () => {
     });
     // Add method spoofing for update requests with files
 
-    if (isUpdating && hasFiles) {
+    if (isUpdating && requiresFormData) {
       payload._method = method.toUpperCase();
     }
 
@@ -144,7 +144,7 @@ const handleSubmit = () => {
   };
 
   // Logic for PUT/PATCH with files (Method Spoofing)
-  if (isUpdating && hasFiles) {
+  if (isUpdating && requiresFormData) {
     form.post(url, options);
   } else {
     // Logic for standard POST or PUT/PATCH without files
