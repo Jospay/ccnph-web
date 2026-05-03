@@ -1,6 +1,6 @@
 import { h } from 'vue';
 import type { ColumnDef } from '@tanstack/vue-table';
-import type { AdminUser } from '@/types';
+import type { AdminUser, AdminService, AdminStatus } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
@@ -13,14 +13,16 @@ import {
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-vue-next';
 
-const STATUS_STYLES: Record<string, string> = {
+const STATUS_STYLES: Record<AdminStatus, string> = {
   active: 'bg-blue-500 hover:bg-blue-600',
 };
 
 export const getAdminUserColumns = ({
   showUserDetails,
+  updateUserPermission,
 }: {
   showUserDetails: (userId: number) => void;
+  updateUserPermission: (userAdmin: AdminUser) => void;
 }): ColumnDef<AdminUser>[] => [
   {
     accessorKey: 'name',
@@ -35,7 +37,7 @@ export const getAdminUserColumns = ({
     accessorKey: 'phone',
     header: 'Phone',
     cell: ({ row }) => {
-      const phone = row.getValue('phone') as string | null;
+      const phone = row.original.phone;
       return h('div', phone ?? '-');
     },
   },
@@ -43,10 +45,10 @@ export const getAdminUserColumns = ({
     accessorKey: 'services',
     header: () => h('div', { class: 'text-center' }, 'Services'),
     cell: ({ row }) => {
-      const services = row.getValue('services') as string[];
+      const services = row.original.services;
       const display =
         Array.isArray(services) && services.length > 0
-          ? services.join(', ')
+          ? services.map((s) => s.name).join(', ')
           : '-';
 
       return h('div', { class: 'max-w-80 truncate mx-auto' }, display);
@@ -56,7 +58,7 @@ export const getAdminUserColumns = ({
     accessorKey: 'status_name',
     header: () => h('div', { class: 'text-center ' }, 'Status'),
     cell: ({ row }) => {
-      const status = row.getValue('status_name') as string;
+      const status = row.original.status_name;
 
       const badgeClass =
         STATUS_STYLES[status] ?? 'bg-gray-500 hover:bg-gray-600';
@@ -97,6 +99,15 @@ export const getAdminUserColumns = ({
                 onClick: () => showUserDetails(user.id),
               },
               () => 'View Admin Details',
+            ),
+            h(DropdownMenuSeparator),
+            h(
+              DropdownMenuItem,
+              {
+                class: 'cursor-pointer text-blue-500 focus:text-blue-600',
+                onClick: () => updateUserPermission(user),
+              },
+              () => 'Update Admin Permission',
             ),
           ]),
         ]),

@@ -4,7 +4,7 @@ export interface AdminUser {
   email: string;
   phone: string | null;
   status_name: AdminStatus;
-  services: AdminServiceName[];
+  services: AdminService[];
 }
 
 export interface AdminUserDetail extends AdminUser {

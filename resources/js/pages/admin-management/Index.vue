@@ -1,10 +1,17 @@
 <script setup lang="ts">
 import { Head, router, useHttp, useForm } from '@inertiajs/vue3';
-import { PlusIcon } from 'lucide-vue-next';
+import {
+  SquarePenIcon,
+  AlertCircleIcon,
+  PlusIcon,
+  Trash2Icon,
+} from 'lucide-vue-next';
 import { useDebounceFn } from '@vueuse/core';
 import { ref, watch, computed } from 'vue';
 import { toast } from 'vue-sonner';
+import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import FormDialog from '@/components/FormDialog.vue';
 import DataTable from '@/components/DataTable.vue';
@@ -16,6 +23,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { getAdminUserColumns } from '@/features/admin-management/columns';
 import { getUserDetails } from '@/features/admin-management/details';
 import { getAdminUserFields } from '@/features/admin-management/fields';
@@ -92,8 +107,25 @@ const showUserDetails = async (id: number) => {
   }
 };
 
+// state for update service permission
+const isPermissionOpen = ref(false);
+const selectedAdmin = ref<AdminUser | null>(null);
+const permissionInitialValues = computed(() => {
+  if (!selectedAdmin.value) return {};
+
+  return {
+    service_ids: selectedAdmin.value.services.map((s) => s.id),
+  };
+});
+
+const updateUserPermission = (user: AdminUser) => {
+  selectedAdmin.value = user;
+  isPermissionOpen.value = true;
+};
+
 const columns = getAdminUserColumns({
   showUserDetails,
+  updateUserPermission,
 });
 
 const userDetails = computed(() =>
@@ -186,4 +218,131 @@ const fields = computed(() => getAdminUserFields(serviceOptions.value));
     :endpoint="adminManagement.users.store.url()"
     @success="toast.success('Admin user created successfully!')"
   />
+
+  <!-- update service permission form -->
+  <FormDialog
+    v-if="selectedAdmin"
+    v-model:open="isPermissionOpen"
+    title="Update Admin Services"
+    description="Manage service permissions for this admin."
+    :fields="[]"
+    :show-default="false"
+    method="patch"
+    :endpoint="adminManagement.users.updateServices.url(selectedAdmin?.id)"
+    :initial-values="permissionInitialValues"
+    @success="toast.success('Permissions updated successfully!')"
+  >
+    <template #default="{ form }">
+      <div class="space-y-4">
+        <!-- EXISTING SERVICES -->
+        <div class="space-y-2">
+          <Label>Assigned Services</Label>
+
+          <div v-if="form.service_ids.length" class="space-y-2">
+            <div
+              v-for="(id, index) in form.service_ids"
+              :key="index"
+              class="flex items-center justify-between rounded-lg bg-card p-1 ps-2"
+            >
+              <span>
+                {{
+                  serviceOptions.find((s) => s.value === id)?.label || 'Unknown'
+                }}
+              </span>
+
+              <div class="flex gap-2">
+                <!-- DELETE -->
+                <Button
+                  variant="destructive"
+                  @click="
+                    () => {
+                      form.service_ids.splice(index, 1);
+                      if (form.errors.service_ids) {
+                        form.clearErrors('service_ids');
+                      }
+                    }
+                  "
+                >
+                  <Trash2Icon />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <p
+            v-else-if="form.errors.service_ids"
+            class="grid w-full items-start gap-4"
+          >
+            <Alert variant="destructive">
+              <AlertCircleIcon class="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>
+                <p>{{ form.errors.service_ids }}</p>
+              </AlertDescription>
+            </Alert>
+          </p>
+
+          <p
+            v-else-if="!form.service_ids.length"
+            class="grid w-full items-start gap-4"
+          >
+            <Alert variant="destructive">
+              <AlertCircleIcon class="h-4 w-4" />
+              <AlertTitle>No services assigned</AlertTitle>
+              <AlertDescription>
+                <p>Please assign at least one service to this admin</p>
+              </AlertDescription>
+            </Alert>
+          </p>
+        </div>
+
+        <!-- MANAGE SERVICES -->
+        <div class="space-y-2">
+          <Label>Manage Services</Label>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger as-child class="cursor-pointer">
+              <Button variant="outline" class="text-blue-400">
+                <SquarePenIcon class="me-1" />
+                Edit
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuLabel class="text-gray-500">
+                Services
+              </DropdownMenuLabel>
+              <DropdownMenuItem
+                v-for="opt in serviceOptions"
+                :key="opt.value"
+                :for="String(opt.value)"
+                @click="
+                  () => {
+                    if (!form.service_ids.includes(opt.value)) {
+                      form.service_ids.push(opt.value);
+                    } else {
+                      form.service_ids.splice(
+                        form.service_ids.indexOf(opt.value),
+                        1,
+                      );
+                    }
+                    if (form.errors.service_ids) {
+                      form.clearErrors('service_ids');
+                    }
+                  }
+                "
+                class="cursor-pointer"
+              >
+                <Checkbox
+                  :id="String(opt.value)"
+                  class="cursor-pointer border-accent-foreground/30"
+                  :model-value="form.service_ids.includes(opt.value)"
+                />
+                {{ opt.label }}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+    </template>
+  </FormDialog>
 </template>
