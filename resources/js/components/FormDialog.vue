@@ -38,6 +38,7 @@ const props = defineProps<{
   method?: 'post' | 'put' | 'patch';
   forceFormData?: boolean;
   extraData?: Record<string, any>;
+  extraValid?: (form: any) => boolean;
   initialValues?: Record<string, any>;
   showDefault?: boolean;
   loading?: boolean;
@@ -99,8 +100,10 @@ const isValid = computed(() => {
   });
   // Check if the form has been modified
   const hasChanges = form.isDirty;
+  // Run custom validation from parent
+  const customValid = props.extraValid ? props.extraValid(form) : true;
 
-  return requiredFieldsFilled && hasChanges;
+  return requiredFieldsFilled && hasChanges && customValid;
 });
 
 // submit

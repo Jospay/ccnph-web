@@ -230,6 +230,7 @@ const fields = computed(() => getAdminUserFields(serviceOptions.value));
     method="patch"
     :endpoint="adminManagement.users.updateServices.url(selectedAdmin?.id)"
     :initial-values="permissionInitialValues"
+    :extra-valid="(form) => form.service_ids?.length > 0"
     @success="toast.success('Permissions updated successfully!')"
   >
     <template #default="{ form }">
