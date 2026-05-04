@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web\SuperAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreAdminRequest;
+use App\Http\Requests\Admin\UpdateAdminServiceRequest;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\UserType;
@@ -88,12 +89,10 @@ class AdminManagementController extends Controller
         return back();
     }
 
-    public function updateServices(Request $request, User $user)
+    public function updateServices(UpdateAdminServiceRequest $request, User $user)
     {
-        $validated = $request->validate([
-            'service_ids' => ['required', 'array'],
-            'service_ids.*' => ['exists:services,id'],
-        ]);
+        $validated = $request->validated();
+        abort_if($user->user_type_id !== UserType::ADMIN, 403);
 
         $user->services()->sync($validated['service_ids']);
 
