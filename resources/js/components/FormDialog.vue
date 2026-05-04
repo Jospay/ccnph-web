@@ -229,9 +229,15 @@ const handleSubmit = () => {
 
             <!-- NUMBER -->
             <NumberField
-              v-else-if="field.type === 'number' || field.type === 'money'"
+              v-else-if="
+                field.type === 'number' ||
+                field.type === 'money' ||
+                field.type === 'percentage'
+              "
               v-model="form[field.name]"
               class="py-0.5"
+              :step="field.type === 'percentage' ? 0.0001 : undefined"
+              :min="field.type === 'percentage' ? 0.0001 : undefined"
               :format-options="
                 field.type === 'money'
                   ? {
@@ -240,7 +246,13 @@ const handleSubmit = () => {
                       currencyDisplay: 'code',
                       currencySign: 'standard',
                     }
-                  : undefined
+                  : field.type === 'percentage'
+                    ? {
+                        style: 'percent',
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 4,
+                      }
+                    : undefined
               "
             >
               <NumberFieldContent>

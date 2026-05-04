@@ -27,7 +27,8 @@ export type FormFieldType =
   | 'number'
   | 'select'
   | 'file'
-  | 'money';
+  | 'money'
+  | 'percentage';
 
 export type FormFieldOptions = {
   label: string;
