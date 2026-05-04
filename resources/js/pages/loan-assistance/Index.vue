@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { useDebounceFn } from '@vueuse/core';
-import { CreditCard, Calendar, Percent } from 'lucide-vue-next';
+import { CreditCard, Calendar, Percent, EditIcon } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import DataTable from '@/components/DataTable.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import FormDialog from '@/components/FormDialog.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import {
@@ -23,6 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { getAssistanceColumns } from '@/features/loan-assistance/columns';
+import { loanGlobalSettingsFields } from '@/features/loan-assistance/fields';
 import loanAssistance from '@/routes/loan-assistance';
 import loanSchedule from '@/routes/loan-assistance/schedule';
 import type { GlobalSetting, LoanAssistance, LoanStatus } from '@/types';
@@ -144,17 +146,29 @@ const columns = getAssistanceColumns({
   declineLoan,
   canMutate: props.can_mutate,
 });
+
+// state for global settings edit
+const isEditGlobalOpen = ref(false);
 </script>
 
 <template>
   <Head title="Loan Assistance" />
 
   <div class="flex h-full flex-1 flex-col gap-3 p-6">
-    <div>
-      <h1 class="text-2xl font-bold tracking-tight">Global Default Value</h1>
-      <p class="text-muted-foreground">
-        Manage the default loan parameters used across the system.
-      </p>
+    <div class="flex items-center justify-between pe-3">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight">Global Default Value</h1>
+        <p class="text-muted-foreground">
+          Manage the default loan parameters used across the system.
+        </p>
+      </div>
+      <Button
+        v-if="can_mutate"
+        variant="default"
+        @click="isEditGlobalOpen = true"
+      >
+        <EditIcon class="h-4 w-4" /> Edit
+      </Button>
     </div>
 
     <div class="grid gap-4 md:grid-cols-3">
@@ -227,5 +241,24 @@ const columns = getAssistanceColumns({
       cancelText="Cancel"
       @confirm="handleLoanAction"
     />
+
+    <!-- edit global settings form -->
+    <FormDialog
+      v-if="global_settings"
+      v-model:open="isEditGlobalOpen"
+      title="Edit Training Type"
+      description="Update global loan settings"
+      show-default
+      :fields="loanGlobalSettingsFields"
+      :endpoint="loanAssistance.settings.update()"
+      method="patch"
+      :initialValues="{
+        default_amount: global_settings?.default_amount,
+        default_interest_rate: global_settings?.default_interest_rate,
+        default_term_months: global_settings?.default_term_months,
+      }"
+      @success="toast.success('Updated training type successfully!')"
+    >
+    </FormDialog>
   </div>
 </template>

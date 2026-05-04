@@ -109,4 +109,21 @@ class LoanAssistanceController extends Controller
         return back();
     }
 
+
+    public function updateGlobalSettings(Request $request)
+    {
+        if (!$this->canMutate()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $validated = $request->validate([
+            'default_amount' => 'required|numeric|min:1|max:1000000',
+            'default_interest_rate' => 'required|numeric|min:0.0001|max:0.10|decimal:1,4',
+            'default_term_months' => 'required|integer|min:1|max:72',
+        ]);   
+
+        $globalSettings = LoanSetting::whereNull('user_id')->first();
+
+
+    }
 }
