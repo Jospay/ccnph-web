@@ -110,16 +110,16 @@ const showUserDetails = async (id: number) => {
 // state for update service permission
 const isPermissionOpen = ref(false);
 const selectedAdmin = ref<AdminUser | null>(null);
-const permissionInitialValues = computed(() => {
-  if (!selectedAdmin.value) return {};
 
-  return {
-    service_ids: selectedAdmin.value.services.map((s) => s.id),
-  };
+const permissionInitialValues = ref<{ service_ids: number[] }>({
+  service_ids: [],
 });
 
 const updateUserPermission = (user: AdminUser) => {
   selectedAdmin.value = user;
+  permissionInitialValues.value = {
+    service_ids: user.services.map((s) => s.id),
+  };
   isPermissionOpen.value = true;
 };
 
@@ -224,7 +224,7 @@ const fields = computed(() => getAdminUserFields(serviceOptions.value));
     v-if="selectedAdmin"
     v-model:open="isPermissionOpen"
     title="Update Admin Services"
-    description="Manage service permissions for this admin."
+    :description="`Manage service permissions for ${selectedAdmin.name}.`"
     :fields="[]"
     :show-default="false"
     method="patch"

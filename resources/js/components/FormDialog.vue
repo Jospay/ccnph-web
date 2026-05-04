@@ -139,7 +139,7 @@ const handleSubmit = () => {
     onSuccess: () => {
       emit('update:open', false);
       emit('success');
-      form.reset();
+      setTimeout(() => form.reset(), 500);
     },
   };
 
