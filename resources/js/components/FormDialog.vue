@@ -236,8 +236,8 @@ const handleSubmit = () => {
               "
               v-model="form[field.name]"
               class="py-0.5"
-              :step="field.type === 'percentage' ? 0.0001 : undefined"
-              :min="field.type === 'percentage' ? 0.0001 : undefined"
+              :step="field.type === 'percentage' ? 0.01 : undefined"
+              :min="field.type === 'percentage' ? 0 : undefined"
               :format-options="
                 field.type === 'money'
                   ? {
@@ -249,8 +249,8 @@ const handleSubmit = () => {
                   : field.type === 'percentage'
                     ? {
                         style: 'percent',
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 4,
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 2,
                       }
                     : undefined
               "

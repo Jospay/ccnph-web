@@ -29,7 +29,7 @@ class LoanAssistanceResource extends JsonResource
             'end_date' => $this->end_date,
 
             // display purposes
-            'interest_rate_display' => number_format($this->interest_rate, 2) . '%',
+            'interest_rate_display' => rtrim(rtrim(number_format($this->interest_rate * 100, 2), '0'), '.') . '%',
             'start_date_display'    => $startDate->format('M d, Y'),
             'end_date_display'      => $endDate->format('M d, Y'),
         ];
