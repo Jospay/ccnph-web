@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3';
-import { computed, watch } from 'vue';
+import { computed, watch, ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -56,6 +56,7 @@ const initialData = {
 
 // inertia form
 const form = useForm(initialData);
+const baseline = ref<Record<string, any>>({});
 
 // reset when opened, doesn't need for now
 // watch(
@@ -74,20 +75,54 @@ const form = useForm(initialData);
 //   }
 // );
 
+// check if there are any changes
+const fieldMap = Object.fromEntries(props.fields.map((f) => [f.name, f]));
+const hasChanges = computed(() => {
+  return Object.keys(form.data()).some((key) => {
+    const field = fieldMap[key];
+    if (!field) return false;
+
+    let current = form[key];
+    let original = baseline.value[key];
+
+    // normalize only numeric fields
+    if (
+      field?.type === 'number' ||
+      field?.type === 'money' ||
+      field?.type === 'percentage'
+    ) {
+      const toNumber = (val: any) => {
+        if (val === '' || val === null || val === undefined) return null;
+        return Number(val);
+      };
+
+      current = toNumber(current);
+      original = toNumber(original);
+    }
+
+    return current !== original;
+  });
+});
+
 // reset when initialValues changes
 watch(
   () => props.initialValues,
   (newValues) => {
     if (!newValues) return;
 
-    form.defaults({
+    const defaults = {
       ...Object.fromEntries(props.fields.map((f) => [f.name, ''])),
       ...newValues,
       ...(props.extraData ?? {}),
-    });
+    };
+    form.defaults(defaults);
     form.reset();
+
+    baseline.value = Object.fromEntries(
+      Object.entries(defaults).map(([key, value]) => [key, value]),
+    );
   },
-  { deep: true },
+  { deep: true, immediate: true },
 );
 
 // validation
@@ -98,12 +133,10 @@ const isValid = computed(() => {
 
     return !!form[f.name];
   });
-  // Check if the form has been modified
-  const hasChanges = form.isDirty;
   // Run custom validation from parent
   const customValid = props.extraValid ? props.extraValid(form) : true;
 
-  return requiredFieldsFilled && hasChanges && customValid;
+  return requiredFieldsFilled && hasChanges.value && customValid;
 });
 
 // submit
