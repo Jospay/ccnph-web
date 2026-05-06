@@ -7,7 +7,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class LoanSetting extends Model
 {
-    //protected $fillable = [];
+    protected $fillable = [
+        'user_id',
+        'default_amount',
+        'default_interest_rate',
+        'default_term_months',
+    ];
 
     // one to many, loan setting has one user
     public function user(): BelongsTo

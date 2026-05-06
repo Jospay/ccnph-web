@@ -120,7 +120,7 @@ Route::middleware([
         Route::get('/loan-assistance/{loan}/schedule', [LoanScheduleController::class, 'index'])
             ->name('loan-assistance.schedule.index');
 
-        Route::patch('/loan-assistance/settings', [LoanScheduleController::class, 'updateSettings'])
+        Route::patch('/loan-assistance/settings', [LoanAssistanceController::class, 'updateSettings'])
             ->name('loan-assistance.settings.update');
     });
 
