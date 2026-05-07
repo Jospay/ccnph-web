@@ -31,7 +31,7 @@ class BusinessTrainingController extends Controller
         ]);
     }
 
-    public function showType($slug)
+    public function showType(string $slug)
     {
         $type = BusinessTrainingType::where('slug', $slug)
             ->with('categories')
@@ -43,7 +43,7 @@ class BusinessTrainingController extends Controller
         ]);
     }
 
-    public function getCategoryModules($slug)
+    public function getCategoryModules(string $slug)
     {
         $category = BusinessTrainingCategory::where('slug', $slug)
             ->with('trainings')

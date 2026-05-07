@@ -171,7 +171,10 @@ const handleDelete = () => {
         name: editingType.name,
         icon: editingType.icon,
       }"
-      @success="toast.success('Updated training type successfully!')"
+      @success="
+        (toast.success('Updated training type successfully!'),
+        (editingType = null))
+      "
     >
     </FormDialog>
 

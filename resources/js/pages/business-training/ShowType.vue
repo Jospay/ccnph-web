@@ -117,7 +117,7 @@ const handleDelete = () => {
   if (!deletingCategory.value) {
     return;
   }
-  
+
   isDeleting.value = true;
 
   router.delete(
@@ -255,7 +255,8 @@ const handleDelete = () => {
           modules: editingCategory.modules ?? [],
         }"
         @success="
-          toast.success('Updated training category & modules successfully!')
+          (toast.success('Updated training category & modules successfully!'),
+          (editingCategory = null))
         "
       >
         <template #default="{ form }">

@@ -59,7 +59,11 @@ const moduleTitles: Record<number, string> = {
       <CardContent class="space-y-4">
         <!-- Intro -->
         <div class="space-y-2">
-          <Input v-model="modules[0].intro_title" placeholder="Title" />
+          <Input
+            v-model="modules[0].intro_title"
+            placeholder="Title"
+            maxlength="100"
+          />
           <p class="text-sm text-red-500">
             {{ getError('modules.0.intro_title') }}
           </p>
@@ -67,6 +71,7 @@ const moduleTitles: Record<number, string> = {
           <Textarea
             v-model="modules[0].intro_description"
             placeholder="Description"
+            maxlength="500"
           />
           <p class="text-sm text-red-500">
             {{ getError('modules.0.intro_description') }}
@@ -86,6 +91,7 @@ const moduleTitles: Record<number, string> = {
                 :model-value="item"
                 @update:model-value="(val) => (modules[0].advantages[i] = val)"
                 placeholder="Enter advantage here"
+                maxlength="3"
               />
               <p
                 v-if="getError(`modules.0.advantages.${i}`)"
@@ -158,10 +164,15 @@ const moduleTitles: Record<number, string> = {
             <p
               v-if="getError(`modules.0.required_mindset.${i}.name`)"
               class="text-sm text-destructive"
+              maxlength="100"
             >
               {{ getError(`modules.0.required_mindset.${i}.name`) }}
             </p>
-            <Textarea v-model="item.description" placeholder="Description" />
+            <Textarea
+              v-model="item.description"
+              placeholder="Description"
+              maxlength="500"
+            />
             <p
               v-if="getError(`modules.0.required_mindset.${i}.description`)"
               class="text-sm text-destructive"
@@ -200,14 +211,18 @@ const moduleTitles: Record<number, string> = {
           :key="i"
           class="mb-2 grid gap-2"
         >
-          <Input v-model="item.title" placeholder="Title" />
+          <Input v-model="item.title" placeholder="Title" maxlength="100" />
           <p
             v-if="getError(`modules.${idx}.items.${i}.title`)"
             class="text-sm text-destructive"
           >
             {{ getError(`modules.${idx}.items.${i}.title`) }}
           </p>
-          <Textarea v-model="item.description" placeholder="Description" />
+          <Textarea
+            v-model="item.description"
+            placeholder="Description"
+            maxlength="500"
+          />
           <p
             v-if="getError(`modules.${idx}.items.${i}.description`)"
             class="text-sm text-destructive"
@@ -240,7 +255,7 @@ const moduleTitles: Record<number, string> = {
       <CardContent class="space-y-4">
         <div v-for="(item, i) in modules[2].budget" :key="i" class="grid gap-2">
           <div>
-            <Input v-model="item.item" placeholder="Item" />
+            <Input v-model="item.item" placeholder="Item" maxlength="100" />
             <p
               v-if="getError(`modules.2.budget.${i}.item`)"
               class="text-sm text-destructive"
@@ -260,6 +275,8 @@ const moduleTitles: Record<number, string> = {
                   currencyDisplay: 'code',
                   currencySign: 'standard',
                 }"
+                :min="0"
+                :max="100000000"
               >
                 <NumberFieldContent>
                   <NumberFieldDecrement />
@@ -289,6 +306,8 @@ const moduleTitles: Record<number, string> = {
                   currencyDisplay: 'code',
                   currencySign: 'standard',
                 }"
+                :min="0"
+                :max="100000000"
               >
                 <NumberFieldContent>
                   <NumberFieldDecrement />
@@ -338,6 +357,8 @@ const moduleTitles: Record<number, string> = {
                 currencyDisplay: 'code',
                 currencySign: 'standard',
               }"
+              :min="0"
+              :max="100000000"
             >
               <NumberFieldContent>
                 <NumberFieldDecrement />
@@ -365,6 +386,8 @@ const moduleTitles: Record<number, string> = {
                 currencyDisplay: 'code',
                 currencySign: 'standard',
               }"
+              :min="0"
+              :max="100000000"
             >
               <NumberFieldContent>
                 <NumberFieldDecrement />
@@ -395,14 +418,18 @@ const moduleTitles: Record<number, string> = {
           :key="i"
           class="mb-2 grid gap-2"
         >
-          <Input v-model="item.title" placeholder="Title" />
+          <Input v-model="item.title" placeholder="Title" maxlength="100" />
           <p
             v-if="getError(`modules.${idx}.items.${i}.title`)"
             class="text-sm text-destructive"
           >
             {{ getError(`modules.${idx}.items.${i}.title`) }}
           </p>
-          <Textarea v-model="item.description" placeholder="Description" />
+          <Textarea
+            v-model="item.description"
+            placeholder="Description"
+            maxlength="500"
+          />
           <p
             v-if="getError(`modules.${idx}.items.${i}.description`)"
             class="text-sm text-destructive"

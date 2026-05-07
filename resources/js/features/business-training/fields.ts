@@ -7,6 +7,7 @@ export const businessTrainingTypeFields: FormField[] = [
     label: 'Type Name',
     placeholder: 'Enter Business training type',
     required: true,
+    maxlength: 100,
   },
   {
     type: 'file',
@@ -24,6 +25,7 @@ export const businessTrainingCategoryFields: FormField[] = [
     label: 'Category Name',
     placeholder: 'Enter Business training category',
     required: true,
+    maxlength: 100,
   },
   {
     type: 'textarea',
@@ -31,5 +33,6 @@ export const businessTrainingCategoryFields: FormField[] = [
     label: 'Category Description',
     placeholder: 'Enter Business training category description',
     required: true,
+    maxlength: 500,
   },
 ];
