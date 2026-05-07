@@ -305,6 +305,9 @@ const ipDetails = computed(() =>
         label: 'Amount',
         type: 'money',
         required: true,
+        placeholder: 'Enter amount',
+        min: 0,
+        max: 100000000,
       },
     ]"
     :endpoint="intellectualPropertyAssistance.updateStatus.url(selectedIPId)"

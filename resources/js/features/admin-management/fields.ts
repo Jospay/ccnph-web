@@ -17,6 +17,7 @@ export const getAdminUserFields = (
     label: 'Name',
     placeholder: 'Enter admin name',
     required: true,
+    maxlength: 100,
   },
   {
     type: 'email',
@@ -24,6 +25,7 @@ export const getAdminUserFields = (
     label: 'Email',
     placeholder: 'Enter admin email',
     required: true,
+    maxlength: 100,
   },
 
   {
@@ -32,6 +34,7 @@ export const getAdminUserFields = (
     label: 'Password',
     placeholder: 'Enter admin password',
     required: true,
+    maxlength: 100,
   },
   {
     type: 'password',
@@ -39,5 +42,6 @@ export const getAdminUserFields = (
     label: 'Confirm Password',
     placeholder: 'Confirm admin password',
     required: true,
+    maxlength: 100,
   },
 ];

@@ -7,6 +7,8 @@ export const loanGlobalSettingsFields: FormField[] = [
     label: 'Default Amount',
     placeholder: 'Enter default amount',
     required: true,
+    min: 0,
+    max: 100000000,
   },
   {
     type: 'percentage',
@@ -14,6 +16,9 @@ export const loanGlobalSettingsFields: FormField[] = [
     label: 'Default Interest Rate',
     placeholder: 'Enter default interest rate',
     required: true,
+    min: 0,
+    max: 0.99,
+    step: 0.01,
   },
   {
     type: 'number',
@@ -21,5 +26,7 @@ export const loanGlobalSettingsFields: FormField[] = [
     label: 'Default Term (Months)',
     placeholder: 'Enter default term (months)',
     required: true,
+    min: 0,
+    max: 72,
   },
 ];
