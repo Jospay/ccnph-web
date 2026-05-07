@@ -13,6 +13,7 @@ use App\Models\LoanSetting;
 use App\Models\Loan;
 use App\Models\Status;
 use App\Http\Resources\LoanAssistanceResource;
+use App\Http\Requests\Loan\UpdateSettingRequest;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
@@ -110,18 +111,10 @@ class LoanAssistanceController extends Controller
     }
 
 
-    public function updateSettings(Request $request)
+    public function updateSettings(UpdateSettingRequest $request)
     {
-        
-        if (!$this->canMutate()) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $validated = $request->validate([
-            'default_amount' => 'required|numeric|min:1|max:1000000',
-            'default_interest_rate' => 'required|numeric|min:0.01|max:0.99|decimal:1,4',
-            'default_term_months' => 'required|integer|min:1|max:72',
-        ]);   
+        // Authorization and Validation
+        $validated = $request->validated();
 
         LoanSetting::updateOrCreate(
             ['user_id' => null],
