@@ -43,5 +43,13 @@ export interface FormField {
   options?: FormFieldOptions[];
   required?: boolean;
   col?: number;
+  // text-based
+  minlength?: number;
+  maxlength?: number;
+  // numeric
+  min?: number;
+  max?: number;
+  step?: number;
+  // file
   accept?: string;
 }

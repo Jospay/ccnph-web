@@ -234,6 +234,8 @@ const handleSubmit = () => {
               v-model="form[field.name]"
               :type="field.type"
               :placeholder="field.placeholder"
+              :minlength="field.minlength"
+              :maxlength="field.maxlength"
             />
 
             <div v-else-if="field.type === 'file'">
@@ -258,6 +260,8 @@ const handleSubmit = () => {
               v-else-if="field.type === 'textarea'"
               v-model="form[field.name]"
               :placeholder="field.placeholder"
+              :minlength="field.minlength"
+              :maxlength="field.maxlength"
             />
 
             <!-- NUMBER -->
@@ -269,8 +273,9 @@ const handleSubmit = () => {
               "
               v-model="form[field.name]"
               class="py-0.5"
-              :step="field.type === 'percentage' ? 0.01 : undefined"
-              :min="field.type === 'percentage' ? 0 : undefined"
+              :step="field.step"
+              :min="field.min"
+              :max="field.max"
               :format-options="
                 field.type === 'money'
                   ? {
