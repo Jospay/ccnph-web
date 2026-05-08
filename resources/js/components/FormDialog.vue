@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
+import { useFileValidation } from '@/composables/useFileValidation';
 import type { FormField } from '@/types';
 
 const props = defineProps<{
@@ -124,6 +125,9 @@ watch(
   },
   { deep: true, immediate: true },
 );
+
+// file valdiation
+const { handleFileChange, fileInputKeys } = useFileValidation(form);
 
 // validation
 const isValid = computed(() => {
@@ -241,9 +245,10 @@ const handleSubmit = () => {
             <div v-else-if="field.type === 'file'">
               <!-- FILE -->
               <Input
+                :key="`${field.name}-${fileInputKeys[field.name]}`"
                 type="file"
                 :accept="field.accept"
-                @change="(e: any) => (form[field.name] = e.target.files?.[0])"
+                @change="(e: Event) => handleFileChange(e, field)"
               />
               <!-- display initial values of file -->
               <a
@@ -321,7 +326,10 @@ const handleSubmit = () => {
             </Select>
 
             <!-- ERROR -->
-            <p v-if="form.errors[field.name]" class="text-sm text-destructive">
+            <p
+              v-if="form.errors[field.name]"
+              class="ms-2 text-sm text-destructive"
+            >
               {{ form.errors[field.name] }}
             </p>
           </div>

@@ -52,4 +52,6 @@ export interface FormField {
   step?: number;
   // file
   accept?: string;
+  minFileSize?: number;
+  maxFileSize?: number;
 }
