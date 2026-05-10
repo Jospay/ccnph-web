@@ -69,9 +69,10 @@ const value = computed({
     <PopoverContent class="w-auto p-0" align="start">
       <Calendar
         v-model="value"
+        :placeholder="value"
         layout="month-and-year"
         initial-focus
-        :disable-outside-days="true"
+        disable-days-outside-current-view
       />
     </PopoverContent>
   </Popover>

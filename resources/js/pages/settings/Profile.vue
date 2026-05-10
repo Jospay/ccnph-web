@@ -5,6 +5,7 @@ import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileCo
 import DeleteUser from '@/components/DeleteUser.vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
+import DatePicker from '@/components/DatePicker.vue';
 import {
   Select,
   SelectContent,
@@ -133,15 +134,7 @@ const submit = () => {
 
       <div class="grid gap-2">
         <Label for="birthdate">Birth date</Label>
-        <Input
-          v-model="form.birthdate"
-          id="birthdate"
-          type="date"
-          class="mt-1 block w-full"
-          name="birthdate"
-          autocomplete="tel"
-          placeholder="Birth date"
-        />
+        <DatePicker v-model="form.birthdate" />
         <InputError class="mt-2" :message="form.errors.birthdate" />
       </div>
 
