@@ -14,8 +14,6 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('status_id')->default(5)->constrained();
-            $table->unsignedBigInteger('amount')->nullable();
-            $table->unsignedInteger('term_months')->nullable();
             $table->enum('creation_type', ['business_idea', 'invention']);
             $table->enum('form_type', ['payment', 'grant']);
             $table->string('title');
