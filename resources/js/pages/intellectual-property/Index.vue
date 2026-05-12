@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select';
 import { getIPColumns } from '@/features/intellectual-property/columns';
 import { getIPDetails } from '@/features/intellectual-property/details';
+import { intellectualPropertySettingFields } from '@/features/intellectual-property/fields';
 import intellectualPropertyAssistance from '@/routes/intellectual-property-assistance';
 import type {
   IntellectualProperty,
@@ -299,17 +300,7 @@ const ipDetails = computed(() =>
     :initialValues="{
       action: 'approve',
     }"
-    :fields="[
-      {
-        name: 'amount',
-        label: 'Amount',
-        type: 'money',
-        required: true,
-        placeholder: 'Enter amount',
-        min: 0,
-        max: 100000000,
-      },
-    ]"
+    :fields="intellectualPropertySettingFields"
     :endpoint="intellectualPropertyAssistance.updateStatus.url(selectedIPId)"
     @success="toast.success('Training type created successfully!')"
   />
