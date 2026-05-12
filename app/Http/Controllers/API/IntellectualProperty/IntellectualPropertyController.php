@@ -134,7 +134,7 @@ class IntellectualPropertyController extends Controller
             'status',
             'schedules',
             'documents',
-            'settings',
+            'setting',
             'payments'
         ]);
 
@@ -188,7 +188,7 @@ class IntellectualPropertyController extends Controller
      */
     private function parseIncludes(?string $include): array
     {
-        $allowed = ['settings', 'claims', 'documents', 'schedules', 'payments', 'status'];
+        $allowed = ['setting', 'claims', 'documents', 'schedules', 'payments', 'status'];
 
         if (empty($include)) {
             return [];
