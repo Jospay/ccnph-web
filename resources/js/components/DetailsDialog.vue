@@ -23,7 +23,9 @@ const emit = defineEmits(['update:open']);
 
 <template>
   <Dialog :open="open" @update:open="emit('update:open', $event)">
-    <DialogContent class="flex max-h-[85vh] flex-col p-3 pe-2">
+    <DialogContent
+      class="flex max-h-[85vh] flex-col p-3 pe-2 dark:bg-secondary"
+    >
       <DialogHeader class="p-3 pb-0">
         <DialogTitle>{{ title || 'Details' }}</DialogTitle>
       </DialogHeader>

@@ -195,7 +195,9 @@ const handleSubmit = () => {
 
 <template>
   <Dialog :open="open" @update:open="emit('update:open', $event)">
-    <DialogContent class="flex max-h-[85vh] flex-col p-3 pe-2">
+    <DialogContent
+      class="flex max-h-[85vh] flex-col p-3 pe-2 dark:bg-primary-foreground"
+    >
       <DialogHeader class="p-3">
         <DialogTitle>{{ title || 'Form' }}</DialogTitle>
         <DialogDescription>

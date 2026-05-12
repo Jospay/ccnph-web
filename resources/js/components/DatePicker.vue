@@ -51,7 +51,7 @@ const value = computed({
         variant="outline"
         :class="
           cn(
-            'w-full justify-start text-left font-normal',
+            'w-full justify-start bg-transparent text-left font-normal hover:bg-transparent',
             !modelValue && 'text-muted-foreground',
           )
         "
