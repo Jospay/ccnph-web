@@ -87,15 +87,25 @@ class IntellectualPropertyController extends Controller
     public function updateStatus(UpdateStatusRequest $request, IntellectualProperty $property,)
     {
         // Authorization and Validation
-        $action = $request->validated('action');
-        $amount = $request->validated('amount');
+        $validated = $request->validated();
 
-        if ($action === 'approve' && $property->status_id === Status::PENDING) {
+         if ($validated['action'] === 'approve' && $property->status_id === Status::PENDING) {
             if ($property->form_type === 'payment') {
                 $property->update([
-                    'amount' => $amount,
                     'status_id' => Status::WAITING_FOR_PAYMENT,
                 ]);
+
+                $property->setting()->updateOrCreate(
+                    [
+                        'intellectual_property_id' => $property->id,
+                    ],
+                    [
+                        'amount' => $validated['amount'],
+                        'allowed_term_months' =>
+                            $validated['allowed_term_months'],
+                    ]
+                );
+
             } elseif ($property->form_type === 'grant') {
                 $property->update([
                     'status_id' => Status::REGISTERED,
@@ -103,7 +113,7 @@ class IntellectualPropertyController extends Controller
             }
         }
 
-        if ($action === 'decline' && $property->status_id === Status::PENDING) {
+        if ($validated['action'] === 'decline' && $property->status_id === Status::PENDING) {
             $property->update([
                 'status_id' => Status::REJECTED,
             ]);
