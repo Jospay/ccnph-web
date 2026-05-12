@@ -28,6 +28,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { useFileValidation } from '@/composables/useFileValidation';
+import { Checkbox } from '@/components/ui/checkbox';
 import type { FormField } from '@/types';
 
 const props = defineProps<{
@@ -134,6 +135,12 @@ const isValid = computed(() => {
   // Check if all required fields are filled
   const requiredFieldsFilled = props.fields.every((f) => {
     if (!f.required) return true;
+
+    // checker for checkbox group
+    const value = form[f.name];
+    if (Array.isArray(value)) {
+      return value.length > 0;
+    }
 
     return !!form[f.name];
   });
@@ -306,6 +313,49 @@ const handleSubmit = () => {
                 <NumberFieldIncrement />
               </NumberFieldContent>
             </NumberField>
+
+            <!-- CHECKBOX GROUP -->
+            <div
+              v-else-if="field.type === 'checkbox-group'"
+              class="my-0.5 grid grid-cols-2 gap-2"
+            >
+              <Label
+                v-for="opt in field.options"
+                :key="opt.value"
+                :for="`${field.name}-${opt.value}`"
+                class="flex cursor-pointer items-center gap-2 rounded-md border p-2 hover:bg-accent"
+              >
+                <Checkbox
+                  :id="`${field.name}-${opt.value}`"
+                  :model-value="
+                    Array.isArray(form[field.name]) &&
+                    form[field.name].includes(Number(opt.value))
+                  "
+                  @update:model-value="
+                    () => {
+                      // initialize array safely
+                      if (!Array.isArray(form[field.name])) {
+                        form[field.name] = [];
+                      }
+
+                      const value = Number(opt.value);
+                      const index = form[field.name].indexOf(value);
+
+                      if (index > -1) {
+                        form[field.name].splice(index, 1);
+                      } else {
+                        form[field.name].push(value);
+                      }
+                    }
+                  "
+                  class="cursor-pointer border-accent-foreground/30"
+                />
+
+                <span class="text-sm">
+                  {{ opt.label }}
+                </span>
+              </Label>
+            </div>
 
             <!-- SELECT -->
             <Select

@@ -28,7 +28,8 @@ export type FormFieldType =
   | 'select'
   | 'file'
   | 'money'
-  | 'percentage';
+  | 'percentage'
+  | 'checkbox-group';
 
 export type FormFieldOptions = {
   label: string;
