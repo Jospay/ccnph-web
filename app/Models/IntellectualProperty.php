@@ -16,6 +16,8 @@ class IntellectualProperty extends Model
     protected $fillable = [
         'user_id',
         'status_id',
+        'amount',
+        'term_months',
         'creation_type',
         'form_type',
         'title',
@@ -27,6 +29,8 @@ class IntellectualProperty extends Model
 
     protected $casts = [
         'status_id' => 'integer',
+        'amount' => 'integer',
+        'term_months' => 'integer',
         'activated_at' => 'date',
         'expires_at' => 'date',
     ];
