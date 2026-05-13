@@ -176,8 +176,20 @@ class IntellectualPropertyController extends Controller
         ]);
     }
 
-    public function settings(IntellectualProperty $intellectualProperty): JsonResponse
+    public function settings(Request $request, IntellectualProperty $intellectualProperty): JsonResponse
     {
+        abort_if(
+            is_null($intellectualProperty->id),
+            404,
+            'Not Found'
+        );
+
+        abort_if(
+            (int) $intellectualProperty->user_id !== (int) $request->user()->id,
+            403,
+            'Unauthorized'
+        );
+
         return response()->json(
             $this->intellectualPropertyService->getSettings($intellectualProperty)
         );
