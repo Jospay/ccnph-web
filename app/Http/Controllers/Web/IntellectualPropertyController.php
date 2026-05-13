@@ -81,6 +81,12 @@ class IntellectualPropertyController extends Controller
             'documents',
         ]);
 
+        if ($property->form_type === 'payment' && $property->status_id !== Status::PENDING) {
+            $property->loadMissing([
+                'schedules.status:id,name',
+            ]);
+        }
+
         return IntellectualPropertyDetailResource::make($property);
     }
 
