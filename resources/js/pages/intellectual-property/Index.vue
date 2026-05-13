@@ -7,6 +7,7 @@ import DataTable from '@/components/DataTable.vue';
 import DetailsDialog from '@/components/DetailsDialog.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import FormDialog from '@/components/FormDialog.vue';
+import IPPaymentViewer from '@/components/IPPaymentViewer.vue';
 import {
   Select,
   SelectContent,
@@ -224,6 +225,9 @@ const ipDetails = computed(() =>
   >
     <template #bottom>
       <div v-if="selectedIP" class="mt-4 space-y-6">
+        <!-- PAYMENT -->
+        <IPPaymentViewer :intellectual-property="selectedIP" />
+
         <!-- CLAIMS -->
         <div>
           <h3 class="mb-1 text-xs text-muted-foreground">Claims</h3>

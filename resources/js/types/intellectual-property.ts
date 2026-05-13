@@ -17,11 +17,22 @@ export interface IntellectualProperty {
   title: string;
 }
 
+export interface IntellectualPropertySchedule {
+  id: number;
+  installment_no: number;
+  amount: number;
+  due_date: string;
+  status_name: string;
+}
+
 export interface IntellectualPropertyDetail extends IntellectualProperty {
   description: string;
   applicability: string;
+  amount?: number;
+  term_months?: number;
   claims: IntellectualPropertyClaim[];
   documents: IntellectualPropertyDocument[];
+  schedules?: IntellectualPropertySchedule[];
 }
 
 // filter usage
