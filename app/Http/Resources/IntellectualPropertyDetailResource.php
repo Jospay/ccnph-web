@@ -44,7 +44,10 @@ class IntellectualPropertyDetailResource extends JsonResource
 
             'schedules' => $this->when(
                 $this->form_type === 'payment' &&
-                $this->status_id !== Status::PENDING,
+                !in_array($this->status_id, [
+                    Status::PENDING,
+                    Status::REJECTED,
+                ], true),
                 fn () => $this->schedules->map(fn ($schedule) => [
                     'id' => $schedule->id,
                     'installment_no' => $schedule->installment_no,

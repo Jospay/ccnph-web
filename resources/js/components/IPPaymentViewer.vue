@@ -40,7 +40,7 @@ const STATUS_STYLES: Record<string, string> = {
   <Collapsible
     v-if="
       intellectualProperty.form_type === 'payment' &&
-      intellectualProperty.status_name !== 'pending'
+      !['pending', 'rejected'].includes(intellectualProperty.status_name)
     "
     class="overflow-hidden rounded-xl border transition-all duration-300 dark:bg-card/50 dark:hover:bg-card"
   >
