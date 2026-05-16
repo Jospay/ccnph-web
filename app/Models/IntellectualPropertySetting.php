@@ -19,7 +19,7 @@ class IntellectualPropertySetting extends Model
 
     public static function current(IntellectualProperty $ip): self
     {
-        return $ip->settings()->latest()->first()
+        return $ip->setting
             ?? throw new IntellectualPropertySettingsNotFoundException();
     }
 }

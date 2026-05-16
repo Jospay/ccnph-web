@@ -27,7 +27,7 @@ class UpdateStatusRequest extends FormRequest
     {
         // Retrieve the model from the route
         $property = $this->route('property');
-        
+
         $requiresPaymentFields =
             $property &&
             $this->input('action') === 'approve' &&
