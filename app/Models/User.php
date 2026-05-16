@@ -67,7 +67,7 @@ class User extends Authenticatable
             'phone_verified_at' => 'datetime',
             'two_factor_confirmed_at' => 'datetime',
 
-            'birthdate' => 'date',
+            'birthdate' => 'date:Y-m-d',
 
             'is_active' => 'boolean',
             'password' => 'hashed',

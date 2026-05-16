@@ -10,6 +10,15 @@ export type User = {
   name: string;
   email: string;
   avatar?: string;
+  phone: string | null;
+  birthdate: string | null;
+  gender: string | null;
+  region: string | null;
+  province: string | null;
+  city: string | null;
+  barangay: string | null;
+  street: string | null;
+  postal_code: string | null;
   email_verified_at: string | null;
   created_at: string;
   updated_at: string;

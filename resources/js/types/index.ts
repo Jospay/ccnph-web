@@ -28,7 +28,8 @@ export type FormFieldType =
   | 'select'
   | 'file'
   | 'money'
-  | 'percentage';
+  | 'percentage'
+  | 'checkbox-group';
 
 export type FormFieldOptions = {
   label: string;
@@ -52,4 +53,6 @@ export interface FormField {
   step?: number;
   // file
   accept?: string;
+  minFileSize?: number;
+  maxFileSize?: number;
 }

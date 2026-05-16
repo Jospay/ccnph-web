@@ -27,6 +27,8 @@ import {
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
+import { useFileValidation } from '@/composables/useFileValidation';
+import { Checkbox } from '@/components/ui/checkbox';
 import type { FormField } from '@/types';
 
 const props = defineProps<{
@@ -125,11 +127,20 @@ watch(
   { deep: true, immediate: true },
 );
 
+// file valdiation
+const { handleFileChange, fileInputKeys } = useFileValidation(form);
+
 // validation
 const isValid = computed(() => {
   // Check if all required fields are filled
   const requiredFieldsFilled = props.fields.every((f) => {
     if (!f.required) return true;
+
+    // checker for checkbox group
+    const value = form[f.name];
+    if (Array.isArray(value)) {
+      return value.length > 0;
+    }
 
     return !!form[f.name];
   });
@@ -191,7 +202,9 @@ const handleSubmit = () => {
 
 <template>
   <Dialog :open="open" @update:open="emit('update:open', $event)">
-    <DialogContent class="flex max-h-[85vh] flex-col p-3 pe-2">
+    <DialogContent
+      class="flex max-h-[85vh] flex-col p-3 pe-2 dark:bg-primary-foreground"
+    >
       <DialogHeader class="p-3">
         <DialogTitle>{{ title || 'Form' }}</DialogTitle>
         <DialogDescription>
@@ -241,9 +254,10 @@ const handleSubmit = () => {
             <div v-else-if="field.type === 'file'">
               <!-- FILE -->
               <Input
+                :key="`${field.name}-${fileInputKeys[field.name]}`"
                 type="file"
                 :accept="field.accept"
-                @change="(e: any) => (form[field.name] = e.target.files?.[0])"
+                @change="(e: Event) => handleFileChange(e, field)"
               />
               <!-- display initial values of file -->
               <a
@@ -300,6 +314,49 @@ const handleSubmit = () => {
               </NumberFieldContent>
             </NumberField>
 
+            <!-- CHECKBOX GROUP -->
+            <div
+              v-else-if="field.type === 'checkbox-group'"
+              class="my-0.5 grid grid-cols-2 gap-2"
+            >
+              <Label
+                v-for="opt in field.options"
+                :key="opt.value"
+                :for="`${field.name}-${opt.value}`"
+                class="flex cursor-pointer items-center gap-2 rounded-md border p-2 hover:bg-accent"
+              >
+                <Checkbox
+                  :id="`${field.name}-${opt.value}`"
+                  :model-value="
+                    Array.isArray(form[field.name]) &&
+                    form[field.name].includes(Number(opt.value))
+                  "
+                  @update:model-value="
+                    () => {
+                      // initialize array safely
+                      if (!Array.isArray(form[field.name])) {
+                        form[field.name] = [];
+                      }
+
+                      const value = Number(opt.value);
+                      const index = form[field.name].indexOf(value);
+
+                      if (index > -1) {
+                        form[field.name].splice(index, 1);
+                      } else {
+                        form[field.name].push(value);
+                      }
+                    }
+                  "
+                  class="cursor-pointer border-accent-foreground/30"
+                />
+
+                <span class="text-sm">
+                  {{ opt.label }}
+                </span>
+              </Label>
+            </div>
+
             <!-- SELECT -->
             <Select
               v-else-if="field.type === 'select'"
@@ -321,7 +378,10 @@ const handleSubmit = () => {
             </Select>
 
             <!-- ERROR -->
-            <p v-if="form.errors[field.name]" class="text-sm text-destructive">
+            <p
+              v-if="form.errors[field.name]"
+              class="ms-2 text-sm text-destructive"
+            >
               {{ form.errors[field.name] }}
             </p>
           </div>

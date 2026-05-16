@@ -134,7 +134,7 @@ class IntellectualPropertyController extends Controller
             'status',
             'schedules',
             'documents',
-            'settings',
+            'setting',
             'payments'
         ]);
 
@@ -179,8 +179,20 @@ class IntellectualPropertyController extends Controller
         ]);
     }
 
-    public function settings(IntellectualProperty $intellectualProperty): JsonResponse
+    public function settings(Request $request, IntellectualProperty $intellectualProperty): JsonResponse
     {
+        abort_if(
+            is_null($intellectualProperty->id),
+            404,
+            'Not Found'
+        );
+
+        abort_if(
+            (int) $intellectualProperty->user_id !== (int) $request->user()->id,
+            403,
+            'Unauthorized'
+        );
+
         return response()->json(
             $this->intellectualPropertyService->getSettings($intellectualProperty)
         );
@@ -191,7 +203,7 @@ class IntellectualPropertyController extends Controller
      */
     private function parseIncludes(?string $include): array
     {
-        $allowed = ['settings', 'claims', 'documents', 'schedules', 'payments', 'status'];
+        $allowed = ['setting', 'claims', 'documents', 'schedules', 'payments', 'status'];
 
         if (empty($include)) {
             return [];

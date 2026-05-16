@@ -17,6 +17,16 @@ trait ProfileValidationRules
         return [
             'name' => $this->nameRules(),
             'email' => $this->emailRules($userId),
+            'phone' => $this->phoneRules($userId),
+            'gender' => $this->genderRules(),
+            'birthdate' => $this->birthdateRules(),
+
+            'region' => $this->regionRules(),
+            'province' => $this->provinceRules(),
+            'city' => $this->cityRules(),
+            'barangay' => $this->barangayRules(),
+            'street' => $this->streetRules(),
+            'postal_code' => $this->postalCodeRules(),
         ];
     }
 
@@ -45,6 +55,95 @@ trait ProfileValidationRules
             $userId === null
                 ? Rule::unique(User::class)
                 : Rule::unique(User::class)->ignore($userId),
+        ];
+    }
+
+    protected function phoneRules(?int $userId = null): array
+    {
+        return [
+            'nullable',
+            'string',
+            'max:20',
+
+            $userId === null
+                ? Rule::unique(User::class)
+                : Rule::unique(User::class)->ignore($userId),
+        ];
+    }
+
+    protected function genderRules(): array
+    {
+        return [
+            'nullable',
+            Rule::in([
+                'Male',
+                'Female',
+                'Other',
+                'Prefer not to say',
+            ]),
+        ];
+    }
+
+    protected function birthdateRules(): array
+    {
+        return [
+            'nullable',
+            'date',
+            'before:today',
+        ];
+    }
+
+    protected function regionRules(): array
+    {
+        return [
+            'nullable',
+            'string',
+            'max:255',
+        ];
+    }
+
+    protected function provinceRules(): array
+    {
+        return [
+            'nullable',
+            'string',
+            'max:255',
+        ];
+    }
+
+    protected function cityRules(): array
+    {
+        return [
+            'nullable',
+            'string',
+            'max:255',
+        ];
+    }
+
+    protected function barangayRules(): array
+    {
+        return [
+            'nullable',
+            'string',
+            'max:255',
+        ];
+    }
+
+    protected function streetRules(): array
+    {
+        return [
+            'nullable',
+            'string',
+            'max:255',
+        ];
+    }
+
+    protected function postalCodeRules(): array
+    {
+        return [
+            'nullable',
+            'string',
+            'max:20',
         ];
     }
 }

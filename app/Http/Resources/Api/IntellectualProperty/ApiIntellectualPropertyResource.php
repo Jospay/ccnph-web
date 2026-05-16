@@ -65,7 +65,7 @@ class ApiIntellectualPropertyResource extends JsonApiResource
         'schedules' => ApiIntellectualPropertyScheduleResource::class,
         'claims' => ApiIntellectualPropertyClaimResource::class,
         'documents' => ApiIntellectualPropertyDocumentResource::class,
-        'settings' => ApiIntellectualPropertySettingResource::class,
+        'setting' => ApiIntellectualPropertySettingResource::class,
         'payments' => ApiIntellectualPropertyPaymentResource::class,
     ];
 }

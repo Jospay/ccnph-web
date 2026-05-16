@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class IntellectualProperty extends Model
 {
@@ -69,9 +70,9 @@ class IntellectualProperty extends Model
         return $this->hasMany(IntellectualPropertySchedule::class);
     }
 
-    public function settings(): HasMany
+    public function setting(): HasOne
     {
-        return $this->hasMany(IntellectualPropertySetting::class);
+        return $this->hasOne(IntellectualPropertySetting::class);
     }
 
     public function tryActivate(): void

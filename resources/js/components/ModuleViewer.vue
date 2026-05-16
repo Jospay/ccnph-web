@@ -18,7 +18,7 @@ const formatCurrency = (val: number) =>
     <div
       v-for="module in modules"
       :key="module.id"
-      class="space-y-4 rounded-lg border p-4"
+      class="space-y-4 rounded-lg border border-secondary-foreground/80 p-4"
     >
       <h3 class="text-lg font-semibold">Module {{ module.module }}</h3>
 
@@ -50,7 +50,7 @@ const formatCurrency = (val: number) =>
             <div
               v-for="(m, i) in block.required_mindset"
               :key="i"
-              class="rounded border p-2"
+              class="rounded border border-secondary-foreground/20 p-2"
             >
               <p class="font-medium">{{ m.name }}</p>
               <p class="text-sm text-muted-foreground">
@@ -66,7 +66,7 @@ const formatCurrency = (val: number) =>
         <div
           v-for="(item, i) in module.content"
           :key="i"
-          class="space-y-1 border-b pb-2"
+          class="space-y-1 border-b border-secondary-foreground/20 pb-2"
         >
           <p class="font-medium">{{ item.title }}</p>
           <p class="text-sm text-muted-foreground">
@@ -83,7 +83,7 @@ const formatCurrency = (val: number) =>
           <div
             v-for="(b, i) in module.content.budget"
             :key="i"
-            class="flex justify-between border-b pb-1 text-sm"
+            class="flex justify-between border-b border-secondary-foreground/20 pb-1 text-sm"
           >
             <span>{{ b.item }}</span>
             <span

@@ -12,7 +12,7 @@ return new class extends Migration {
     {
         Schema::create('intellectual_property_settings', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('intellectual_property_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('intellectual_property_id')->unique()->constrained()->cascadeOnDelete();
             $table->unsignedBigInteger('amount');
             $table->json('allowed_term_months');
             $table->timestamps();

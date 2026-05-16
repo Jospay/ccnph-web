@@ -27,18 +27,29 @@ class UpdateStatusRequest extends FormRequest
     {
         // Retrieve the model from the route
         $property = $this->route('property');
+        
+        $requiresPaymentFields =
+            $property &&
+            $this->input('action') === 'approve' &&
+            $property->form_type === 'payment';
 
         return [
             'action' => ['required', Rule::in(['approve', 'decline'])],
             'amount' => [
+                Rule::requiredIf($requiresPaymentFields),
                 'nullable',
                 'numeric',
                 'min:1',
                 'max:1000000000',
-                Rule::requiredIf(function () use ($property) {
-                    return $property && $this->input('action') === 'approve' && 
-                        $property->form_type === 'payment';
-                }),
+            ],
+            'allowed_term_months' => [
+                Rule::requiredIf($requiresPaymentFields),
+                'array',
+                'min:1',
+            ],
+            'allowed_term_months.*' => [
+                'integer',
+                Rule::in([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
             ],
         ];
     }

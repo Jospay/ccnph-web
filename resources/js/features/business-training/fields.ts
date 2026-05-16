@@ -15,6 +15,7 @@ export const businessTrainingTypeFields: FormField[] = [
     label: 'Icon',
     placeholder: 'Upload icon',
     accept: 'image/jpeg, image/png',
+    maxFileSize: 1024 * 1024,
   },
 ];
 
