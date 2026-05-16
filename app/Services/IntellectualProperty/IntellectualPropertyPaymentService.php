@@ -159,7 +159,10 @@ class IntellectualPropertyPaymentService
         }
 
         // Block in-flight payment
-        if ($schedule->payments()->where('status_id', Status::PENDING)->exists()) {
+        if ($schedule->payments()
+            ->where('status_id', Status::PENDING)
+            ->where('created_at', '>', now()->subMinutes(1))
+            ->exists()) {
             throw new IntellectualPropertyPaymentExistsException($schedule);
         }
     }

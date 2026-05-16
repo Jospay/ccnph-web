@@ -10,7 +10,7 @@ class IntellectualPropertyPaymentExistsException extends Exception
     public function __construct(
         public readonly IntellectualPropertySchedule $schedule,
     ) {
-        parent::__construct('A payment is already pending for this schedule. Complete or cancel it first.');
+        parent::__construct('A payment is already pending. Please wait 1 minute before requesting a new link.');
     }
 
     public function render(): \Illuminate\Http\JsonResponse

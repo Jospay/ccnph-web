@@ -171,7 +171,10 @@ class IntellectualPropertyController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Payment initiated.',
-            'data' => new ApiIntellectualPropertyScheduleResource($schedule),
+            'data' => [
+                'schedule' => new ApiIntellectualPropertyScheduleResource($schedule),
+                'payment' => $result['payment'],
+            ],
             'next_action' => $result['next_action'],
         ]);
     }
