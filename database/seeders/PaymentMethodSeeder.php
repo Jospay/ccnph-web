@@ -21,7 +21,7 @@ class PaymentMethodSeeder extends Seeder
             ['id' => 5, 'name' => 'BillEase', 'gateway_type' => 'billease'],
             ['id' => 6, 'name' => 'GrabPay', 'gateway_type' => 'grab_pay'],
             ['id' => 7, 'name' => 'DOB', 'gateway_type' => 'dob'],
-            ['id' => 8, 'name' => 'Wallet', 'gateway_type' => null],
+            ['id' => 8, 'name' => 'Wallet', 'gateway_type' => 'wallet'],
         ]);
     }
 }
