@@ -8,6 +8,7 @@ use App\Http\Controllers\API\BusinessTraining\TypeController;
 use App\Http\Controllers\API\IntellectualProperty\IntellectualPropertyController;
 use App\Http\Controllers\API\Loan\LoanController;
 use App\Http\Controllers\API\Membership\MembershipController;
+use App\Http\Controllers\API\News\NewsController;
 use App\Http\Controllers\API\Payment\PaymentMethodController;
 use App\Http\Controllers\API\Payment\PaymentWebhookController;
 use App\Http\Controllers\API\PaymentController;
@@ -112,4 +113,10 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('{intellectualProperty}/apply/payment', [IntellectualPropertyController::class, 'applyPayment']);
             Route::post('schedules/{schedule}/pay', [IntellectualPropertyController::class, 'pay']);
         });
+
+   Route::get('/news', [NewsController::class, 'index'])
+    ->middleware('role.api:' . UserType::BASIC . ',' . UserType::MEMBER);
+
+    Route::get('/news/{id}', [NewsController::class, 'show'])
+        ->middleware('role.api:' . UserType::BASIC . ',' . UserType::MEMBER);
 });
