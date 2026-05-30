@@ -13,6 +13,7 @@ use App\Http\Controllers\API\Payment\PaymentMethodController;
 use App\Http\Controllers\API\Payment\PaymentWebhookController;
 use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\Settings\ProfileController;
+use App\Http\Controllers\API\ShareCapital\ShareCapitalController;
 use App\Http\Controllers\API\Verification\PhoneVerificationController;
 use App\Http\Controllers\API\Wallet\WalletController;
 use App\Models\UserType;
@@ -89,6 +90,16 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('{loan}/pay', [LoanController::class, 'pay']);
         });
 
+    // Share Capital Routes
+    Route::prefix('share-capital')
+        ->middleware('role.api:' . UserType::MEMBER)
+        ->group(function () {
+            Route::get('settings', [ShareCapitalController::class, 'settings']);
+            Route::get('/', [ShareCapitalController::class, 'index']);
+            Route::post('apply', [ShareCapitalController::class, 'apply']);
+            Route::post('pay', [ShareCapitalController::class, 'pay']);
+        });
+
     Route::get('/payment-methods', [PaymentMethodController::class, 'index'])->middleware('role.api:' . UserType::BASIC . ',' . UserType::MEMBER);
 
     Route::prefix('memberships')
@@ -114,8 +125,8 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('schedules/{schedule}/pay', [IntellectualPropertyController::class, 'pay']);
         });
 
-   Route::get('/news', [NewsController::class, 'index'])
-    ->middleware('role.api:' . UserType::BASIC . ',' . UserType::MEMBER);
+    Route::get('/news', [NewsController::class, 'index'])
+        ->middleware('role.api:' . UserType::BASIC . ',' . UserType::MEMBER);
 
     Route::get('/news/{id}', [NewsController::class, 'show'])
         ->middleware('role.api:' . UserType::BASIC . ',' . UserType::MEMBER);
