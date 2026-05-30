@@ -74,6 +74,8 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/', [WalletController::class, 'index']);
             Route::get('/update', [WalletController::class, 'update']);
             Route::get('transaction', [WalletController::class, 'transaction']);
+            Route::get('presets', [WalletController::class, 'presets']);
+            Route::post('recharge', [WalletController::class, 'recharge']);
         });
 
     // Loan Routes
