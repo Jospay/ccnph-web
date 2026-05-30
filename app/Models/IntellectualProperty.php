@@ -83,7 +83,7 @@ class IntellectualProperty extends Model
 
         if (!$hasUnpaid) {
             $this->update([
-                'status_id' => Status::ACTIVE,
+                'status_id' => Status::REGISTERED,
                 'activated_at' => now(),
                 'expires_at' => now()->addYear(),
             ]);
