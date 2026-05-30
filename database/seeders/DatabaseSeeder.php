@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             PaymentMethodSeeder::class,
             LoanSettingSeeder::class,
             MembershipSettingSeeder::class,
+            ShareCapitalSettingSeeder::class,
         ]);
 
         User::factory()->create([
@@ -54,6 +55,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call([
+            ShareCapitalSeeder::class,
             DiminishingLoanSeeder::class,
             IntellectualPropertySeeder::class
         ]);
