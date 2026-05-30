@@ -165,10 +165,6 @@ class User extends Authenticatable
     {
         $shareCapital = $this->shareCapital;
 
-        // Add these debug lines temporarily
-        \Log::info('Share Capital:', ['sc' => $shareCapital?->toArray()]);
-        \Log::info('Is Fully Paid:', ['result' => $shareCapital?->isFullyPaid()]);
-
         if (!$shareCapital || !$shareCapital->isFullyPaid()) {
             return 0;
         }
