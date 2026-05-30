@@ -8,6 +8,7 @@ use App\Http\Requests\Loan\PayLoanRequest;
 use App\Http\Requests\Loan\StoreLoanRequest;
 use App\Http\Resources\Api\Loan\ApiLoanResource;
 use App\Models\Loan;
+use App\Models\LoanSetting;
 use App\Services\Loan\LoanApplicationService;
 use App\Services\Loan\LoanPaymentService;
 use App\Services\Loan\LoanService;
@@ -53,20 +54,22 @@ class LoanController extends Controller
     {
         $user = $request->user();
         $loans = $this->loanService->getUserLoans($user);
+        $loanSetting = $user->getActiveLoanSetting();
         $amount = $this->loanService->getLoanableAmount($user);
-        $settings = $user->getActiveLoanSetting();
 
         return ApiLoanResource::collection($loans)
             ->additional([
-                'meta' => [
+                'meta' => array_filter([
                     'loanable_amount' => number_format($amount, 2, '.', ''),
-                    'settings' => $settings ? [
-                        'default_amount' => number_format($settings->default_amount, 2, '.', ''),
-                        // 'default_interest_rate' => number_format($settings->default_interest_rate, 2, '.', '') . '% per month',
-                        'default_interest_rate' => number_format($settings->default_interest_rate, 2, '.', ''),
-                        'default_term_months' => $settings->default_term_months,
+                    'settings' => $loanSetting instanceof LoanSetting ? [
+                        'default_amount' => number_format($loanSetting->default_amount, 2, '.', ''),
+                        'default_interest_rate' => number_format($loanSetting->default_interest_rate, 2, '.', ''),
+                        'default_term_months' => $loanSetting->default_term_months,
                     ] : null,
-                ],
+                    'message' => !$loanSetting instanceof LoanSetting
+                        ? 'You must fully pay your share capital before you can apply for a loan.'
+                        : null,
+                ]),
             ])
             ->response();
     }
@@ -210,12 +213,17 @@ class LoanController extends Controller
      */
     public function getLoanableAmount(Request $request): JsonResponse
     {
-        $amount = $this->loanService->getLoanableAmount($request->user());
+        $user = $request->user();
+        $loanSetting = $user->getActiveLoanSetting();
+        $amount = $this->loanService->getLoanableAmount($user);
 
         return response()->json([
             'success' => true,
             'data' => [
                 'loanable_amount' => number_format($amount, 2, '.', ''),
+                'message' => !$loanSetting instanceof LoanSetting
+                    ? 'You must fully pay your share capital before you can apply for a loan.'
+                    : null,
             ],
         ]);
     }
