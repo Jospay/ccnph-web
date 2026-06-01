@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\API\Auth\PasswordResetController;
 use App\Http\Controllers\API\Auth\RegisteredUserController;
 use App\Http\Controllers\API\BusinessTraining\CategoryController;
 use App\Http\Controllers\API\BusinessTraining\TrainingController;
@@ -30,6 +31,13 @@ Route::middleware('guest')->group(function () {
     Route::post('/verify-phone/acknowledge', [PhoneVerificationController::class, 'verify'])->middleware('throttle:5,1');
     Route::post('/verify-phone/resend', [PhoneVerificationController::class, 'resend'])->middleware('throttle:3,1');
     Route::post('/register/set-password', [RegisteredUserController::class, 'setPassword'])->middleware('throttle:5,1');
+
+    Route::prefix('password')->group(function () {
+        Route::post('/forgot', [PasswordResetController::class, 'sendOtp']);
+        Route::post('/verify-otp', [PasswordResetController::class, 'verifyOtp']);
+        Route::post('/reset', [PasswordResetController::class, 'resetPassword']);
+        Route::post('/resend-otp', [PasswordResetController::class, 'resendOtp']);
+    });
 });
 
 Route::get('/payment/status/{paymentIntentId}', [PaymentController::class, 'status']);
