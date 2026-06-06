@@ -97,7 +97,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('settings', [ShareCapitalController::class, 'settings']);
             Route::get('/', [ShareCapitalController::class, 'index']);
             Route::post('apply', [ShareCapitalController::class, 'apply']);
-            Route::post('pay', [ShareCapitalController::class, 'pay']);
+            Route::post('schedules/{schedule}/pay', [ShareCapitalController::class, 'pay']);
         });
 
     Route::get('/payment-methods', [PaymentMethodController::class, 'index'])->middleware('role.api:' . UserType::BASIC . ',' . UserType::MEMBER);

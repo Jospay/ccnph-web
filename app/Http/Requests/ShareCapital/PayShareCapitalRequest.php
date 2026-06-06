@@ -24,7 +24,6 @@ class PayShareCapitalRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'schedule_id' => ['required', 'exists:share_capital_schedules,id'],
             'payment_method_id' => ['required', 'exists:payment_methods,id'],
             'amount' => ['required', 'numeric', 'gt:0'],
 
@@ -37,6 +36,7 @@ class PayShareCapitalRequest extends FormRequest
                 'nullable',
                 'string',
             ],
+
             'is_offline' => ['nullable', 'boolean'],
         ];
     }

@@ -63,12 +63,20 @@ class ShareCapitalService
         });
     }
 
-    public function pay(User $user, array $data): array
-    {
-        $paymentMethod = PaymentMethod::findOrFail($data['payment_method_id']);
+  public function pay(
+    User $user,
+    ShareCapitalSchedule $schedule,
+    array $data
+): array
+{
+    $paymentMethod = PaymentMethod::findOrFail($data['payment_method_id']);
 
-        return DB::transaction(function () use ($user, $data, $paymentMethod) {
-            $schedule = $this->lockAndValidateSchedule($user, $data['schedule_id']);
+    return DB::transaction(function () use ($user, $schedule, $data, $paymentMethod){
+
+        $schedule = $this->lockAndValidateSchedule(
+            $user,
+            $schedule
+        );
             $payment = $this->createPendingPayment($schedule, $data, $paymentMethod);
 
             if ($paymentMethod->isOffline()) {
@@ -83,13 +91,16 @@ class ShareCapitalService
     // Private helpers
     // -------------------------------------------------------------------------
 
-    private function lockAndValidateSchedule(User $user, int $scheduleId): ShareCapitalSchedule
-    {
-        $schedule = ShareCapitalSchedule::query()
-            ->where('id', $scheduleId)
-            ->lockForUpdate()
-            ->with('shareCapital')
-            ->firstOrFail();
+    private function lockAndValidateSchedule(
+    User $user,
+    ShareCapitalSchedule $schedule
+): ShareCapitalSchedule
+{
+    $schedule = ShareCapitalSchedule::query()
+        ->where('id', $schedule->id)
+        ->lockForUpdate()
+        ->with('shareCapital')
+        ->firstOrFail();
 
         if ($schedule->shareCapital->user_id !== $user->id) {
             throw new DomainException('Unauthorized.');
