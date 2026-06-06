@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\API\Wallet;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Wallet\RechargeWalletRequest;
 use App\Http\Resources\Api\Wallet\ApiWalletResource;
 use App\Http\Resources\Api\Wallet\ApiWalletTransactionResource;
 use App\Services\Wallet\WalletService;
+use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -30,7 +32,7 @@ class WalletController extends Controller
             ->response();
     }
 
-   public function update(Request $request): JsonResponse
+    public function update(Request $request): JsonResponse
     {
         $user = $request->user();
         $wallet = $this->walletService->getUserWallet($user);
@@ -54,5 +56,34 @@ class WalletController extends Controller
 
         return ApiWalletTransactionResource::collection($transactions)
             ->response();
+    }
+
+    public function presets(): JsonResponse
+    {
+        $presets = collect(WalletService::PRESET_AMOUNTS)
+            ->map(fn($amount) => [
+                'amount' => $amount,
+                'amount_display' => number_format($amount / 100, 2),
+            ]);
+
+        return response()->json(['data' => $presets]);
+    }
+
+    public function recharge(RechargeWalletRequest $request): JsonResponse
+    {
+        try {
+            $result = $this->walletService->recharge($request->user(), $request->validated());
+
+            $wallet = $this->walletService->getUserWallet($request->user()->fresh());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Recharge initiated successfully.',
+                'data' => new ApiWalletResource($wallet),
+                'next_action' => $result['next_action'],
+            ]);
+        } catch (DomainException $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        }
     }
 }
