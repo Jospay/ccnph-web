@@ -215,9 +215,12 @@ class PasswordResetService
             return '0' . substr($digits, 2);
         }
 
-        return $phone;
+        return $digits;
     }
 
+    /**
+     * Format localized format to international country code without symbol for Movider API (639XXXXXXXXX).
+     */
     private function toMoviderFormat(string $phone): string
     {
         $digits = preg_replace('/\D/', '', $phone);

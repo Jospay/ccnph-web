@@ -14,8 +14,11 @@ class PasswordResetRequest extends Model
         'otp_sent_at',
     ];
 
-    protected $casts = [
-        'phone_verified' => 'boolean',
-        'otp_sent_at' => 'datetime',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'phone_verified' => 'boolean',
+            'otp_sent_at' => 'datetime',
+        ];
+    }
 }

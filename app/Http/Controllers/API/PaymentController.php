@@ -21,7 +21,7 @@ class PaymentController extends Controller
         }
 
         return response()->json([
-            'status' => $payment->status_id, // or status if you use relation
+            'status' => $payment->status_id,
             'paid_at' => $payment->paid_at,
             'gateway_payment_intent_id' => $payment->gateway_payment_intent_id,
         ]);

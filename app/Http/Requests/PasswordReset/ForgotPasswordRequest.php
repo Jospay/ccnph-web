@@ -7,23 +7,32 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class ForgotPasswordRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
+
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('phone')) {
+            $digits = preg_replace('/\D/', '', $this->phone);
+
+            // +639XXXXXXXXX or 639XXXXXXXXX → 09XXXXXXXXX
+            if (str_starts_with($digits, '63') && strlen($digits) === 12) {
+                $digits = '0' . substr($digits, 2);
+            }
+
+            $this->merge([
+                'phone' => $digits,
+            ]);
+        }
+    }
+
     public function rules(): array
     {
         return [
-            'phone' => ['required', 'string'],
+            'phone' => ['required', 'string', 'exists:users,phone'],
         ];
     }
 }
