@@ -45,6 +45,8 @@ class ShareCapitalService
             $installmentAmount = intdiv($setting->required_amount, $data['term_months']);
             $remainder = $setting->required_amount - ($installmentAmount * $data['term_months']);
 
+            $applicationDate = Carbon::now();
+
             for ($i = 1; $i <= $data['term_months']; $i++) {
                 $amount = $i === $data['term_months']
                     ? $installmentAmount + $remainder
@@ -55,7 +57,7 @@ class ShareCapitalService
                     'status_id' => Status::UNPAID,
                     'installment_no' => $i,
                     'amount' => $amount,
-                    'due_date' => Carbon::now()->addMonths($i)->startOfMonth(),
+                    'due_date' => $applicationDate->copy()->addMonths($i),
                 ]);
             }
 
