@@ -7,12 +7,19 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class ForgotPasswordRequest extends FormRequest
 {
-
+    /**
+     * Determine if the user is authorized to make this request.
+     */
     public function authorize(): bool
     {
         return true;
     }
 
+    /**
+     * Prepare the data for validation.
+     * Normalizes the incoming phone input to standard local format (09XXXXXXXXX)
+     * to prevent validation failures when checking the users table.
+     */
     protected function prepareForValidation(): void
     {
         if ($this->has('phone')) {
@@ -29,10 +36,26 @@ class ForgotPasswordRequest extends FormRequest
         }
     }
 
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, ValidationRule|array<mixed>|string>
+     */
     public function rules(): array
     {
         return [
             'phone' => ['required', 'string', 'exists:users,phone'],
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     * This replaces the default "The selected phone is invalid" message.
+     */
+    public function messages(): array
+    {
+        return [
+            'phone.exists' => "We can't find a user with that phone number.",
         ];
     }
 }

@@ -1,32 +1,29 @@
 <?php
 
-namespace App\Http\Requests\PasswordReset;
+namespace App\Http\Requests\Verification;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class VerifyOtpRequest extends FormRequest
 {
+    /**
+     * Determine if the user is authorized to make this request.
+     */
     public function authorize(): bool
     {
         return true;
     }
 
-    protected function prepareForValidation(): void
-    {
-        $phone = $this->input('phone');
-        if ($phone) {
-            $digits = preg_replace('/\D/', '', $phone);
-            if (str_starts_with($digits, '63') && strlen($digits) === 12) {
-                $digits = '0' . substr($digits, 2);
-            }
-            $this->merge(['phone' => $digits]);
-        }
-    }
-
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, ValidationRule|array<mixed>|string>
+     */
     public function rules(): array
     {
         return [
-            'phone' => ['required', 'string', 'exists:password_reset_requests,phone'],
+            'phone' => ['required', 'string', 'exists:pending_registrations,phone'],
             'otp_code' => ['required', 'string'],
         ];
     }
