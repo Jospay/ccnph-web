@@ -110,7 +110,7 @@ class PasswordResetController extends Controller
                 $request->validated('verification_token'),
             );
 
-            return response()->json(['message' => 'Password reset successfully.']);
+            return response()->json(['message' => 'Password reset successfully. You can now log in with your new password.']);
 
         } catch (RuntimeException $e) {
             return response()->json(['message' => $e->getMessage()], $this->httpCode($e->getCode()));
