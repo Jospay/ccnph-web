@@ -19,7 +19,7 @@ class IntellectualPropertySeeder extends Seeder
     public function run(): void
     {
         $members = User::where('user_type_id', UserType::MEMBER)
-            ->where('status_id', Status::ACTIVE)
+            ->where('status_id', Status::REGISTERED)
             ->limit(3)
             ->get();
 
@@ -27,7 +27,7 @@ class IntellectualPropertySeeder extends Seeder
         // if ($members->count() < 3) {
         //     $members = User::factory()->count(3)->create([
         //         'user_type_id' => UserType::MEMBER,
-        //         'status_id' => Status::ACTIVE,
+        //         'status_id' => Status::REGISTERED,
         //     ]);
         // }
 

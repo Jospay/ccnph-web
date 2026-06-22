@@ -12,17 +12,21 @@ class ApiIntellectualPropertyClaimResource extends JsonApiResource
      */
     public $attributes = [
         'description',
+        'created_at',
+        'updated_at',
     ];
 
     /**
-     * The resource's attributes.
+     * Transform the resource attributes.
      */
     public function toAttributes(Request $request): array
     {
         return [
             'description' => $this->description,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+
+            'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
+
+            'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
         ];
     }
 
@@ -30,6 +34,6 @@ class ApiIntellectualPropertyClaimResource extends JsonApiResource
      * The resource's relationships.
      */
     public $relationships = [
-        'intellectual_property' => ApiIntellectualPropertyResource::class
+        'intellectual_property' => ApiIntellectualPropertyResource::class,
     ];
 }

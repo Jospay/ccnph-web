@@ -11,12 +11,24 @@ use Exception;
 
 class LoanService
 {
+    // public function getLoanableAmount(User $user): float
+    // {
+    //     $loanSetting = $user->getActiveLoanSetting();
+
+    //     if (!$loanSetting) {
+    //         throw new Exception('Loan setting not configured.');
+    //     }
+
+    //     $totalLoanAmount = $this->getTotalActiveLoanAmount($user);
+
+    //     return max($loanSetting->default_amount - $totalLoanAmount, 0);
+    // }
     public function getLoanableAmount(User $user): float
     {
         $loanSetting = $user->getActiveLoanSetting();
 
-        if (!$loanSetting) {
-            throw new Exception('Loan setting not configured.');
+        if (!$loanSetting instanceof LoanSetting) {
+            return 0;
         }
 
         $totalLoanAmount = $this->getTotalActiveLoanAmount($user);

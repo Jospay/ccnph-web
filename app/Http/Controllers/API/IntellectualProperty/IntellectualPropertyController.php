@@ -155,11 +155,13 @@ class IntellectualPropertyController extends Controller
 
         $validated = $request->validate([
             'payment_method_id' => ['required', 'integer', 'exists:payment_methods,id'],
+            'gateway' => ['nullable', 'string', 'in:paymongo,wallet,cash'],
         ]);
 
         $result = $this->paymentService->initiate(
             schedule: $schedule,
             paymentMethodId: $validated['payment_method_id'],
+            gateway: $validated['gateway'] ?? 'paymongo'
         );
 
         $schedule->load([
@@ -171,8 +173,11 @@ class IntellectualPropertyController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Payment initiated.',
-            'data' => new ApiIntellectualPropertyScheduleResource($schedule),
-            'next_action' => $result['next_action'],
+            'data' => [
+                'schedule' => new ApiIntellectualPropertyScheduleResource($schedule),
+                'payment' => $result['payment'],
+            ],
+            'next_action' => $result['next_action'] ?? null,
         ]);
     }
 

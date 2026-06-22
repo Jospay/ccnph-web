@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\API\Auth\PasswordResetController;
 use App\Http\Controllers\API\Auth\RegisteredUserController;
 use App\Http\Controllers\API\BusinessTraining\CategoryController;
 use App\Http\Controllers\API\BusinessTraining\TrainingController;
@@ -8,10 +9,12 @@ use App\Http\Controllers\API\BusinessTraining\TypeController;
 use App\Http\Controllers\API\IntellectualProperty\IntellectualPropertyController;
 use App\Http\Controllers\API\Loan\LoanController;
 use App\Http\Controllers\API\Membership\MembershipController;
+use App\Http\Controllers\API\News\NewsController;
 use App\Http\Controllers\API\Payment\PaymentMethodController;
 use App\Http\Controllers\API\Payment\PaymentWebhookController;
 use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\Settings\ProfileController;
+use App\Http\Controllers\API\ShareCapital\ShareCapitalController;
 use App\Http\Controllers\API\Verification\PhoneVerificationController;
 use App\Http\Controllers\API\Wallet\WalletController;
 use App\Models\UserType;
@@ -28,6 +31,13 @@ Route::middleware('guest')->group(function () {
     Route::post('/verify-phone/acknowledge', [PhoneVerificationController::class, 'verify'])->middleware('throttle:5,1');
     Route::post('/verify-phone/resend', [PhoneVerificationController::class, 'resend'])->middleware('throttle:3,1');
     Route::post('/register/set-password', [RegisteredUserController::class, 'setPassword'])->middleware('throttle:5,1');
+
+    Route::prefix('password')->group(function () {
+        Route::post('/forgot', [PasswordResetController::class, 'sendOtp']);
+        Route::post('/verify-otp', [PasswordResetController::class, 'verifyOtp']);
+        Route::post('/reset', [PasswordResetController::class, 'resetPassword']);
+        Route::post('/resend-otp', [PasswordResetController::class, 'resendOtp']);
+    });
 });
 
 Route::get('/payment/status/{paymentIntentId}', [PaymentController::class, 'status']);
@@ -72,6 +82,8 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/', [WalletController::class, 'index']);
             Route::get('/update', [WalletController::class, 'update']);
             Route::get('transaction', [WalletController::class, 'transaction']);
+            Route::get('presets', [WalletController::class, 'presets']);
+            Route::post('recharge', [WalletController::class, 'recharge']);
         });
 
     // Loan Routes
@@ -86,6 +98,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
             Route::get('{loan}', [LoanController::class, 'show']);
             Route::post('{loan}/pay', [LoanController::class, 'pay']);
+        });
+
+    // Share Capital Routes
+    Route::prefix('share-capital')
+        ->middleware('role.api:' . UserType::MEMBER)
+        ->group(function () {
+            Route::get('settings', [ShareCapitalController::class, 'settings']);
+            Route::get('/', [ShareCapitalController::class, 'index']);
+            Route::post('apply', [ShareCapitalController::class, 'apply']);
+            Route::post('schedules/{schedule}/pay', [ShareCapitalController::class, 'pay']);
         });
 
     Route::get('/payment-methods', [PaymentMethodController::class, 'index'])->middleware('role.api:' . UserType::BASIC . ',' . UserType::MEMBER);
@@ -112,4 +134,10 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('{intellectualProperty}/apply/payment', [IntellectualPropertyController::class, 'applyPayment']);
             Route::post('schedules/{schedule}/pay', [IntellectualPropertyController::class, 'pay']);
         });
+
+    Route::get('/news', [NewsController::class, 'index'])
+        ->middleware('role.api:' . UserType::BASIC . ',' . UserType::MEMBER);
+
+    Route::get('/news/{id}', [NewsController::class, 'show'])
+        ->middleware('role.api:' . UserType::BASIC . ',' . UserType::MEMBER);
 });

@@ -153,6 +153,11 @@ class User extends Authenticatable
         return $this->hasMany(IntellectualProperty::class);
     }
 
+    public function shareCapital(): HasOne
+    {
+        return $this->hasOne(MemberShareCapital::class);
+    }
+
     // checker for service management
     public function managesService(int $serviceId): bool
     {
@@ -181,8 +186,25 @@ class User extends Authenticatable
     //         ->orderByRaw('user_id DESC')
     //         ->first();
     // }
-    public function getActiveLoanSetting()
+
+    // public function getActiveLoanSetting()
+    // {
+    //     return LoanSetting::where(function ($query) {
+    //         $query->where('user_id', $this->id)
+    //             ->orWhereNull('user_id');
+    //     })
+    //         ->orderByRaw('user_id IS NULL')
+    //         ->first();
+    // }
+
+    public function getActiveLoanSetting(): LoanSetting|int
     {
+        $shareCapital = $this->shareCapital;
+
+        if (!$shareCapital || !$shareCapital->isFullyPaid()) {
+            return 0;
+        }
+
         return LoanSetting::where(function ($query) {
             $query->where('user_id', $this->id)
                 ->orWhereNull('user_id');
