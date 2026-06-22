@@ -22,6 +22,8 @@ class PaymentMethodSeeder extends Seeder
             ['id' => 6, 'name' => 'GrabPay', 'gateway_type' => 'grab_pay'],
             ['id' => 7, 'name' => 'DOB', 'gateway_type' => 'dob'],
             ['id' => 8, 'name' => 'Wallet', 'gateway_type' => null],
+            ['id' => 9, 'name' => 'Cash on Delivery', 'gateway_type' => null],
+            ['id' => 10, 'name' => 'Pay Online', 'gateway_type' => null]
         ]);
     }
 }

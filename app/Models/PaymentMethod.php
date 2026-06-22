@@ -19,6 +19,8 @@ class PaymentMethod extends Model
     public const GRAB_PAY = 6;
     public const DOB = 7;
     public const WALLET = 8;
+    public const CASH_ON_DELIVERY = 9;
+    public const PAY_ONLINE = 10;
 
     public const CLIENT_SIDE_METHODS = [
         self::CARD,
