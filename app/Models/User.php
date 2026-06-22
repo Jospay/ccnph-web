@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use InvalidArgumentException;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -68,10 +69,20 @@ class User extends Authenticatable
             'two_factor_confirmed_at' => 'datetime',
 
             'birthdate' => 'date:Y-m-d',
+            'is_seller' => 'boolean',
 
             'is_active' => 'boolean',
             'password' => 'hashed',
         ];
+    }
+
+    protected static function booted()
+    {
+        static::saving(function ($user) {
+            if ($user->is_seller && $user->user_type_id !== UserType::MEMBER) {
+                throw new InvalidArgumentException('Only members can be sellers.');
+            }
+        });
     }
 
     // relationship to user type, one to many
@@ -109,6 +120,31 @@ class User extends Authenticatable
     public function wallet(): HasOne
     {
         return $this->hasOne(Wallet::class);
+    }
+
+    public function shop(): HasOne
+    {
+        return $this->hasOne(Shop::class);
+    }
+
+    public function cart(): HasOne
+    {
+        return $this->hasOne(Cart::class);
+    }
+
+    public function addresses(): HasMany
+    {
+        return $this->hasMany(UserAddress::class);
+    }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    public function checkouts(): HasMany
+    {
+        return $this->hasMany(Checkout::class);
     }
 
     // relationship to intellectual properties, one to many
