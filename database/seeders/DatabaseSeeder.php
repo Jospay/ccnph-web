@@ -6,6 +6,8 @@ use App\Models\User;
 use App\Models\Service;
 use App\Models\UserType;
 use App\Models\Status;
+use App\Models\Shop;
+use App\Models\Product;
 use Illuminate\Support\Str;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -28,6 +30,8 @@ class DatabaseSeeder extends Seeder
             LoanSettingSeeder::class,
             MembershipSettingSeeder::class,
             ShareCapitalSettingSeeder::class,
+            CategorySeeder::class,
+            AttributeSeeder::class
         ]);
 
         User::factory()->create([
@@ -53,6 +57,21 @@ class DatabaseSeeder extends Seeder
             'email' => 'member3@example.com',
             'user_type_id' => UserType::MEMBER
         ]);
+
+        $seller = User::factory()->create([
+            'name' => 'Member Seller',
+            'email' => 'seller1@example.com',
+            'user_type_id' => UserType::MEMBER,
+            'is_seller' => true
+        ]);
+
+        if ($seller) {
+            Shop::factory()->create([
+                'user_id' => $seller->id,
+            ]);
+        }
+
+        Product::factory(20)->create();
 
         $this->call([
             ShareCapitalSeeder::class,
