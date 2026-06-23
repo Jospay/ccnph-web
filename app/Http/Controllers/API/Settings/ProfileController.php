@@ -8,15 +8,14 @@ use App\Http\Requests\User\UpdateAvatarRequest;
 use App\Http\Requests\User\UpdateProfileRequest;
 use App\Http\Resources\Api\User\ApiProfileResource;
 use App\Services\User\ProfileService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class ProfileController extends Controller
 {
     public function __construct(
         private readonly ProfileService $profileService
-    ) {
-    }
+    ) {}
 
     /**
      * Get profile.
@@ -159,7 +158,7 @@ class ProfileController extends Controller
             $request->new_password,
         );
 
-        if (!$success) {
+        if (! $success) {
             return response()->json([
                 'success' => false,
                 'message' => 'Current password is incorrect.',

@@ -15,10 +15,10 @@ use App\Http\Controllers\API\Payment\PaymentWebhookController;
 use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\Settings\ProfileController;
 use App\Http\Controllers\API\ShareCapital\ShareCapitalController;
+use App\Http\Controllers\API\Store\ShopHomeController;
 use App\Http\Controllers\API\Verification\PhoneVerificationController;
 use App\Http\Controllers\API\Wallet\WalletController;
 use App\Models\UserType;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Guest Routes
@@ -49,7 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Business Training Routes
     Route::prefix('business-training')
-        ->middleware('role.api:' . UserType::MEMBER)
+        ->middleware('role.api:'.UserType::MEMBER)
         ->group(function () {
             // Types
             Route::get('types', [TypeController::class, 'index']);
@@ -67,7 +67,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Profile Routes
     Route::prefix('profile')
-        ->middleware('role.api:' . UserType::BASIC . ',' . UserType::MEMBER)
+        ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER)
         ->group(function () {
             Route::get('/', [ProfileController::class, 'show']);
             Route::put('update', [ProfileController::class, 'update']);
@@ -77,7 +77,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Wallet Routes
     Route::prefix('wallet')
-        ->middleware('role.api:' . UserType::MEMBER)
+        ->middleware('role.api:'.UserType::MEMBER)
         ->group(function () {
             Route::get('/', [WalletController::class, 'index']);
             Route::get('/update', [WalletController::class, 'update']);
@@ -88,7 +88,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Loan Routes
     Route::prefix('loans')
-        ->middleware('role.api:' . UserType::MEMBER)
+        ->middleware('role.api:'.UserType::MEMBER)
         ->group(function () {
             Route::get('/', [LoanController::class, 'index']);
             Route::post('/', [LoanController::class, 'store']);
@@ -102,7 +102,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Share Capital Routes
     Route::prefix('share-capital')
-        ->middleware('role.api:' . UserType::MEMBER)
+        ->middleware('role.api:'.UserType::MEMBER)
         ->group(function () {
             Route::get('settings', [ShareCapitalController::class, 'settings']);
             Route::get('/', [ShareCapitalController::class, 'index']);
@@ -110,10 +110,10 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('schedules/{schedule}/pay', [ShareCapitalController::class, 'pay']);
         });
 
-    Route::get('/payment-methods', [PaymentMethodController::class, 'index'])->middleware('role.api:' . UserType::BASIC . ',' . UserType::MEMBER);
+    Route::get('/payment-methods', [PaymentMethodController::class, 'index'])->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER);
 
     Route::prefix('memberships')
-        ->middleware('role.api:' . UserType::BASIC . ',' . UserType::MEMBER)
+        ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER)
         ->group(function () {
             Route::get('/', [MembershipController::class, 'index']);
             Route::get('settings', [MembershipController::class, 'settings']);
@@ -124,7 +124,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Intellectual Property Routes
     Route::prefix('intellectual-properties')
-        ->middleware('role.api:' . UserType::MEMBER)
+        ->middleware('role.api:'.UserType::MEMBER)
         ->group(function () {
             Route::get('/', [IntellectualPropertyController::class, 'index']);
             Route::post('/', [IntellectualPropertyController::class, 'store']);
@@ -136,8 +136,15 @@ Route::middleware('auth:sanctum')->group(function () {
         });
 
     Route::get('/news', [NewsController::class, 'index'])
-        ->middleware('role.api:' . UserType::BASIC . ',' . UserType::MEMBER);
+        ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER);
 
     Route::get('/news/{id}', [NewsController::class, 'show'])
-        ->middleware('role.api:' . UserType::BASIC . ',' . UserType::MEMBER);
+        ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER);
+
+    // FISMPC Online Store
+    Route::prefix('store')
+        ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER)
+        ->group(function () {
+            Route::get('home', [ShopHomeController::class, 'index']);
+        });
 });
