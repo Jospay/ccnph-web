@@ -23,6 +23,7 @@ use Laravel\Sanctum\HasApiTokens;
     'password',
     'user_type_id',
     'status_id',
+    'is_seller',
     'phone',
     'phone_verified_at',
     'gender',
