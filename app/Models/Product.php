@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
     'shop_id',
@@ -23,6 +24,15 @@ class Product extends Model
 {
     use HasFactory;
 
+    /**
+     * Use the slug column for Route Model Binding.
+     * Prevents 404 errors when passing slug strings instead of database IDs.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
     protected function casts(): array
     {
         return [
@@ -32,9 +42,13 @@ class Product extends Model
         ];
     }
 
-    public function shop(): BelongsTo
+    /**
+     * Named 'store' to cleanly align with eager loading execution statements
+     * and ProductShowResource definitions.
+     */
+    public function store(): BelongsTo
     {
-        return $this->belongsTo(Shop::class);
+        return $this->belongsTo(Shop::class, 'shop_id');
     }
 
     public function categories(): BelongsToMany
@@ -54,7 +68,7 @@ class Product extends Model
         return $this->hasMany(ProductVariant::class);
     }
 
-    public function defaultVariant()
+    public function defaultVariant(): HasOne
     {
         return $this->hasOne(ProductVariant::class)
             ->where('is_default', true);

@@ -16,6 +16,7 @@ use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\Settings\ProfileController;
 use App\Http\Controllers\API\ShareCapital\ShareCapitalController;
 use App\Http\Controllers\API\Store\ShopHomeController;
+use App\Http\Controllers\API\Store\ShopProductController;
 use App\Http\Controllers\API\Verification\PhoneVerificationController;
 use App\Http\Controllers\API\Wallet\WalletController;
 use App\Models\UserType;
@@ -146,5 +147,9 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER)
         ->group(function () {
             Route::get('home', [ShopHomeController::class, 'index']);
+
+            Route::get('products', [ShopProductController::class, 'index']);
+            Route::get('products/{product}', [ShopProductController::class, 'show']);
         });
+
 });
