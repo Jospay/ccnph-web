@@ -15,6 +15,8 @@ use App\Http\Controllers\API\Payment\PaymentWebhookController;
 use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\Settings\ProfileController;
 use App\Http\Controllers\API\ShareCapital\ShareCapitalController;
+use App\Http\Controllers\API\Store\CustomerCartController;
+use App\Http\Controllers\API\Store\CustomerCheckoutController;
 use App\Http\Controllers\API\Store\ShopHomeController;
 use App\Http\Controllers\API\Store\ShopProductController;
 use App\Http\Controllers\API\Verification\PhoneVerificationController;
@@ -147,9 +149,18 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER)
         ->group(function () {
             Route::get('home', [ShopHomeController::class, 'index']);
-
             Route::get('products', [ShopProductController::class, 'index']);
             Route::get('products/{product}', [ShopProductController::class, 'show']);
+
+            Route::get('cart', [CustomerCartController::class, 'index']);
+            Route::post('cart/items', [CustomerCartController::class, 'store']);
+            Route::patch('cart/items/{cartItem}', [CustomerCartController::class, 'update']);
+            Route::delete('cart/items/{cartItem}', [CustomerCartController::class, 'destroy']);
+
+            Route::post('/checkout/select', [CustomerCheckoutController::class, 'select']);
+            Route::get('/checkout', [CustomerCheckoutController::class, 'index']);
+            Route::post('/checkout', [CustomerCheckoutController::class, 'store']);
+
         });
 
 });
