@@ -195,7 +195,7 @@ class CustomerCheckoutController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Order placed successfully via Cash on Delivery!',
-            'order_id' => $order->id, // Useful details for React Native to display a success screen
+            'order_id' => $order->id,
         ], 201);
     }
 

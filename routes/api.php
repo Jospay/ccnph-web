@@ -160,7 +160,6 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/checkout/select', [CustomerCheckoutController::class, 'select']);
             Route::get('/checkout', [CustomerCheckoutController::class, 'index']);
             Route::post('/checkout', [CustomerCheckoutController::class, 'store']);
-
         });
 
 });
