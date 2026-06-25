@@ -4,6 +4,8 @@ import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { logout, login } from '@/routes';
 import type { NavItem, NavProps } from '@/types/landing/index';
 import JoinUs from './JoinUs.vue';
+// import Shop from './Shop.vue'; // Uncomment this when ready
+
 const props = defineProps<NavProps>();
 
 const page = usePage();
@@ -13,7 +15,9 @@ const mobileMenuIsOpen = ref(false);
 const scrolled = ref(false);
 const activeSection = ref('home');
 const isDarkMode = ref(false);
-const isJoinModalOpen = ref(false);
+
+// Single state to manage which modal content is active
+const activeModal = ref<'join' | 'shop' | null>(null);
 
 const navItems: NavItem[] = [
     { id: 'home', label: 'Home' },
@@ -53,13 +57,14 @@ const handleScroll = () => {
     });
 };
 
-const openJoinModal = () => {
-    isJoinModalOpen.value = true;
+// Reusable Modal Functions
+const openModal = (type: 'join' | 'shop') => {
+    activeModal.value = type;
     mobileMenuIsOpen.value = false; // Auto-close mobile menu when modal opens
 };
 
-const closeJoinModal = () => {
-    isJoinModalOpen.value = false;
+const closeModal = () => {
+    activeModal.value = null;
 };
 
 onMounted(() => {
@@ -130,6 +135,16 @@ onUnmounted(() => {
                 </button>
 
                 <div class="hidden sm:flex items-center gap-2">
+                    <button 
+                        @click="openModal('shop')"
+                        class="flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 transition-all border border-transparent hover:border-gray-200 dark:hover:border-white/10 focus:outline-none"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                        </svg>
+                        Shop
+                    </button>
+
                     <template v-if="user">
                         <Link 
                             href="/dashboard"
@@ -158,7 +173,7 @@ onUnmounted(() => {
                     </template>
 
                     <button 
-                        @click="openJoinModal"
+                        @click="openModal('join')"
                         class="rounded-xl bg-[#033e94] dark:bg-white px-5 py-2 text-sm font-medium text-white dark:text-[#033e94] hover:opacity-90 transition-all shadow-md active:scale-95 cursor-pointer focus:outline-none"
                     >
                         Join us
@@ -222,6 +237,16 @@ onUnmounted(() => {
                     </div>
 
                     <div class="mt-4 flex flex-col gap-2 md:gap-3 sm:hidden">
+                        <button 
+                            @click="openModal('shop')"
+                            class="w-full flex items-center justify-center gap-2 rounded-xl md:rounded-2xl bg-gray-100 dark:bg-white/10 px-4 py-3 md:py-4 text-center text-sm md:text-base font-bold text-gray-700 dark:text-white shadow-sm active:scale-[0.98] transition-transform block focus:outline-none"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                            </svg>
+                            Shop
+                        </button>
+
                         <template v-if="user">
                             <Link 
                                 href="/dashboard"
@@ -249,7 +274,7 @@ onUnmounted(() => {
                             </Link>
                             
                             <button 
-                                @click="openJoinModal"
+                                @click="openModal('join')"
                                 class="w-full rounded-xl md:rounded-2xl bg-[#033e94] dark:bg-white px-4 py-3 md:py-4 text-center text-sm md:text-base font-bold text-white dark:text-[#033e94] shadow-lg active:scale-[0.98] transition-transform cursor-pointer block focus:outline-none"
                             >
                                 Join us
@@ -270,10 +295,10 @@ onUnmounted(() => {
             leave-from-class="opacity-100"
             leave-to-class="opacity-0"
         >
-            <div v-if="isJoinModalOpen" class="fixed inset-0 z-9999 flex items-center justify-center p-4 sm:p-6">
+            <div v-if="activeModal !== null" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6">
                 <div 
                     class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
-                    @click="closeJoinModal"
+                    @click="closeModal"
                 ></div>
 
                 <Transition
@@ -284,10 +309,10 @@ onUnmounted(() => {
                     leave-from-class="opacity-100 translate-y-0 sm:scale-100"
                     leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                 >
-                    <div v-if="isJoinModalOpen" class="relative w-full max-w-4xl bg-white dark:bg-[#0a192f] rounded-2xl shadow-2xl overflow-hidden transform transition-all border border-gray-200 dark:border-white/10 max-h-[90vh] flex flex-col">
+                    <div v-if="activeModal !== null" class="relative w-full max-w-4xl bg-white dark:bg-[#0a192f] rounded-2xl shadow-2xl overflow-hidden transform transition-all border border-gray-200 dark:border-white/10 max-h-[90vh] flex flex-col">
                         
                         <button 
-                            @click="closeJoinModal" 
+                            @click="closeModal" 
                             class="absolute top-4 right-4 z-10 p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-white/10 transition-colors focus:outline-none"
                         >
                             <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -296,7 +321,21 @@ onUnmounted(() => {
                         </button>
 
                         <div class="overflow-y-auto p-6 sm:p-8 no-scrollbar">
-                            <JoinUs />
+                            
+                            <JoinUs v-if="activeModal === 'join'" />
+                            
+                            <div v-else-if="activeModal === 'shop'" class="flex flex-col items-center justify-center text-center py-10 sm:py-16">
+                                <div class="flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 dark:bg-white/10 mb-6">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-8 w-8 text-[#033e94] dark:text-white">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                                    </svg>
+                                </div>
+                                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Shop Coming Soon</h3>
+                                <p class="text-gray-500 dark:text-gray-300 max-w-md mx-auto">
+                                    We are currently working hard to bring you our new store. Check back soon for updates!
+                                </p>
+                                </div>
+
                         </div>
                         
                     </div>
