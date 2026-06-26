@@ -127,9 +127,10 @@ class CustomerCheckoutController extends Controller
     {
         $paymentMethod = PaymentMethod::findOrFail($request->payment_method_id);
 
-        return match ($paymentMethod->slug) {
-            'cash-on-delivery' => $this->checkoutCod($request, $paymentMethod),
-            'pay-online' => $this->checkoutPayMongo($request, $paymentMethod),
+        // ✅ FIXED: Changed matching condition from $paymentMethod->slug to $paymentMethod->id using Model Constants
+        return match ($paymentMethod->id) {
+            PaymentMethod::CASH_ON_DELIVERY => $this->checkoutCod($request, $paymentMethod),
+            PaymentMethod::PAY_ONLINE => $this->checkoutPayMongo($request, $paymentMethod),
             default => response()->json(['message' => 'Unsupported payment method.'], 422),
         };
     }

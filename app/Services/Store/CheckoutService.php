@@ -4,8 +4,8 @@ namespace App\Services\Store;
 
 use App\Enums\CheckoutStatus;
 use App\Enums\OrderStatus;
-use App\Enums\PaymentStatus;
 use App\Models\Checkout;
+use App\Models\Payment;
 use App\Models\PaymentMethod;
 use App\Models\ProductVariant;
 use App\Models\User;
@@ -31,7 +31,6 @@ class CheckoutService
             $paymentMethod,
             $cartItems,
             $note,
-            $decrementStock,
         ) {
 
             $variants = ProductVariant::query()
@@ -57,10 +56,12 @@ class CheckoutService
                 }
             }
 
+            // ✅ Grouping key tracks store integer mapping reference keys
             $itemsByStore = $cartItems->groupBy(
                 fn ($item) => $variants[$item->product_variant_id]
                     ->product
-                    ->store_id
+                    ->store
+                    ->id
             );
 
             $grandTotal = 0;
@@ -72,7 +73,7 @@ class CheckoutService
                 'status' => CheckoutStatus::PENDING_PAYMENT,
             ]);
 
-            foreach ($itemsByStore as $storeId => $storeItems) {
+            foreach ($itemsByStore as $shopId => $storeItems) {
 
                 $subtotal = $storeItems->sum(
                     fn ($item) => $item->quantity *
@@ -81,21 +82,15 @@ class CheckoutService
 
                 // temporary shipping logic
                 $shippingFee = 60;
-
                 $discount = 0;
-
-                $total = $subtotal
-                    + $shippingFee
-                    - $discount;
-
+                $total = $subtotal + $shippingFee - $discount;
                 $grandTotal += $total;
 
                 $order = $checkout->orders()->create([
                     'user_id' => $user->id,
-                    'store_id' => $storeId,
+                    'shop_id' => $shopId,
 
                     'order_number' => 'ORD-'.Str::upper(Str::random(12)),
-
                     'status' => OrderStatus::PENDING,
 
                     'subtotal' => $subtotal,
@@ -119,38 +114,21 @@ class CheckoutService
                 ]);
 
                 foreach ($storeItems as $cartItem) {
-
-                    $variant = $variants[
-                        $cartItem->product_variant_id
-                    ];
+                    $variant = $variants[$cartItem->product_variant_id];
 
                     $order->items()->create([
                         'product_id' => $variant->product_id,
-
                         'product_variant_id' => $variant->id,
-
                         'product_sku' => $variant->sku,
-
                         'product_name' => $variant->product->name,
-
                         'product_image' => $variant->image,
-
                         'variant_name' => $variant
                             ->attributeValues
                             ->pluck('value')
                             ->implode(' / '),
-
                         'price' => $variant->price,
-
                         'quantity' => $cartItem->quantity,
                     ]);
-
-                    if ($decrementStock) {
-                        $variant->decrement(
-                            'stock',
-                            $cartItem->quantity
-                        );
-                    }
                 }
             }
 
@@ -158,16 +136,20 @@ class CheckoutService
                 'grand_total' => $grandTotal,
             ]);
 
-            $checkout->payment()->create([
+            // ✅ Morphic creation handled directly through the Payment entity model
+            $payment = Payment::create([
+                'payable_type' => Checkout::class,
+                'payable_id' => $checkout->id,
                 'payment_method_id' => $paymentMethod->id,
                 'amount' => $grandTotal,
-                'status' => PaymentStatus::PENDING,
+                'status_id' => 1,
+                'payment_date' => now(),
             ]);
 
-            return $checkout->fresh([
-                'orders.items',
-                'payment',
-            ]);
+            $checkout->fresh(['orders.items']);
+            $checkout->setRelation('payment', $payment);
+
+            return $checkout;
         });
     }
 }
