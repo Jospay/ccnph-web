@@ -2,14 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Enums\OrderStatus;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use App\Enums\OrderStatus;
 
 #[Fillable([
     'user_id',
@@ -61,9 +59,13 @@ class Order extends Model
         return $this->hasMany(OrderItem::class);
     }
 
-    public function shop(): BelongsTo
+    /**
+     * Renamed to store to match frontend services and API Resources.
+     * Explicitly uses 'shop_id' as the foreign key matching your fillables.
+     */
+    public function store(): BelongsTo
     {
-        return $this->belongsTo(Shop::class);
+        return $this->belongsTo(Shop::class, 'shop_id');
     }
 
     public function checkout(): BelongsTo
@@ -82,5 +84,4 @@ class Order extends Model
     {
         return $this->checkout?->payment?->payment_method_id === PaymentMethod::PAY_ONLINE;
     }
-
 }

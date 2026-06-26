@@ -17,6 +17,7 @@ use App\Http\Controllers\API\Settings\ProfileController;
 use App\Http\Controllers\API\ShareCapital\ShareCapitalController;
 use App\Http\Controllers\API\Store\CustomerCartController;
 use App\Http\Controllers\API\Store\CustomerCheckoutController;
+use App\Http\Controllers\API\Store\CustomerOrderController;
 use App\Http\Controllers\API\Store\ShopHomeController;
 use App\Http\Controllers\API\Store\ShopProductController;
 use App\Http\Controllers\API\Verification\PhoneVerificationController;
@@ -160,6 +161,11 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/checkout/select', [CustomerCheckoutController::class, 'select']);
             Route::get('/checkout', [CustomerCheckoutController::class, 'index']);
             Route::post('/checkout', [CustomerCheckoutController::class, 'store']);
+
+            Route::get('/orders', [CustomerOrderController::class, 'index']);
+            Route::get('/orders/{order}', [CustomerOrderController::class, 'show']);
+            Route::get('/orders/{order}/rate', [CustomerOrderController::class, 'rate']);
+            Route::post('/orders/{order}/rate', [CustomerOrderController::class, 'storeRating']);
         });
 
 });
