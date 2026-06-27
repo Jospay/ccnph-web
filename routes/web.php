@@ -26,6 +26,20 @@ Route::middleware('guest')->group(function () {
     });
 });
 
+// Route::middleware([
+//     'auth', 
+//     'role:' . UserType::MEMBER
+// ])->prefix('member')->group(function () {
+
+//     // Member Dashboard
+//     Route::get('/dashboard', function () {
+//         return Inertia::render('member/Dashboard');
+//     })->name('member.dashboard');
+
+//     // Route::get('/profile', [MemberProfileController::class, 'index'])->name('member.profile');
+
+// });
+
 Route::middleware([
     'auth', 
     'role:' . UserType::BASIC
