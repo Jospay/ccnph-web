@@ -147,6 +147,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(Checkout::class);
     }
+    
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
 
     // relationship to intellectual properties, one to many
     public function intellectualProperties(): HasMany

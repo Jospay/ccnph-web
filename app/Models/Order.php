@@ -30,6 +30,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'unit_bldg_house',
     'postal_code',
     'landmark',
+    'confirmed_at',
+    'processing_at',
+    'packed_at',
+    'shipped_at',
+    'delivered_at',
+    'cancelled_at',
+    'returned_at',
 ])]
 class Order extends Model
 {
@@ -46,6 +53,13 @@ class Order extends Model
             'shipping_fee' => 'decimal:2',
             'discount' => 'decimal:2',
             'total' => 'decimal:2',
+            'confirmed_at' => 'datetime',
+            'processing_at' => 'datetime',
+            'packed_at' => 'datetime',
+            'shipped_at' => 'datetime',
+            'delivered_at' => 'datetime',
+            'cancelled_at' => 'datetime',
+            'returned_at' => 'datetime',
         ];
     }
 

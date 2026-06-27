@@ -19,6 +19,9 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'description',
     'video',
     'views',
+    'rating',
+    'reviews_count',
+    'sold_count',
 ])]
 class Product extends Model
 {
@@ -39,6 +42,9 @@ class Product extends Model
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
             'views' => 'integer',
+            'rating' => 'float',
+            'reviews_count' => 'integer',
+            'sold_count' => 'integer',
         ];
     }
 
@@ -77,5 +83,10 @@ class Product extends Model
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
     }
 }
