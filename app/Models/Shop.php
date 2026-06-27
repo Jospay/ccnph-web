@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use InvalidArgumentException;
@@ -24,6 +24,19 @@ class Shop extends Model
 {
     use HasFactory;
 
+    /**
+     * Use the shop slug for implicit route model binding.
+     *
+     * Example:
+     * GET /api/store/my-shop
+     * will resolve using:
+     * SELECT * FROM shops WHERE slug = 'my-shop'
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
     protected function casts(): array
     {
         return [
@@ -35,28 +48,41 @@ class Shop extends Model
     protected static function booted()
     {
         static::saving(function ($shop) {
-            $user = $shop->user; 
-            if (!$user || $user->user_type_id !== UserType::MEMBER) {
+            $user = $shop->user;
+
+            if (! $user || $user->user_type_id !== UserType::MEMBER) {
                 throw new InvalidArgumentException('Only members can have a shop.');
             }
         });
     }
 
+    /**
+     * Shop owner.
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Products that belong to this shop.
+     */
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
     }
 
+    /**
+     * Orders belonging to this shop.
+     */
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
     }
 
+    /**
+     * Reviews belonging to this shop.
+     */
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
