@@ -21,6 +21,9 @@ return new class extends Migration
             $table->longText('description')->nullable();
             $table->string('video')->nullable();
             $table->unsignedBigInteger('views')->default(0);
+            $table->decimal('rating', 2, 1)->default(0);
+            $table->unsignedBigInteger('reviews_count')->default(0);
+            $table->unsignedBigInteger('sold_count')->default(0);
             $table->timestamps();
         });
     }

@@ -21,7 +21,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('logo')->nullable();
             $table->string('banner')->nullable();
-            $table->decimal('rating', 3, 2)->default(0);
+            $table->decimal('rating', 2, 1)->default(0);
             $table->timestamps();
         });
     }
