@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use App\Enums\CheckoutStatus;
 
 return new class extends Migration
 {
@@ -16,7 +17,7 @@ return new class extends Migration
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->string('checkout_number')->unique();
             $table->decimal('grand_total', 12, 2);
-            $table->string('status');
+            $table->string('status')->default(CheckoutStatus::PENDING_PAYMENT->value);
             $table->timestamps();
         });
     }
