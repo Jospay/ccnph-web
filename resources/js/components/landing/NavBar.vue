@@ -322,19 +322,53 @@ onUnmounted(() => {
 
                         <div class="overflow-y-auto p-6 sm:p-8 no-scrollbar">
                             
+                            <!-- Join Us Modal -->
                             <JoinUs v-if="activeModal === 'join'" />
-                            
-                            <div v-else-if="activeModal === 'shop'" class="flex flex-col items-center justify-center text-center py-10 sm:py-16">
-                                <div class="flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 dark:bg-white/10 mb-6">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-8 w-8 text-[#033e94] dark:text-white">
+
+                            <!-- Shop App Download Modal -->
+                            <div v-else-if="activeModal === 'shop'" class="text-center py-6 sm:py-10">
+                                <!-- Shopping Bag Icon -->
+                                <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 dark:bg-blue-900/20 mb-6">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-10 w-10 text-[#033e94] dark:text-blue-400">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
                                     </svg>
                                 </div>
-                                <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Shop Coming Soon</h3>
-                                <p class="text-gray-500 dark:text-gray-300 max-w-md mx-auto">
-                                    We are currently working hard to bring you our new store. Check back soon for updates!
+                                
+                                <h3 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                                    Unlock Our Exclusive Store
+                                </h3>
+                                
+                                <p class="text-base text-gray-600 dark:text-gray-300 mb-8 max-w-md mx-auto leading-relaxed">
+                                    Our web store is exclusively available to our members! To access the shop, please download our mobile app and upgrade your account to <strong>Member</strong> status. Get the app now to unlock your shopping experience.
                                 </p>
+                                
+                                <!-- App Download Buttons -->
+                                <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                                    <button class="w-full sm:w-auto flex items-center justify-center gap-3 rounded-xl bg-gray-900 dark:bg-white px-6 py-3.5 text-sm font-semibold text-white dark:text-gray-900 hover:opacity-90 transition-opacity">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                                            <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.19 2.31-.88 3.5-.84 1.14.03 2.53.54 3.32 1.83-3.15 1.9-2.61 6.27.32 7.68-.81 1.95-1.46 2.55-2.22 3.5zm-3.32-14.3c.53-1.39.26-2.67-.3-3.48-1.03-.02-2.67.75-3.35 1.93-.52 1.05-.62 2.37-.1 3.34 1.1.13 2.53-.78 3.75-1.79z" />
+                                        </svg>
+                                        <div class="text-left flex flex-col items-start leading-none">
+                                            <span class="text-[10px] font-medium opacity-80">Download on the</span>
+                                            <span class="text-base font-bold">App Store</span>
+                                        </div>
+                                    </button>
+                                    
+                                    <button class="w-full sm:w-auto flex items-center justify-center gap-3 rounded-xl bg-[#033e94] px-6 py-3.5 text-sm font-semibold text-white hover:opacity-90 transition-opacity shadow-md">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                                            <path d="M3.568 2.336L15.347 14.115l3.208-1.815a2.235 2.235 0 0 0 0-3.896l-14.987-8.48A1.332 1.332 0 0 0 1.63 1.011C1.56 1.455 1.5 2.203 1.5 3.37v17.26c0 1.167.06 1.915.13 2.358a1.334 1.334 0 0 0 1.938 1.087l14.987-8.481a2.235 2.235 0 0 0 .61-3.17L3.568 2.336z"/>
+                                        </svg>
+                                        <div class="text-left flex flex-col items-start leading-none">
+                                            <span class="text-[10px] font-medium opacity-80">GET IT ON</span>
+                                            <span class="text-base font-bold">Google Play</span>
+                                        </div>
+                                    </button>
                                 </div>
+                                
+                                <button @click="closeModal" class="mt-8 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition-colors">
+                                    Maybe later
+                                </button>
+                            </div>
 
                         </div>
                         
