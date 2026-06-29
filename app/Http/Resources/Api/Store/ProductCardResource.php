@@ -12,6 +12,8 @@ class ProductCardResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'rating' => $this->rating,
+            'sold_count' => $this->sold_count,
             'slug' => $this->slug,
             'image' => $this->images->first()
                 ? asset('storage/'.$this->images->first()->image)

@@ -21,6 +21,7 @@ class ProductShowResource extends JsonResource
             'description' => $this->description,
             'is_featured' => $this->is_featured,
             'is_active' => $this->is_active,
+            'rating' => $this->rating,
             'categories' => $this->categories->map(fn ($cat) => [
                 'id' => $cat->id,
                 'name' => $cat->name,

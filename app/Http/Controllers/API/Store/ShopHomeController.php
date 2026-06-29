@@ -50,6 +50,8 @@ class ShopHomeController extends Controller
                 'products.id',
                 'products.name',
                 'products.slug',
+                'products.rating',
+                'products.sold_count',
                 'products.is_featured',
                 'products.created_at',
             ])
