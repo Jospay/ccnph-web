@@ -14,7 +14,7 @@ class ShopHomeController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        // Fetch all parent categories from DB
+        // Fetch structural parent item nodes
         $categories = Category::select(['id', 'name', 'slug'])
             ->whereNull('parent_id')
             ->get();
@@ -25,7 +25,7 @@ class ShopHomeController extends Controller
                 ->get()
         );
 
-        // Paginate Discover products: 10 items per page
+        // Standardized paginated output matrices
         $discoverPagination = $this->buildBaseQuery('discover', $request)->paginate(10);
 
         return response()->json([
@@ -45,6 +45,8 @@ class ShopHomeController extends Controller
 
     private function buildBaseQuery(string $type, Request $request): Builder
     {
+        $userId = $request->user()?->id;
+
         return Product::query()
             ->select([
                 'products.id',
@@ -59,11 +61,22 @@ class ShopHomeController extends Controller
                 'images:id,product_id,image,sort_order',
                 'defaultVariant:id,product_id,price,compare_price',
             ])
-            ->withSum('variants as total_stock', 'stock')
-            ->having('total_stock', '>', 0)
             ->where('products.is_active', true)
-
-            // Dynamic category filter based on request query params
+            // FIXED: Replaced invalid SQL HAVING approach with explicit, highly optimized verification
+            ->whereHas('variants', function (Builder $query) {
+                $query->where('stock', '>', 0);
+            })
+            // Support Search Parameter Filtering smoothly at an API level
+            ->when($request->filled('search'), function (Builder $query) use ($request) {
+                $query->where('products.name', 'like', '%'.$request->query('search').'%');
+            })
+            // Handle Profile Wishlist matching patterns natively via optimization tags
+            ->when($userId, function (Builder $query) use ($userId) {
+                $query->withExists(['collections as is_liked' => function ($q) use ($userId) {
+                    $q->where('user_id', $userId)
+                        ->where('is_active', true);
+                }]);
+            })
             ->when(
                 $type === 'discover' && $request->filled('category_id') && $request->query('category_id') !== 'All',
                 fn (Builder $query) => $query->whereHas('categories', function (Builder $q) use ($request) {
