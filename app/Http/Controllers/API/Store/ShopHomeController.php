@@ -21,7 +21,7 @@ class ShopHomeController extends Controller
 
         $productsTopDeals = ProductCardResource::collection(
             $this->buildBaseQuery('top_deals', $request)
-                ->limit(4)
+                ->limit(6)
                 ->get()
         );
 
@@ -38,6 +38,24 @@ class ShopHomeController extends Controller
                     'current_page' => $discoverPagination->currentPage(),
                     'last_page' => $discoverPagination->lastPage(),
                     'has_more' => $discoverPagination->hasMorePages(),
+                ],
+            ],
+        ]);
+    }
+
+    public function topDeals(Request $request): JsonResponse
+    {
+        $pagination = $this->buildBaseQuery('top_deals', $request)
+            ->paginate(10);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'products' => ProductCardResource::collection($pagination->items()),
+                'pagination' => [
+                    'current_page' => $pagination->currentPage(),
+                    'last_page' => $pagination->lastPage(),
+                    'has_more' => $pagination->hasMorePages(),
                 ],
             ],
         ]);
