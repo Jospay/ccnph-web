@@ -25,7 +25,19 @@ Route::middleware('guest')->group(function () {
         Route::post('/resend', [RegistrationController::class, 'resend']);
     });
 });
-
+Route::middleware(['auth', 'checkUserType:' . UserType::MEMBER])
+    ->prefix('member')
+    ->name('member.')
+    ->group(function () {
+        
+    // Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // Store Management
+    Route::prefix('store')->name('store.')->group(function () {
+        // Route::get('/create', [StoreController::class, 'create'])->name('create');
+    });
+});
 // Route::middleware([
 //     'auth', 
 //     'role:' . UserType::MEMBER
