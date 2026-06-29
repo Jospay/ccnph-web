@@ -1,33 +1,24 @@
 <script setup lang="ts">
 import { Head, useForm, Link, router } from '@inertiajs/vue3';
 import {
-  StoreIcon,
   PackageIcon,
-  TrendingUpIcon,
-  ShoppingBagIcon,
   PlusIcon,
   AlertCircleIcon,
-  Edit,
-  Trash2,
-  ExternalLinkIcon,
-  Clock,
-  Truck,
-  CheckCircle2,
 } from 'lucide-vue-next';
-import { ref, computed, h } from 'vue';
+import { ref, computed } from 'vue';
+import Breadcrumbs from '@/components/Breadcrumbs.vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import DataTable from '@/components/DataTable.vue';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+// import type { Store, PaginatedSellerOrders, SellerOrder } from '@/types';
 import OrderItemsTable from '@/components/orders/OrderItemsTable.vue';
-import SellerTab, { type SellerTabItem } from '@/components/SellerTab.vue';
-import SellerStoreHeader from '@/components/SellerStoreHeader.vue';
+import Pagination from '@/components/Pagination.vue';
 import Navbar from '@/components/sections/Navbar.vue';
 import TopBar from '@/components/sections/TopBar.vue';
-import Breadcrumbs from '@/components/Breadcrumbs.vue';
-import Pagination from '@/components/Pagination.vue';
-import ConfirmDialog from '@/components/ConfirmDialog.vue';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { getSellerOrdersColumns } from '@/features/seller/columns';
-import seller from '@/routes/seller';
-import type { Store, PaginatedSellerOrders, SellerOrder } from '@/types';
+import SellerStoreHeader from '@/components/SellerStoreHeader.vue';
+import SellerTab, { type SellerTabItem } from '@/components/SellerTab.vue';
+// import { getSellerOrdersColumns } from '@/features/seller/columns';
+// import seller from '@/routes/seller';
 
 const props = defineProps<{
   store: Store;
@@ -74,18 +65,20 @@ const currentTabLabel = computed(() => {
   return currentTab ? currentTab.label : 'Orders';
 });
 
-const viewOrder = (orderNo: string) => {
-  // router.visit(seller.orders.show(orderNo));
+const viewOrder = (_orderNo: string) => {
+  // router.visit(seller.orders.show(_orderNo));
 };
+
+type OrderActionType = 'accept' | 'pack' | 'ship' | 'cancel';
 
 // state for action & cancel logic
 const confirmOpen = ref(false);
 const selectedOrder = ref<SellerOrder | null>(null);
-const selectedAction = ref<'accept' | 'pack' | 'ship' | 'cancel' | null>(null);
+const selectedAction = ref<OrderActionType | null>(null);
 
 const handleOrderAction = (order: SellerOrder, actionType: string) => {
   selectedOrder.value = order;
-  selectedAction.value = actionType as any;
+  selectedAction.value = actionType as OrderActionType;
   confirmOpen.value = true;
 };
 
@@ -99,6 +92,7 @@ const declineOrder = (order: SellerOrder) => {
 const actionForm = useForm({
   action: '',
 });
+
 const processOrderAction = () => {
   if (!selectedOrder.value || !selectedAction.value) return;
 
@@ -112,6 +106,7 @@ const processOrderAction = () => {
 
     return;
   }
+  
   actionForm.action = selectedAction.value;
   actionForm.patch(seller.orders.action.url(selectedOrder.value.id), {
     preserveScroll: true,
@@ -159,7 +154,7 @@ function changeTab(tab: string) {
 <template>
   <Head title="Seller Orders" />
 
-  <div class="flex min-h-screen flex-col transition-colors duration-300">
+  <div class="flex min-h-screen flex-col bg-gray-50 transition-colors duration-300 dark:bg-transparent">
     <TopBar />
     <div class="sticky top-0 z-50 mt-8"><Navbar /></div>
 
@@ -176,14 +171,16 @@ function changeTab(tab: string) {
           <template #actions>
             <Link
               :href="seller.products.create()"
-              class="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#009933] px-6 py-3.5 font-bold text-white shadow-md transition-colors hover:bg-green-700 active:scale-95"
+              class="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#033e94] px-6 py-3.5 font-bold text-white shadow-md transition-all hover:opacity-90 active:scale-95 dark:bg-white dark:text-[#033e94]"
             >
               <PlusIcon class="h-5 w-5" /> Add New Product
             </Link>
           </template>
         </SellerStoreHeader>
+        
+        <!-- Updated border and background using the reference theme -->
         <div
-          class="overflow-hidden rounded-3xl border border-zinc-200 bg-zinc-50 shadow-sm transition-colors dark:border-zinc-800 dark:bg-zinc-900"
+          class="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-lg transition-all duration-300 dark:border-white/10 dark:bg-[#0a192f]"
         >
           <SellerTab
             :model-value="activeTab"
@@ -192,12 +189,13 @@ function changeTab(tab: string) {
           />
 
           <div v-if="orders.data.length === 0" class="p-16 text-center">
+            <!-- Redesigned Empty State Icon matches modal shopping icon color theme -->
             <div
-              class="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-800"
+              class="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-blue-50 shadow-sm transition-colors dark:bg-blue-900/20"
             >
-              <PackageIcon class="h-10 w-10 text-zinc-400" />
+              <PackageIcon class="h-10 w-10 text-[#033e94] dark:text-blue-400" />
             </div>
-            <h3 class="mb-2 text-xl font-bold text-zinc-800 dark:text-white">
+            <h3 class="mb-2 text-xl font-bold text-gray-900 dark:text-white">
               No {{ currentTabLabel }}
             </h3>
           </div>
@@ -240,7 +238,7 @@ function changeTab(tab: string) {
   >
     <template #description>
       Are you sure you want to {{ selectedAction }}
-      <span class="font-bold text-blue-600 capitalize dark:text-blue-400">{{
+      <span class="font-bold text-[#033e94] capitalize dark:text-blue-400">{{
         selectedOrder.order_number
       }}</span
       >?
@@ -260,6 +258,6 @@ function changeTab(tab: string) {
   border-radius: 10px;
 }
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #3f3f46;
+  background: #1e293b; /* A bit darker/cooler to match #0a192f context */
 }
 </style>

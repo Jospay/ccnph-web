@@ -11,26 +11,26 @@ import {
 } from 'lucide-vue-next';
 import Navbar from '@/components/sections/Navbar.vue';
 import TopBar from '@/components/sections/TopBar.vue';
-import SellerStoreHeader from '@/components/SellerStoreHeader.vue';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import seller from '@/routes/seller';
-import type { Store } from '@/types';
+// import SellerStoreHeader from '@/components/SellerStoreHeader.vue';
+// import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+// import seller from '@/routes/seller';
+// import type { Store } from '@/types';
 
-const props = defineProps<{
-  store: Store;
-}>();
+// const props = defineProps<{
+//   store: Store;
+// }>();
 
-const viewProduct = (productSlug: string) => {
-  // router.visit(seller.products.show(productSlug));
-};
+// const viewProduct = (productSlug: string) => {
+//   // router.visit(seller.products.show(productSlug));
+// };
 
-const editProduct = (productSlug: string) => {
-  router.visit(seller.products.edit(productSlug));
-};
+// const editProduct = (productSlug: string) => {
+//   router.visit(seller.products.edit(productSlug));
+// };
 
-const deleteProduct = (productSlug: string) => {
-  // router.visit(seller.products.destroy(productSlug));
-};
+// const deleteProduct = (productSlug: string) => {
+//   // router.visit(seller.products.destroy(productSlug));
+// };
 </script>
 
 <template>
@@ -53,7 +53,7 @@ const deleteProduct = (productSlug: string) => {
       </div>
 
       <div v-if="props.store.is_active" class="flex flex-col gap-8">
-        <SellerStoreHeader
+        <!-- <SellerStoreHeader
           :store="props.store"
           :edit-store-href="seller.store.edit.url(props.store.slug)"
         >
@@ -65,7 +65,7 @@ const deleteProduct = (productSlug: string) => {
               Chat
             </Link>
           </template>
-        </SellerStoreHeader>
+        </SellerStoreHeader> -->
 
         <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
           <div
