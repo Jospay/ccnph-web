@@ -75,20 +75,19 @@ class ShopHomeController extends Controller
                 'products.is_featured',
                 'products.created_at',
             ])
+            // 1. ADD THIS line to sum up variant stocks dynamically
+            ->withSum('variants as total_stock', 'stock')
             ->with([
                 'images:id,product_id,image,sort_order',
                 'defaultVariant:id,product_id,price,compare_price',
             ])
             ->where('products.is_active', true)
-            // FIXED: Replaced invalid SQL HAVING approach with explicit, highly optimized verification
             ->whereHas('variants', function (Builder $query) {
                 $query->where('stock', '>', 0);
             })
-            // Support Search Parameter Filtering smoothly at an API level
             ->when($request->filled('search'), function (Builder $query) use ($request) {
                 $query->where('products.name', 'like', '%'.$request->query('search').'%');
             })
-            // Handle Profile Wishlist matching patterns natively via optimization tags
             ->when($userId, function (Builder $query) use ($userId) {
                 $query->withExists(['collections as is_liked' => function ($q) use ($userId) {
                     $q->where('user_id', $userId)
