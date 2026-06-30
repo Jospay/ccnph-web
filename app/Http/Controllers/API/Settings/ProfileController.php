@@ -4,9 +4,13 @@ namespace App\Http\Controllers\API\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\ChangePasswordRequest;
+use App\Http\Requests\User\StoreUserAddressRequest;
 use App\Http\Requests\User\UpdateAvatarRequest;
 use App\Http\Requests\User\UpdateProfileRequest;
+use App\Http\Requests\User\UpdateUserAddressRequest;
+use App\Http\Resources\Api\Store\UserAddressResource;
 use App\Http\Resources\Api\User\ApiProfileResource;
+use App\Models\UserAddress;
 use App\Services\User\ProfileService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -208,6 +212,73 @@ class ProfileController extends Controller
             'data' => [
                 'avatar' => $url,
             ],
+        ]);
+    }
+
+    /**
+     * Get all addresses for the authenticated user.
+     */
+    public function getAddresses(Request $request): JsonResponse
+    {
+        $addresses = $request->user()->addresses()->orderBy('is_default', 'desc')->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => UserAddressResource::collection($addresses),
+        ]);
+    }
+
+    /**
+     * Create a new user address.
+     */
+    public function address(StoreUserAddressRequest $request): JsonResponse
+    {
+        $address = $this->profileService->addAddress($request->user(), $request->validated());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Address added successfully.',
+            'data' => new UserAddressResource($address),
+        ], 201);
+    }
+
+    /**
+     * Update an existing user address.
+     */
+    public function updateAddress(UpdateUserAddressRequest $request, UserAddress $userAddress): JsonResponse
+    {
+        // Ensure the address belongs to the authenticated user
+        if ($userAddress->user_id !== $request->user()->id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized Access.'], 403);
+        }
+
+        $updatedAddress = $this->profileService->updateAddress($userAddress, $request->validated());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Address updated successfully.',
+            'data' => new UserAddressResource($updatedAddress),
+        ]);
+    }
+
+    /**
+     * Delete a user address.
+     */
+    public function deleteAddress(Request $request, UserAddress $userAddress): JsonResponse
+    {
+        if ($userAddress->user_id !== $request->user()->id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized Access.'], 403);
+        }
+
+        if ($userAddress->is_default) {
+            return response()->json(['success' => false, 'message' => 'Cannot delete default address.'], 422);
+        }
+
+        $userAddress->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Address deleted successfully.',
         ]);
     }
 }

@@ -5,8 +5,10 @@ namespace App\Services\User;
 use App\Http\Requests\User\UpdateProfileRequest;
 use App\Models\Status;
 use App\Models\User;
+use App\Models\UserAddress;
 use App\Models\UserType;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
@@ -16,8 +18,6 @@ class ProfileService
      * Summary of updateProfile
      * Handles the logic for updating a user's profile, including storing valid ID pictures.
      *
-     * @param User $user
-     * @param UpdateProfileRequest $request
      * @return User|null
      */
     public function updateProfile(User $user, UpdateProfileRequest $request): User
@@ -59,7 +59,6 @@ class ProfileService
      * Summary of storeIdPhoto
      * Handles the logic for storing valid ID photos and returns the storage path.
      *
-     * @param UploadedFile $file
      * @return bool|string
      */
     private function storeIdPhoto(UploadedFile $file): string
@@ -70,15 +69,10 @@ class ProfileService
     /**
      * Summary of changePassword
      * Handles the logic for changing a user's password, including verifying the current password and hashing the new password.
-     *
-     * @param User $user
-     * @param string $currentPassword
-     * @param string $newPassword
-     * @return bool
      */
     public function changePassword(User $user, string $currentPassword, string $newPassword): bool
     {
-        if (!Hash::check($currentPassword, $user->password)) {
+        if (! Hash::check($currentPassword, $user->password)) {
             return false;
         }
 
@@ -95,10 +89,6 @@ class ProfileService
     /**
      * Summary of updateAvatar
      * Handles the logic for updating a user's avatar, including deleting the old avatar if it exists and storing the new avatar.
-     *
-     * @param User $user
-     * @param UploadedFile $avatar
-     * @return string
      */
     public function updateAvatar(User $user, UploadedFile $avatar): string
     {
@@ -110,6 +100,30 @@ class ProfileService
 
         $user->update(['avatar' => $path]);
 
-        return asset('storage/' . $path);
+        return asset('storage/'.$path);
+    }
+
+    public function addAddress(User $user, array $data): UserAddress
+    {
+        return DB::transaction(function () use ($user, $data) {
+            if (! empty($data['is_default']) && $data['is_default'] == true) {
+                $user->addresses()->update(['is_default' => false]);
+            }
+
+            return $user->addresses()->create($data);
+        });
+    }
+
+    public function updateAddress(UserAddress $address, array $data): UserAddress
+    {
+        return DB::transaction(function () use ($address, $data) {
+            if (! empty($data['is_default']) && $data['is_default'] == true) {
+                UserAddress::where('user_id', $address->user_id)->update(['is_default' => false]);
+            }
+
+            $address->update($data);
+
+            return $address->refresh();
+        });
     }
 }
