@@ -32,6 +32,28 @@ class CustomerOrderController extends Controller
             'status' => $validated['status'] ?? 'all',
         ];
 
+        $badgeCounts = [
+            'to_pay' => Order::where('user_id', $user->id)
+                ->where('status', OrderStatus::PENDING)
+                ->count(),
+
+            'to_ship' => Order::where('user_id', $user->id)
+                ->whereIn('status', [
+                    OrderStatus::CONFIRMED,
+                    OrderStatus::PROCESSING,
+                    OrderStatus::PACKED,
+                ])
+                ->count(),
+
+            'to_receive' => Order::where('user_id', $user->id)
+                ->where('status', OrderStatus::SHIPPED)
+                ->count(),
+
+            'to_rate' => Order::where('user_id', $user->id)
+                ->where('status', OrderStatus::DELIVERED)
+                ->count(),
+        ];
+
         // Fetch records cleanly without restrictive column select arrays to ensure relations never fail
         $paginator = Order::query()
             ->where('user_id', $user->id)
@@ -53,7 +75,7 @@ class CustomerOrderController extends Controller
             'success' => true,
             'data' => [
                 'user' => $user->only('name', 'phone', 'avatar'),
-                'orders' => $ordersCollection->toArray($request), // Converts resource array flawlessly
+                'orders' => $ordersCollection->toArray($request),
                 'pagination' => [
                     'current_page' => $paginator->currentPage(),
                     'last_page' => $paginator->lastPage(),
@@ -61,7 +83,9 @@ class CustomerOrderController extends Controller
                     'total' => $paginator->total(),
                     'has_more' => $paginator->hasMorePages(),
                 ],
+
                 'filters' => $filters,
+                'badges' => $badgeCounts,
             ],
         ]);
     }
