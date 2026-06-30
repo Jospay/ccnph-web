@@ -1,9 +1,9 @@
 <?php
 
+use App\Enums\UserAddressLabel;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Enums\UserAddressLabel;
 
 return new class extends Migration
 {
@@ -19,9 +19,13 @@ return new class extends Migration
             $table->string('recipient_name');
             $table->string('recipient_number');
             $table->string('region');
+            $table->string('region_code');
             $table->string('province')->nullable();
+            $table->string('province_code')->nullable();
             $table->string('city');
+            $table->string('city_code');
             $table->string('barangay');
+            $table->string('barangay_code');
             $table->string('street');
             $table->string('unit_bldg_house');
             $table->string('postal_code', 20);
