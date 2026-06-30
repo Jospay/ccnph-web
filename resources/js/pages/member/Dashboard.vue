@@ -62,7 +62,7 @@ const deleteProduct = (id: number) => {
       'Are you sure you want to delete this product? This cannot be undone.',
     )
   ) {
-    router.delete(`/seller/products/${id}`, { preserveScroll: true });
+    router.delete(`/member/products/${id}`, { preserveScroll: true });
   }
 };
 
@@ -87,7 +87,7 @@ const pendingOrdersCount = computed(() => {
 const updateOrderStatus = (orderId: number, newStatus: string) => {
   if (confirm(`Update this order to: ${newStatus}?`)) {
     router.patch(
-      `/seller/orders/${orderId}/status`,
+      `/member/orders/${orderId}/status`,
       { status: newStatus },
       { preserveScroll: true },
     );
@@ -118,7 +118,7 @@ const getStatusColor = (status: string) => {
 </script>
 
 <template>
-  <Head title="Seller Dashboard" />
+  <Head title="Member Dashboard" />
 
   <div class="flex min-h-screen flex-col transition-colors duration-300">
     <TopBar />
@@ -129,7 +129,7 @@ const getStatusColor = (status: string) => {
         <h1
           class="flex items-center gap-3 text-3xl font-black text-zinc-900 dark:text-white"
         >
-          <Store class="h-8 w-8 text-[#009933]" /> Seller Center
+          <Store class="h-8 w-8 text-[#009933]" /> Member Center
         </h1>
         <p class="mt-1 font-medium text-zinc-500 dark:text-zinc-400">
           Manage your storefront, products, and orders.
@@ -156,7 +156,7 @@ const getStatusColor = (status: string) => {
                 {{ props.store.name }}
               </h2>
              <Link
-  :href="`/seller/store/${props.store.id}/edit`"
+  :href="`/member/store/${props.store.id}/edit`"
   class="mt-1 flex items-center gap-1 text-sm font-medium text-zinc-500 transition-colors hover:text-[#009933] dark:text-zinc-400"
 >
   Edit Store Profile
@@ -167,7 +167,7 @@ const getStatusColor = (status: string) => {
           </div>
 
           <Link
-            href="/seller/products/create"
+            href="/member/products/create"
             class="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#009933] px-6 py-3.5 font-bold text-white shadow-md transition-colors hover:bg-green-700 active:scale-95"
           >
             <Plus class="h-5 w-5" /> Add New Product
@@ -342,7 +342,7 @@ const getStatusColor = (status: string) => {
                     </td>
                     <td class="px-6 py-4 text-right">
                       <Link
-                        :href="`/seller/products/${product.id}/edit`"
+                        :href="`/member/products/${product.id}/edit`"
                         class="mr-2 inline-block rounded-lg p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                         ><Edit class="h-4 w-4"
                       /></Link>
@@ -426,7 +426,7 @@ const getStatusColor = (status: string) => {
                     </td>
                     <td class="px-6 py-4 text-right">
                       <Link
-                        :href="`/seller/products/${product.id}/edit`"
+                        :href="`/member/products/${product.id}/edit`"
                         class="mr-2 inline-block rounded-lg border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-700 shadow-sm transition-colors hover:border-[#009933] hover:text-[#009933] dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
                       >
                         Restock
