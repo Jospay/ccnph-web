@@ -36,3 +36,19 @@ export type TwoFactorConfigContent = {
   description: string;
   buttonText: string;
 };
+export type UserAddress = {
+  id: number;
+  label: string;
+  recipient_name: string;
+  recipient_number: string;
+  region: string;
+  province?: string;
+  city: string;
+  barangay: string;
+  street: string;
+  unit_bldg_house: string;
+  postal_code: string;
+  landmark?: string;
+  full_address?: string;
+  is_default: boolean;
+};
