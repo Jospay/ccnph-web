@@ -18,6 +18,7 @@ class ProductShowResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'sold_count' => $this->sold_count,
             'description' => $this->description,
             'is_featured' => $this->is_featured,
             'is_active' => $this->is_active,
@@ -54,6 +55,7 @@ class ProductShowResource extends JsonResource
             'store' => [
                 'id' => $this->store->id,
                 'name' => $this->store->name,
+                'rating' => $this->store->rating,
                 'slug' => $this->store->slug,
                 'logo' => $this->store->logo ? Storage::url($this->store->logo) : null,
                 'is_official' => $this->store->is_official,
