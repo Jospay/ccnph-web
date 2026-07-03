@@ -26,15 +26,6 @@ class CheckUserType
             return $next($request);
         }
 
-        // Log the user out so they can actually stay on the login page
-        Auth::logout();
-
-        // Invalidate session to prevent fixation and clear tokens
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        throw ValidationException::withMessages([
-            'email' => ['Only administrators are allowed to access this area.'],
-        ]);
+        abort(403, 'You do not have access to this page');
     }
 }
