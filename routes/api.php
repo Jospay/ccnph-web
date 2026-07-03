@@ -15,11 +15,13 @@ use App\Http\Controllers\API\Payment\PaymentWebhookController;
 use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\Settings\ProfileController;
 use App\Http\Controllers\API\ShareCapital\ShareCapitalController;
+use App\Http\Controllers\API\Store\CollectionProductController;
 use App\Http\Controllers\API\Store\CustomerCartController;
 use App\Http\Controllers\API\Store\CustomerCheckoutController;
 use App\Http\Controllers\API\Store\CustomerOrderController;
 use App\Http\Controllers\API\Store\ShopHomeController;
 use App\Http\Controllers\API\Store\ShopProductController;
+use App\Http\Controllers\API\Store\ShopStoreController;
 use App\Http\Controllers\API\Verification\PhoneVerificationController;
 use App\Http\Controllers\API\Wallet\WalletController;
 use App\Models\UserType;
@@ -77,6 +79,11 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::put('update', [ProfileController::class, 'update']);
             Route::patch('change-password', [ProfileController::class, 'changePassword']);
             Route::post('avatar', [ProfileController::class, 'updateAvatar']);
+
+            Route::get('addresses', [ProfileController::class, 'getAddresses']);
+            Route::post('address', [ProfileController::class, 'address']);
+            Route::put('address/{userAddress}', [ProfileController::class, 'updateAddress']);
+            Route::delete('address/{userAddress}', [ProfileController::class, 'deleteAddress']);
         });
 
     // Wallet Routes
@@ -150,8 +157,12 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER)
         ->group(function () {
             Route::get('home', [ShopHomeController::class, 'index']);
+            Route::get('/top-deals', [ShopHomeController::class, 'topDeals']);
             Route::get('products', [ShopProductController::class, 'index']);
             Route::get('products/{product}', [ShopProductController::class, 'show']);
+
+            Route::get('collections', [CollectionProductController::class, 'index']);
+            Route::post('collections/{product}/toggle', [CollectionProductController::class, 'toggle']);
 
             Route::get('cart', [CustomerCartController::class, 'index']);
             Route::post('cart/items', [CustomerCartController::class, 'store']);
@@ -166,6 +177,9 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/orders/{order}', [CustomerOrderController::class, 'show']);
             Route::get('/orders/{order}/rate', [CustomerOrderController::class, 'rate']);
             Route::post('/orders/{order}/rate', [CustomerOrderController::class, 'storeRating']);
+
+            Route::get('/{store}', [ShopStoreController::class, 'show']);
+            Route::post('register-seller', [ShopStoreController::class, 'registerSeller']);
         });
 
 });
