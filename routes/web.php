@@ -12,54 +12,26 @@ use App\Http\Controllers\Web\LoanScheduleController;
 use App\Http\Controllers\Web\IntellectualPropertyController;
 use App\Http\Controllers\Web\SuperAdmin\CoopMembershipController;
 use App\Http\Controllers\Web\SuperAdmin\AdminManagementController;
+use App\Http\Controllers\Web\Seller\DashboardController as SellerDashboardController;
 
 Route::inertia('/', 'Home', [
     'canRegister' => Features::enabled(Features::registration()),
 ])->name('home');
 
-Route::middleware('guest')->group(function () {
-    Route::prefix('register')->group(function () {
-        Route::post('/initiate', [RegistrationController::class, 'initiate']);
-        Route::post('/verify', [RegistrationController::class, 'verify']);
-        Route::post('/complete', [RegistrationController::class, 'complete']);
-        Route::post('/resend', [RegistrationController::class, 'resend']);
-    });
-});
-Route::middleware(['auth', 'checkUserType:' . UserType::MEMBER])
-    ->prefix('member')
-    ->name('member.')
-    ->group(function () {
-        
-    // Dashboard
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    
-    // Store Management
-    Route::prefix('store')->name('store.')->group(function () {
-        // Route::get('/create', [StoreController::class, 'create'])->name('create');
-    });
-});
-// Route::middleware([
-//     'auth', 
-//     'role:' . UserType::MEMBER
-// ])->prefix('member')->group(function () {
-
-//     // Member Dashboard
-//     Route::get('/dashboard', function () {
-//         return Inertia::render('member/Dashboard');
-//     })->name('member.dashboard');
-
-//     // Route::get('/profile', [MemberProfileController::class, 'index'])->name('member.profile');
-
-// });
+Route::get('/join-us', function () {
+    return Inertia::render('landing/JoinUs'); 
+})->name('join-us');
 
 Route::middleware([
     'auth', 
-    'role:' . UserType::BASIC
-])->group(function () {
+    'role:' . UserType::MEMBER
+])
+->prefix('seller')
+->name('seller.')
+->group(function () {
 
-    Route::get('/join-us', function () {
-        return Inertia::render('landing/JoinUs'); 
-    })->name('join-us');
+    Route::get('/dashboard', [SellerDashboardController::class, 'index'])
+        ->name('dashboard.index');
 
 });
 
