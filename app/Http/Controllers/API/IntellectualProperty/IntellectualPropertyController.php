@@ -54,7 +54,7 @@ class IntellectualPropertyController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Your Intellectual Property Assistance request has been submitted successfully.',
-                'data' => new ApiIntellectualPropertyResource($application->load(['status'])),
+                'data' => new ApiIntellectualPropertyResource($application->load(['status', 'conversation'])),
             ], 201);
         } catch (DomainException $e) {
             return response()->json([

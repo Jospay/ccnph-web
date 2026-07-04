@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Api\IntellectualProperty;
 
+use App\Http\Resources\Api\Conversation\ApiConversationResource;
 use App\Models\Status;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\JsonApi\JsonApiResource;
@@ -67,5 +68,6 @@ class ApiIntellectualPropertyResource extends JsonApiResource
         'documents' => ApiIntellectualPropertyDocumentResource::class,
         'setting' => ApiIntellectualPropertySettingResource::class,
         'payments' => ApiIntellectualPropertyPaymentResource::class,
+        'conversation' => ApiConversationResource::class,
     ];
 }
