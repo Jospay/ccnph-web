@@ -3,18 +3,18 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Inertia\Response;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Validation\Rule;
-use App\Models\UserType;
+use App\Http\Requests\IntellectualProperty\UpdateStatusRequest;
+use App\Http\Resources\IntellectualPropertyDetailResource;
+use App\Http\Resources\IntellectualPropertyResource;
 use App\Models\IntellectualProperty;
 use App\Models\Status;
-use App\Http\Resources\IntellectualPropertyResource;
-use App\Http\Resources\IntellectualPropertyDetailResource;
-use App\Http\Requests\IntellectualProperty\UpdateStatusRequest;
+use App\Models\UserType;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class IntellectualPropertyController extends Controller
 {
@@ -46,8 +46,8 @@ class IntellectualPropertyController extends Controller
 
         return Inertia::render('intellectual-property/Index', [
             'intellectual_properties' => IntellectualPropertyResource::collection($intellectualProperties),
-            'can_mutate' => $this->canMutate(), 
-            'filters' => $filters
+            'can_mutate' => $this->canMutate(),
+            'filters' => $filters,
         ]);
     }
 
@@ -59,13 +59,13 @@ class IntellectualPropertyController extends Controller
         $query = IntellectualProperty::with([
             'status:id,name',
             'user:id,name',
-        ])->whereHas('status', fn($q) => $q->where('name', $filters['status']));
+        ])->whereHas('status', fn ($q) => $q->where('name', $filters['status']));
 
-        if (!empty($filters['creation'])) {
+        if (! empty($filters['creation'])) {
             $query->where('creation_type', $filters['creation']);
         }
 
-        if (!empty($filters['form'])) {
+        if (! empty($filters['form'])) {
             $query->where('form_type', $filters['form']);
         }
 
@@ -83,7 +83,7 @@ class IntellectualPropertyController extends Controller
 
         if (
             $property->form_type === 'payment' &&
-            !in_array($property->status_id, [
+            ! in_array($property->status_id, [
                 Status::PENDING,
                 Status::REJECTED,
             ], true)
@@ -96,25 +96,25 @@ class IntellectualPropertyController extends Controller
         return IntellectualPropertyDetailResource::make($property);
     }
 
-    public function updateStatus(UpdateStatusRequest $request, IntellectualProperty $property,)
+    public function updateStatus(UpdateStatusRequest $request, IntellectualProperty $property)
     {
         // Authorization and Validation
         $validated = $request->validated();
 
-         if ($validated['action'] === 'approve' && $property->status_id === Status::PENDING) {
+        if ($validated['action'] === 'approve' && $property->status_id === Status::PENDING) {
             if ($property->form_type === 'payment') {
                 $property->update([
                     'status_id' => Status::WAITING_FOR_PAYMENT,
                 ]);
 
+                $amountInCents = (int) round($validated['amount'] * 100);
                 $property->setting()->updateOrCreate(
                     [
                         'intellectual_property_id' => $property->id,
                     ],
                     [
-                        'amount' => $validated['amount'],
-                        'allowed_term_months' =>
-                            $validated['allowed_term_months'],
+                        'amount' => $amountInCents,
+                        'allowed_term_months' => $validated['allowed_term_months'],
                     ]
                 );
 
