@@ -2,9 +2,9 @@
 
 namespace App\Http\Resources\Api\User;
 
+use App\Http\Resources\Api\ApiStatusResource;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use App\Http\Resources\Api\ApiStatusResource;
 use Illuminate\Http\Resources\JsonApi\JsonApiResource;
 
 class ApiProfileResource extends JsonApiResource
@@ -14,6 +14,7 @@ class ApiProfileResource extends JsonApiResource
      */
     public $attributes = [
         'name',
+        'is_seller',
         'phone',
         'user_type_id',
         'email',
@@ -40,6 +41,7 @@ class ApiProfileResource extends JsonApiResource
     {
         return [
             'name' => $this->name,
+            'is_seller' => $this->is_seller,
             'phone' => $this->phone,
             'email' => $this->email,
             'gender' => $this->gender,
@@ -53,20 +55,20 @@ class ApiProfileResource extends JsonApiResource
             'street' => $this->street,
             'postal_code' => $this->postal_code,
 
-            'avatar' => $this->avatar ? asset('storage/' . $this->avatar) : null,
+            'avatar' => $this->avatar ? asset('storage/'.$this->avatar) : null,
 
             'valid_id_type' => $this->valid_id_type,
             'valid_id_number' => $this->valid_id_number,
 
-            'front_valid_id_picture' => $this->front_valid_id_picture ? asset('storage/' . $this->front_valid_id_picture) : null,
-            'back_valid_id_picture' => $this->back_valid_id_picture ? asset('storage/' . $this->back_valid_id_picture) : null,
+            'front_valid_id_picture' => $this->front_valid_id_picture ? asset('storage/'.$this->front_valid_id_picture) : null,
+            'back_valid_id_picture' => $this->back_valid_id_picture ? asset('storage/'.$this->back_valid_id_picture) : null,
 
-            'is_verified' => fn() => !is_null($this->valid_id_number),
-            'status' => $this->whenLoaded('status', fn() => [
+            'is_verified' => fn () => ! is_null($this->valid_id_number),
+            'status' => $this->whenLoaded('status', fn () => [
                 'id' => $this->status->id,
                 'name' => $this->status->name,
             ]),
-            'user_type' => $this->whenLoaded('userType', fn() => [
+            'user_type' => $this->whenLoaded('userType', fn () => [
                 'id' => $this->userType->id,
                 'name' => $this->userType->name,
             ]),
