@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 class IntellectualProperty extends Model
 {
@@ -15,6 +16,7 @@ class IntellectualProperty extends Model
 
     protected $fillable = [
         'user_id',
+        'service_id',
         'status_id',
         'amount',
         'term_months',
@@ -73,6 +75,16 @@ class IntellectualProperty extends Model
     public function setting(): HasOne
     {
         return $this->hasOne(IntellectualPropertySetting::class);
+    }
+
+    public function service(): BelongsTo
+    {
+        return $this->belongsTo(Service::class);
+    }
+
+    public function conversation(): MorphOne
+    {
+        return $this->morphOne(Conversation::class, 'conversable');
     }
 
     public function tryActivate(): void

@@ -2,10 +2,12 @@
 
 namespace App\Services\IntellectualProperty;
 
+use App\Models\Conversation;
 use App\Models\IntellectualProperty;
 use App\Models\IntellectualPropertyClaim;
 use App\Models\IntellectualPropertyDocument;
 use App\Models\IntellectualPropertySetting;
+use App\Models\Service;
 use App\Models\Status;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -71,8 +73,12 @@ class IntellectualPropertyService
     ): IntellectualProperty {
         return DB::transaction(function () use ($user, $data) {
 
+            $service = Service::where('slug', 'intellectual-property-assistance')->firstOrFail();
+
             $application = IntellectualProperty::create([
                 'user_id' => $user->id,
+
+                'service_id' => $service->id,
 
                 'status_id' => Status::PENDING,
 
@@ -99,12 +105,35 @@ class IntellectualPropertyService
                 );
             }
 
+            $this->startConversation($application, $user);
+
             return $application->load([
                 'claims',
                 'documents',
                 'status',
+                'conversation',
             ]);
         });
+    }
+
+    /**
+     * Start the chat thread for this application, with the applicant as first participant.
+     */
+    private function startConversation(
+        IntellectualProperty $application,
+        User $user
+    ): Conversation {
+
+        $conversation = new Conversation(['status' => 'open']);
+
+        $application->conversation()->save($conversation);
+
+        $conversation->participants()->create([
+            'user_id' => $user->id,
+            'role' => 'applicant',
+        ]);
+
+        return $conversation;
     }
 
     /**
