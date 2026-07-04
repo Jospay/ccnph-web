@@ -18,6 +18,14 @@ class Service extends Model
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class)
-            ->withTimestamps();;
+            ->withTimestamps();
+        ;
+    }
+
+    public function admins(): BelongsToMany
+    {
+        return $this->users()
+            ->where('user_type_id', UserType::ADMIN)
+            ->where('status_id', Status::ACTIVE);
     }
 }
