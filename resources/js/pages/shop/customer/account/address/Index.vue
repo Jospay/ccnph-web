@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
-import { ref, watchEffect, reactive } from 'vue';
 import {
   MapPinIcon,
   PackageIcon,
@@ -12,6 +11,7 @@ import {
   Trash2Icon,
   SquarePenIcon,
 } from 'lucide-vue-next';
+import { ref, watchEffect, reactive } from 'vue';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -21,15 +21,15 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
+import { useAddress } from '@/composables/useAddress';
+import type { User, UserAddress } from '@/types';
+import type { AddressFields } from '@/components/accounts/AddressForm.vue';
 import AddressForm from '@/components/accounts/AddressForm.vue';
+import UserAccountSidebar from '@/components/accounts/UserAccountSidebar.vue';
 import Footer from '@/components/sections/Footer.vue';
 import Navbar from '@/components/sections/Navbar.vue';
 import TopBar from '@/components/sections/TopBar.vue';
-import { useAddress } from '@/composables/useAddress';
-import UserAccountSidebar from '@/components/accounts/UserAccountSidebar.vue';
 import shop from '@/routes/shop';
-import type { User, UserAddress } from '@/types';
-import type { AddressFields } from '@/components/accounts/AddressForm.vue';
 
 const props = defineProps<{
   user: User;
@@ -90,7 +90,9 @@ const openEditDialog = async (address: UserAddress) => {
   isEditDialogOpen.value = true;
 };
 const submitEdit = () => {
-  if (!editingAddress.value) return;
+  if (!editingAddress.value) {
+    return;
+  }
 
   editForm.patch(shop.account.addresses.update.url(editingAddress.value.id), {
     preserveScroll: true,
@@ -108,8 +110,10 @@ const openDeleteDialog = (addressId: number) => {
   isDeleteDialogOpen.value = true;
 };
 const deleteAddress = () => {
-  if (!selectedAddressId.value) return;
-
+  if (!selectedAddressId.value) {
+    return;
+  }
+  
   router.delete(shop.account.addresses.destroy(selectedAddressId.value), {
     preserveScroll: true,
     onSuccess: () => {
