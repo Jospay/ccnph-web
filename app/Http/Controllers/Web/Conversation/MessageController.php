@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\API\Conversation;
+namespace App\Http\Controllers\Web\Conversation;
 
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
-use App\Models\Message;
 use App\Services\Conversation\ConversationNotifier;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
 
 class MessageController extends Controller
@@ -15,7 +15,7 @@ class MessageController extends Controller
     {
     }
 
-    public function store(Conversation $conversation, Request $request)
+    public function store(Conversation $conversation, Request $request): RedirectResponse
     {
         Gate::authorize('reply', $conversation);
 
@@ -46,25 +46,6 @@ class MessageController extends Controller
 
         $this->notifier->notifyOthers($conversation, $message, $request->user()->id);
 
-        return $message->load(['sender', 'attachments']);
-    }
-
-    protected function notifyOthers(Conversation $conversation, Message $message, int $senderId): void
-    {
-        // Existing participants (excluding sender)
-        $participants = $conversation->participants()
-            ->where('user_id', '!=', $senderId)
-            ->with('user')
-            ->get()
-            ->pluck('user');
-
-        // Admins assigned to the service, in case they haven't joined yet
-        $service = $conversation->conversable->service ?? null;
-        $admins = $service ? $service->admins()->get() : collect();
-
-        $participants->merge($admins)
-            ->unique('id')
-            ->reject(fn($user) => $user->id === $senderId)
-            ->each(fn($user) => $user->notify(new NewMessageNotification($message)));
+        return back();
     }
 }

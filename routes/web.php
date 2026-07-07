@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Controllers\Web\Conversation\ConversationController;
+use App\Http\Controllers\Web\Conversation\MessageController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Web\Auth\RegistrationController; 
+use App\Http\Controllers\Web\Auth\RegistrationController;
 use Laravel\Fortify\Features;
 use App\Models\UserType;
 use Inertia\Inertia;
@@ -19,21 +22,21 @@ Route::inertia('/', 'Home', [
 ])->name('home');
 
 Route::get('/join-us', function () {
-    return Inertia::render('landing/JoinUs'); 
+    return Inertia::render('landing/JoinUs');
 })->name('join-us');
 
 Route::middleware([
-    'auth', 
+    'auth',
     'role:' . UserType::MEMBER
 ])
-->prefix('seller')
-->name('seller.')
-->group(function () {
+    ->prefix('seller')
+    ->name('seller.')
+    ->group(function () {
 
-    Route::get('/dashboard', [SellerDashboardController::class, 'index'])
-        ->name('dashboard.index');
+        Route::get('/dashboard', [SellerDashboardController::class, 'index'])
+            ->name('dashboard.index');
 
-});
+    });
 
 Route::middleware([
     'auth',
@@ -69,7 +72,7 @@ Route::middleware([
 });
 
 Route::middleware([
-    'auth', 
+    'auth',
     'role:' . UserType::SUPER_ADMIN . ',' . UserType::ADMIN
 ])->group(function () {
 
@@ -134,6 +137,19 @@ Route::middleware([
             ->name('intellectual-property-assistance.update-status');
     });
 
+    // Conversation routes
+    Route::prefix('admin/conversations')->name('conversations.')->group(function () {
+        Route::get('{conversation}', [ConversationController::class, 'show'])->name('show');
+        Route::post('{conversation}/messages', [MessageController::class, 'store'])->name('messages.store');
+        Route::post('{conversation}/read', [ConversationController::class, 'markRead'])->name('read');
+    });
+
+    // NEW: notification bell routes
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('index');
+        Route::post('{notification}/read', [NotificationController::class, 'markRead'])->name('read');
+        Route::post('read-all', [NotificationController::class, 'markAllRead'])->name('read-all');
+    });
 });
 
-require __DIR__.'/settings.php';
+require __DIR__ . '/settings.php';
