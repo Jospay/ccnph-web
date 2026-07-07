@@ -29,6 +29,7 @@ export type Auth = {
   user: User;
   userType: string;
   managed_services: Service[];
+  unread_notifications_count: number;
 };
 
 export type TwoFactorConfigContent = {
