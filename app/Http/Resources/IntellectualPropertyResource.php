@@ -22,6 +22,7 @@ class IntellectualPropertyResource extends JsonResource
             'creation_type' => $this->creation_type,
             'form_type' => $this->form_type,
             'title' => $this->title,
+            'conversation' => $this->whenLoaded('conversation', fn() => new ConversationResource($this->conversation)),
         ];
     }
 }

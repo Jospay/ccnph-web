@@ -1,3 +1,5 @@
+import type { Conversation } from './conversation';
+
 export interface IntellectualPropertyClaim {
   id: number;
   description: string;
@@ -15,6 +17,7 @@ export interface IntellectualProperty {
   creation_type: IntellectualPropertyCreationType;
   form_type: IntellectualPropertyFormType;
   title: string;
+  conversation: Conversation;
 }
 
 export interface IntellectualPropertySchedule {

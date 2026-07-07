@@ -29,14 +29,14 @@ class IntellectualPropertyDetailResource extends JsonResource
             'applicability' => $this->applicability,
 
             'claims' => $this->whenLoaded('claims', function () {
-                return $this->claims->map(fn ($claim) => [
+                return $this->claims->map(fn($claim) => [
                     'id' => $claim->id,
                     'description' => $claim->description,
                 ]);
             }),
 
             'documents' => $this->whenLoaded('documents', function () {
-                return $this->documents->map(fn ($doc) => [
+                return $this->documents->map(fn($doc) => [
                     'id' => $doc->id,
                     'attachment' => $doc->attachment ? Storage::url($doc->attachment) : null,
                 ]);
@@ -44,11 +44,11 @@ class IntellectualPropertyDetailResource extends JsonResource
 
             'schedules' => $this->when(
                 $this->form_type === 'payment' &&
-                ! in_array($this->status_id, [
+                !in_array($this->status_id, [
                     Status::PENDING,
                     Status::REJECTED,
                 ], true),
-                fn () => $this->schedules->map(fn ($schedule) => [
+                fn() => $this->schedules->map(fn($schedule) => [
                     'id' => $schedule->id,
                     'installment_no' => $schedule->installment_no,
                     'amount' => $schedule->amount / 100,
@@ -56,6 +56,8 @@ class IntellectualPropertyDetailResource extends JsonResource
                     'status_name' => $schedule->status->name,
                 ])
             ),
+
+            'conversation' => $this->whenLoaded('conversation', fn() => new ConversationResource($this->conversation)),
         ];
     }
 }

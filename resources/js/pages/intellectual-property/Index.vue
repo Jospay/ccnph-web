@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { Head, router, useHttp, useForm } from '@inertiajs/vue3';
+import { Head, router, useHttp, useForm, Link } from '@inertiajs/vue3';
 import { useDebounceFn } from '@vueuse/core';
+import { MessageCircle } from 'lucide-vue-next';
 import { ref, watch, computed } from 'vue';
 import { toast } from 'vue-sonner';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import DataTable from '@/components/DataTable.vue';
 import DetailsDialog from '@/components/DetailsDialog.vue';
-import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import FormDialog from '@/components/FormDialog.vue';
 import IPPaymentViewer from '@/components/IPPaymentViewer.vue';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -18,6 +20,7 @@ import {
 import { getIPColumns } from '@/features/intellectual-property/columns';
 import { getIPDetails } from '@/features/intellectual-property/details';
 import { intellectualPropertySettingFields } from '@/features/intellectual-property/fields';
+import conversations from '@/routes/conversations';
 import intellectualPropertyAssistance from '@/routes/intellectual-property-assistance';
 import type {
   IntellectualProperty,
@@ -50,6 +53,8 @@ const props = defineProps<{
     form: IntellectualPropertyFormType;
   };
 }>();
+
+console.log('props.intellectual_properties', props.intellectual_properties);
 
 // state for select filters
 const selectedStatus = ref(props.filters.status || 'pending');
@@ -115,6 +120,7 @@ const openConfirm = (
 ) => {
   selectedIPId.value = ip.id;
   actionType.value = action;
+
   if (action === 'approve' && ip.form_type === 'payment') {
     isApproveOpen.value = true;
   } else {
@@ -274,6 +280,20 @@ const ipDetails = computed(() =>
             No documents uploaded
           </p>
         </div>
+
+        <!-- Message -->
+        <Link
+          v-if="selectedIP.conversation"
+          :href="conversations.show(selectedIP.conversation.id)"
+        >
+          <Button variant="outline">
+            <MessageCircle class="mr-2 size-4" />
+            Open Conversation
+          </Button>
+        </Link>
+        <p v-else class="text-sm text-muted-foreground italic">
+          No conversation available
+        </p>
       </div>
     </template>
   </DetailsDialog>

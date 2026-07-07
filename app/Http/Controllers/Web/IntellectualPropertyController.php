@@ -59,13 +59,14 @@ class IntellectualPropertyController extends Controller
         $query = IntellectualProperty::with([
             'status:id,name',
             'user:id,name',
-        ])->whereHas('status', fn ($q) => $q->where('name', $filters['status']));
+            'conversation'
+        ])->whereHas('status', fn($q) => $q->where('name', $filters['status']));
 
-        if (! empty($filters['creation'])) {
+        if (!empty($filters['creation'])) {
             $query->where('creation_type', $filters['creation']);
         }
 
-        if (! empty($filters['form'])) {
+        if (!empty($filters['form'])) {
             $query->where('form_type', $filters['form']);
         }
 
@@ -79,11 +80,12 @@ class IntellectualPropertyController extends Controller
             'user:id,name',
             'claims',
             'documents',
+            'conversation',
         ]);
 
         if (
             $property->form_type === 'payment' &&
-            ! in_array($property->status_id, [
+            !in_array($property->status_id, [
                 Status::PENDING,
                 Status::REJECTED,
             ], true)
