@@ -33,8 +33,8 @@ Route::middleware([
     ->name('seller.')
     ->group(function () {
 
-        Route::get('/dashboard', [SellerDashboardController::class, 'index'])
-            ->name('dashboard.index');
+Route::get('/dashboard', [SellerDashboardController::class, 'index'])
+    ->name('dashboard.index');
 
     });
 
