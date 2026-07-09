@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { useEcho } from '@laravel/echo-vue';
-import { ref, computed, nextTick, onMounted } from 'vue';
+import { ref, computed, nextTick, onMounted, watch } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import conversations from '@/routes/conversations';
@@ -47,17 +47,13 @@ const props = defineProps<{
 
 defineOptions({
   layout: {
-    breadcrumbs: [
-      // { title: 'Conversations', href: conversations.index() },
-      { title: 'Conversation' },
-    ],
+    breadcrumbs: [{ title: 'Conversation' }],
   },
 });
 
 const page = usePage<{ auth: Auth }>();
 const currentUserId = computed(() => page.props.auth.user?.id);
 
-// Local reactive copy so we can push live messages in without a full reload
 const messages = ref<Message[]>([...props.conversation.messages]);
 
 const body = ref('');
@@ -72,10 +68,17 @@ function scrollToBottom() {
   });
 }
 
+watch(
+  () => props.conversation.messages,
+  (newMessages) => {
+    messages.value = [...newMessages];
+    scrollToBottom();
+  },
+);
+
 onMounted(() => {
   scrollToBottom();
 
-  // Mark as read the moment the page loads
   router.post(
     conversations.read(props.conversation.id).url,
     {},
@@ -125,7 +128,6 @@ function sendMessage() {
       onSuccess: () => {
         body.value = '';
         files.value = [];
-        scrollToBottom();
       },
     },
   );
