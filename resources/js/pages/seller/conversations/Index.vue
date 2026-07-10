@@ -7,10 +7,11 @@ interface Person {
   name: string;
 }
 
-interface Product {
+interface Pinnable {
   id: number;
-  name: string;
-  image?: string;
+  name?: string;
+  order_number?: string;
+  [key: string]: unknown;
 }
 
 interface LastMessage {
@@ -22,9 +23,10 @@ interface LastMessage {
 
 interface ConversationListItem {
   id: number;
-  buyer: Person;
-  pinned_product: Product | null;
-  messages: LastMessage[];
+  user: Person;
+  pinnable_type: string | null;
+  pinnable: Pinnable | null;
+  latest_message: LastMessage | null;
 }
 
 interface PaginatedConversations {
@@ -45,7 +47,7 @@ defineOptions({
 });
 
 function lastMessagePreview(conversation: ConversationListItem): string {
-  const last = conversation.messages[0];
+  const last = conversation.latest_message;
 
   if (!last) {
     return 'No messages yet';
@@ -55,13 +57,28 @@ function lastMessagePreview(conversation: ConversationListItem): string {
 }
 
 function lastMessageTime(conversation: ConversationListItem): string {
-  const last = conversation.messages[0];
+  const last = conversation.latest_message;
 
   if (!last) {
     return '';
   }
 
   return new Date(last.created_at).toLocaleString();
+}
+
+function pinnedLabel(conversation: ConversationListItem): string | null {
+  if (!conversation.pinnable_type || !conversation.pinnable) {
+    return null;
+  }
+
+  const type = conversation.pinnable_type.split('\\').pop();
+  const item = conversation.pinnable;
+
+  if (type === 'Order') {
+    return `Order #${item.order_number ?? item.id}`;
+  }
+
+  return item.name ?? `${type} #${item.id}`;
 }
 </script>
 
@@ -88,17 +105,12 @@ function lastMessageTime(conversation: ConversationListItem): string {
         :href="sellerConversations.show(conversation.id)"
         class="flex items-center gap-3 p-4 transition hover:bg-muted/50"
       >
-        <img
-          v-if="conversation.pinned_product?.image"
-          :src="conversation.pinned_product.image"
-          class="size-10 shrink-0 rounded object-cover"
-        />
-        <div v-else class="size-10 shrink-0 rounded bg-muted" />
+        <div class="size-10 shrink-0 rounded bg-muted" />
 
         <div class="flex flex-1 flex-col gap-0.5 overflow-hidden">
           <div class="flex items-center justify-between gap-2">
             <span class="truncate text-sm font-medium">{{
-              conversation.buyer.name
+              conversation.user.name
             }}</span>
             <span class="shrink-0 text-xs text-muted-foreground">
               {{ lastMessageTime(conversation) }}
@@ -108,10 +120,10 @@ function lastMessageTime(conversation: ConversationListItem): string {
             {{ lastMessagePreview(conversation) }}
           </span>
           <span
-            v-if="conversation.pinned_product"
+            v-if="pinnedLabel(conversation)"
             class="truncate text-xs text-muted-foreground italic"
           >
-            Re: {{ conversation.pinned_product.name }}
+            Re: {{ pinnedLabel(conversation) }}
           </span>
         </div>
       </Link>

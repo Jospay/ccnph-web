@@ -18,11 +18,11 @@ interface Person {
   name: string;
 }
 
-interface Product {
+interface Pinnable {
   id: number;
-  name: string;
-  image?: string;
-  price?: number;
+  name?: string;
+  order_number?: string;
+  [key: string]: unknown;
 }
 
 interface Message {
@@ -31,14 +31,16 @@ interface Message {
   created_at: string;
   sender: Person;
   attachments: Attachment[];
-  product?: Product | null;
+  context_type: string | null;
+  context_id: number | null;
 }
 
 interface ConversationData {
   id: number;
-  buyer: Person;
-  seller: Person;
-  pinned_product: Product | null;
+  user: Person;
+  shop: { id: number; name: string; user: Person };
+  pinnable_type: string | null;
+  pinnable: Pinnable | null;
   messages: Message[];
 }
 
@@ -63,6 +65,22 @@ const body = ref('');
 const files = ref<File[]>([]);
 const scrollContainer = ref<HTMLElement | null>(null);
 
+const pinnedLabel = computed(() => {
+  if (!props.conversation.pinnable_type || !props.conversation.pinnable) {
+    return null;
+  }
+
+  const type = props.conversation.pinnable_type.split('\\').pop();
+  const item = props.conversation.pinnable;
+
+  if (type === 'Order') {
+    return `Order #${item.order_number ?? item.id}`;
+  }
+
+  // Product (or fallback)
+  return item.name ?? `${type} #${item.id}`;
+});
+
 function scrollToBottom() {
   nextTick(() => {
     scrollContainer.value?.scrollTo({
@@ -85,7 +103,7 @@ onMounted(() => {
 
 useEcho(
   `shop-conversation.${props.conversation.id}`,
-  '.message.sent',
+  '.shop.message.sent',
   (e: any) => {
     if (e.sender_id === currentUserId.value) {
       return;
@@ -97,6 +115,8 @@ useEcho(
       created_at: e.created_at,
       sender: e.sender,
       attachments: e.attachments ?? [],
+      context_type: e.context_type ?? null,
+      context_id: e.context_id ?? null,
     });
 
     scrollToBottom();
@@ -140,26 +160,14 @@ function isOwnMessage(message: Message): boolean {
   <Head title="Conversation" />
 
   <div class="flex h-[calc(100vh-8rem)] flex-col gap-3 p-4">
-    <!-- Pinned product banner -->
+    <!-- Pinned context banner -->
     <div
-      v-if="conversation.pinned_product"
+      v-if="pinnedLabel"
       class="flex items-center gap-3 rounded-lg border bg-muted/40 p-3"
     >
-      <img
-        v-if="conversation.pinned_product.image"
-        :src="conversation.pinned_product.image"
-        class="size-12 rounded object-cover"
-      />
+      <div class="size-10 shrink-0 rounded bg-muted" />
       <div>
-        <p class="text-sm font-medium">
-          {{ conversation.pinned_product.name }}
-        </p>
-        <p
-          v-if="conversation.pinned_product.price"
-          class="text-xs text-muted-foreground"
-        >
-          ₱{{ conversation.pinned_product.price }}
-        </p>
+        <p class="text-sm font-medium">{{ pinnedLabel }}</p>
       </div>
     </div>
 
@@ -191,8 +199,8 @@ function isOwnMessage(message: Message): boolean {
             v-if="message.attachments.length > 0"
             class="mt-1 flex flex-col gap-1"
           >
-            <a
-              v-for="attachment in message.attachments"
+            
+              <a v-for="attachment in message.attachments"
               :key="attachment.id"
               :href="`/storage/${attachment.path}`"
               target="_blank"
