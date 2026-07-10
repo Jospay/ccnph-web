@@ -15,6 +15,8 @@ class ShopMessageSent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
+    public $afterCommit = true;
+
     /**
      * Create a new event instance.
      */
@@ -31,7 +33,7 @@ class ShopMessageSent implements ShouldBroadcast
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('shop-conversation.' . $this->message->shop_conversation_id),
+            new PresenceChannel('shop-conversation.' . $this->message->shop_conversation_id),
         ];
     }
 
@@ -42,7 +44,7 @@ class ShopMessageSent implements ShouldBroadcast
      */
     public function broadcastAs(): string
     {
-        return 'message.sent';
+        return 'shop.message.sent';
     }
 
     /**
@@ -56,18 +58,21 @@ class ShopMessageSent implements ShouldBroadcast
             'id' => $this->message->id,
             'shop_conversation_id' => $this->message->shop_conversation_id,
             'sender_id' => $this->message->sender_id,
-            'body' => $this->message->body,
-            'product_id' => $this->message->product_id,
-            'created_at' => $this->message->created_at->toIso8601String(),
             'sender' => [
-                'id' => $this->message->sender->id,
-                'name' => $this->message->sender->name,
+                'id' => $this->message->sender?->id,
+                'name' => $this->message->sender?->name,
             ],
-            'attachments' => $this->message->attachments->map(fn($a) => [
+            'sender_type' => $this->message->sender_type,
+            'body' => $this->message->body,
+            'context_type' => $this->message->context_type,
+            'context_id' => $this->message->context_id,
+            'attachments' => $this->message->attachments->map(fn ($a) => [
                 'id' => $a->id,
                 'path' => $a->path,
                 'original_name' => $a->original_name,
+                'mime_type' => $a->mime_type,
             ]),
+            'created_at' => $this->message->created_at->toIso8601String(),
         ];
     }
 }

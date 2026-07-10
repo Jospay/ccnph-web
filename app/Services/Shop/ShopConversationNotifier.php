@@ -14,9 +14,9 @@ class ShopConversationNotifier
      */
     public function notifyOther(ShopConversation $conversation, ShopMessage $message, int $senderId): void
     {
-        $recipient = $senderId === $conversation->buyer_id
-            ? $conversation->seller
-            : $conversation->buyer;
+        $recipient = $senderId === $conversation->user_id
+            ? $conversation->shop->user
+            : $conversation->user;
 
         $recipient->notify(new NewShopMessageNotification($message));
 

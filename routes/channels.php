@@ -12,8 +12,17 @@ Broadcast::channel('conversation.{conversationId}', function (User $user, $conve
     $conversation = Conversation::find($conversationId);
 
     if (! $conversation) {
+    if (! $conversation) {
         return false;
     }
 
-    return $conversation->participants()->where('user_id', $user->id)->exists();
+    if ($conversation->user_id === $user->id) {
+        return ['id' => $user->id, 'name' => $user->name, 'role' => 'user'];
+    }
+
+    if ($conversation->shop->user_id === $user->id) {
+        return ['id' => $user->id, 'name' => $user->name, 'role' => 'shop'];
+    }
+
+    return false;
 });
