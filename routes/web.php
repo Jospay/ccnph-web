@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Shop\ShopConversationController;
 use App\Http\Controllers\Web\Conversation\ConversationController;
 use App\Http\Controllers\Web\Conversation\MessageController;
 use App\Http\Controllers\NotificationController;
@@ -33,8 +34,15 @@ Route::middleware([
     ->name('seller.')
     ->group(function () {
 
-Route::get('/dashboard', [SellerDashboardController::class, 'index'])
-    ->name('dashboard.index');
+        Route::get('/dashboard', [SellerDashboardController::class, 'index'])
+            ->name('dashboard.index');
+
+        // shop conversations
+        Route::prefix('conversations')->name('conversations.')->group(function () {
+            Route::get('/', [ShopConversationController::class, 'index'])->name('index');
+            Route::get('{conversation}', [ShopConversationController::class, 'show'])->name('show');
+            Route::post('{conversation}/messages', [ShopConversationController::class, 'storeMessage'])->name('messages.store');
+        });
 
     });
 
@@ -144,7 +152,10 @@ Route::middleware([
         Route::post('{conversation}/read', [ConversationController::class, 'markRead'])->name('read');
     });
 
-    // NEW: notification bell routes
+
+});
+
+Route::middleware(['auth'])->group(function () {
     Route::prefix('notifications')->name('notifications.')->group(function () {
         Route::get('/', [NotificationController::class, 'index'])->name('index');
         Route::post('{notification}/read', [NotificationController::class, 'markRead'])->name('read');

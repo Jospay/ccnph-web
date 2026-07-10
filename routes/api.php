@@ -17,6 +17,7 @@ use App\Http\Controllers\API\Payment\PaymentWebhookController;
 use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\Settings\ProfileController;
 use App\Http\Controllers\API\ShareCapital\ShareCapitalController;
+use App\Http\Controllers\API\Shop\ShopConversationController;
 use App\Http\Controllers\API\Store\CollectionProductController;
 use App\Http\Controllers\API\Store\CustomerCartController;
 use App\Http\Controllers\API\Store\CustomerCheckoutController;
@@ -192,4 +193,15 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/{store}', [ShopStoreController::class, 'show']);
             Route::post('register-seller', [ShopStoreController::class, 'registerSeller']);
         });
+
+    // Shop Conversations
+    Route::prefix('shop-conversations')
+        ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER)
+        ->group(function () {
+            Route::get('/', [ShopConversationController::class, 'index']);
+            Route::post('start', [ShopConversationController::class, 'start']);
+            Route::get('{conversation}', [ShopConversationController::class, 'show']);
+            Route::post('{conversation}/messages', [ShopConversationController::class, 'storeMessage']);
+        });
+
 });

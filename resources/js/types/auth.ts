@@ -28,6 +28,7 @@ export type User = {
 export type Auth = {
   user: User;
   userType: string;
+  is_seller: boolean;
   managed_services: Service[];
   unread_notifications_count: number;
 };

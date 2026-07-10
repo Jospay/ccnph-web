@@ -46,6 +46,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $user,
                 'userType' => $user?->userType?->name,
+                'is_seller' => (bool) ($user?->is_seller ?? false),
                 'managed_services' => $user ? $this->getManagedServices($user) : [],
                 'unread_notifications_count' => $user?->unreadNotifications()->count() ?? 0,
             ],

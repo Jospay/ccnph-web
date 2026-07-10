@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
-import { FolderDot, LayoutGrid, Box, Bell } from 'lucide-vue-next';
+import {
+  FolderDot,
+  LayoutGrid,
+  Box,
+  Bell,
+  MessageCircle,
+} from 'lucide-vue-next';
 import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
@@ -21,19 +27,60 @@ import {
 import adminManagement from '@/routes/admin-management';
 import dashboard from '@/routes/dashboard';
 import notifications from '@/routes/notifications';
+import sellerConversations from '@/routes/seller/conversations';
+import sellerDashboard from '@/routes/seller/dashboard';
 import type { NavItem, Auth, Service } from '@/types';
 
 const page = usePage<{ auth: Auth }>();
 const isSuperAdmin = computed(() => {
   return page.props.auth.userType === 'super_admin';
 });
+const isSeller = computed(() => page.props.auth.is_seller);
 
 const unreadCount = computed(
   () => page.props.auth.unread_notifications_count ?? 0,
 );
 
+const homeHref = computed(() =>
+  isSeller.value ? sellerDashboard.index() : dashboard.index(),
+);
+
 // static items
+// const platformNavItems = computed<NavItem[]>(() => {
+//   const items: NavItem[] = [
+//     {
+//       title: 'Dashboard',
+//       href: dashboard.index(),
+//       icon: LayoutGrid,
+//     },
+//   ];
+
+//   if (isSuperAdmin.value) {
+//     items.push({
+//       title: 'Admin Management',
+//       href: adminManagement.index(),
+//       icon: FolderDot,
+//     });
+//   }
+
+//   return items;
+// });
 const platformNavItems = computed<NavItem[]>(() => {
+  if (isSeller.value) {
+    return [
+      {
+        title: 'Dashboard',
+        href: sellerDashboard.index(),
+        icon: LayoutGrid,
+      },
+      {
+        title: 'Conversations',
+        href: sellerConversations.index(),
+        icon: MessageCircle,
+      },
+    ];
+  }
+
   const items: NavItem[] = [
     {
       title: 'Dashboard',
@@ -54,7 +101,20 @@ const platformNavItems = computed<NavItem[]>(() => {
 });
 
 // dynamic items
+// const serviceNavItems = computed(() => {
+//   return page.props.auth.managed_services.map(
+//     (service: Service): NavItem => ({
+//       title: service.name,
+//       href: `/${service.slug}`,
+//       icon: Box,
+//     }),
+//   );
+// });
 const serviceNavItems = computed(() => {
+  if (isSeller.value) {
+    return [];
+  }
+
   return page.props.auth.managed_services.map(
     (service: Service): NavItem => ({
       title: service.name,
@@ -75,7 +135,7 @@ const footerNavItems: NavItem[] = [
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton size="lg" as-child>
-            <Link :href="dashboard.index()">
+            <Link :href="homeHref">
               <AppLogo />
             </Link>
           </SidebarMenuButton>
@@ -84,7 +144,10 @@ const footerNavItems: NavItem[] = [
     </SidebarHeader>
 
     <SidebarContent>
-      <NavMain :items="platformNavItems" label="Platform" />
+      <NavMain
+        :items="platformNavItems"
+        :label="isSeller ? 'Seller' : 'Platform'"
+      />
 
       <NavMain
         v-if="serviceNavItems.length > 0"

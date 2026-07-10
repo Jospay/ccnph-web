@@ -4,6 +4,7 @@ import { initializeTheme } from '@/composables/useAppearance';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
+import SellerLayout from '@/layouts/SellerLayout.vue'; 
 
 configureEcho({
     broadcaster: 'reverb',
@@ -21,8 +22,10 @@ createInertiaApp({
                 return AuthLayout;
             case name.startsWith('settings/'):
                 return [AppLayout, SettingsLayout];
+            case name.startsWith('seller/'): 
+                return SellerLayout;
             default:
-                return AppLayout;
+                return AppLayout; 
         }
     },
     progress: {
@@ -30,5 +33,4 @@ createInertiaApp({
     },
 });
 
-// This will set light / dark mode on page load...
 initializeTheme();
