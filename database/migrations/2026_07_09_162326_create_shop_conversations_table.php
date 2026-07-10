@@ -12,12 +12,18 @@ return new class extends Migration {
     {
         Schema::create('shop_conversations', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('buyer_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('seller_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('pinned_product_id')->nullable()->constrained('products')->nullOnDelete();
+            $table->foreignId('shop_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+
+            $table->nullableMorphs('pinnable');
+            $table->timestamp('pinned_at')->nullable();
+
+            $table->timestamp('last_message_at')->nullable();
+            $table->timestamp('shop_read_at')->nullable();
+            $table->timestamp('user_read_at')->nullable();
             $table->timestamps();
 
-            $table->unique(['buyer_id', 'seller_id']);
+            $table->unique(['shop_id', 'user_id']);
         });
     }
 

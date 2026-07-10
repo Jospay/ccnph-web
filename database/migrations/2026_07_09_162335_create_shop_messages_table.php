@@ -13,9 +13,13 @@ return new class extends Migration {
         Schema::create('shop_messages', function (Blueprint $table) {
             $table->id();
             $table->foreignId('shop_conversation_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('sender_id')->constrained('users');
-            $table->foreignId('product_id')->nullable()->constrained('products')->nullOnDelete();
+            $table->foreignId('sender_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->string('sender_type'); // 'shop' or 'user'
             $table->text('body')->nullable();
+
+            $table->nullableMorphs('context');
+
+            $table->timestamp('read_at')->nullable();
             $table->timestamps();
         });
     }
