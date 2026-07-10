@@ -7,25 +7,49 @@ use Illuminate\Database\Eloquent\Attributes\UsePolicy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 #[UsePolicy(ShopConversationPolicy::class)]
 class ShopConversation extends Model
 {
-    protected $fillable = ['buyer_id', 'seller_id', 'pinned_product_id'];
+    protected $fillable = [
+        'shop_id',
+        'user_id',
+        'pinnable_type',
+        'pinnable_id',
+        'pinned_at',
+        'last_message_at',
+        'shop_read_at',
+        'user_read_at',
+    ];
 
-    public function buyer(): BelongsTo
+    protected function casts(): array
     {
-        return $this->belongsTo(User::class, 'buyer_id');
+        return [
+            'pinned_at' => 'datetime',
+            'last_message_at' => 'datetime',
+            'shop_read_at' => 'datetime',
+            'user_read_at' => 'datetime',
+        ];
     }
 
-    public function seller(): BelongsTo
+    public function shop(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'seller_id');
+        return $this->belongsTo(Shop::class);
     }
 
-    public function pinnedProduct(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(Product::class, 'pinned_product_id');
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * The currently pinned context — an Order or a Product.
+     */
+    public function pinnable(): MorphTo
+    {
+        return $this->morphTo();
     }
 
     public function messages(): HasMany
@@ -33,22 +57,50 @@ class ShopConversation extends Model
         return $this->hasMany(ShopMessage::class);
     }
 
-    public static function findOrStartBetween(int $buyerId, int $sellerId, ?int $productId = null): self
+    public function latestMessage(): HasOne
     {
-        $conversation = static::firstOrCreate([
-            'buyer_id' => $buyerId,
-            'seller_id' => $sellerId,
-        ]);
-
-        if ($productId) {
-            $conversation->update(['pinned_product_id' => $productId]);
-        }
-
-        return $conversation;
+        return $this->hasOne(ShopMessage::class)->latestOfMany();
     }
 
-    public function otherParticipant(User $user): User
+    /**
+     * Pin an order or product as the active context for this conversation.
+     */
+    public function pin(Model $context): void
     {
-        return $user->id === $this->buyer_id ? $this->seller : $this->buyer;
+        $this->update([
+            'pinnable_type' => $context::class,
+            'pinnable_id' => $context->id,
+            'pinned_at' => now(),
+        ]);
+    }
+
+    /**
+     * Clear the pinned context (e.g. order completed/cancelled).
+     */
+    public function unpin(): void
+    {
+        $this->update([
+            'pinnable_type' => null,
+            'pinnable_id' => null,
+            'pinned_at' => null,
+        ]);
+    }
+
+    public function hasUnreadForShop(): bool
+    {
+        if (! $this->last_message_at) {
+            return false;
+        }
+
+        return ! $this->shop_read_at || $this->shop_read_at->lt($this->last_message_at);
+    }
+
+    public function hasUnreadForUser(): bool
+    {
+        if (! $this->last_message_at) {
+            return false;
+        }
+
+        return ! $this->user_read_at || $this->user_read_at->lt($this->last_message_at);
     }
 }
