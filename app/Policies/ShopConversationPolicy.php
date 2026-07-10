@@ -9,11 +9,17 @@ class ShopConversationPolicy
 {
     public function view(User $user, ShopConversation $conversation): bool
     {
-        return $user->id === $conversation->buyer_id || $user->id === $conversation->seller_id;
+        return $conversation->user_id === $user->id
+            || $conversation->shop->user_id === $user->id;
     }
 
-    public function reply(User $user, ShopConversation $conversation): bool
+    public function sendMessage(User $user, ShopConversation $conversation): bool
     {
         return $this->view($user, $conversation);
+    }
+
+    public function create(User $user): bool
+    {
+        return true;
     }
 }

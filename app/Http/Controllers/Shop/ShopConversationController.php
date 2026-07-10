@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
 use App\Models\ShopConversation;
+use App\Models\ShopMessage;
 use App\Services\Shop\ShopConversationNotifier;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -20,8 +21,8 @@ class ShopConversationController extends Controller
     public function index(Request $request): Response
     {
         $conversations = ShopConversation::query()
-            ->where('seller_id', $request->user()->id)
-            ->with(['pinnedProduct', 'buyer', 'messages' => fn($q) => $q->latest()->limit(1)])
+            ->whereHas('shop', fn ($q) => $q->where('user_id', $request->user()->id))
+            ->with(['pinnable', 'user', 'latestMessage'])
             ->latest('updated_at')
             ->paginate(20);
 
@@ -37,11 +38,13 @@ class ShopConversationController extends Controller
         $conversation->load([
             'messages.sender',
             'messages.attachments',
-            'messages.product',
-            'pinnedProduct',
-            'buyer',
-            'seller',
+            'messages.context',
+            'pinnable',
+            'user',
+            'shop',
         ]);
+
+        $conversation->update(['shop_read_at' => now()]);
 
         return Inertia::render('seller/conversations/Show', [
             'conversation' => $conversation,
@@ -50,7 +53,7 @@ class ShopConversationController extends Controller
 
     public function storeMessage(ShopConversation $conversation, Request $request): RedirectResponse
     {
-        Gate::authorize('reply', $conversation);
+        Gate::authorize('sendMessage', $conversation);
 
         $validated = $request->validate([
             'body' => ['nullable', 'string', 'max:5000', 'required_without:attachments'],
@@ -58,10 +61,16 @@ class ShopConversationController extends Controller
             'attachments.*' => ['file', 'max:10240', 'mimes:jpg,jpeg,png,pdf'],
         ]);
 
+        $senderType = $conversation->shop->user_id === $request->user()->id
+            ? ShopMessage::SENDER_SHOP
+            : ShopMessage::SENDER_USER;
+
         $message = $conversation->messages()->create([
             'sender_id' => $request->user()->id,
-            'product_id' => $conversation->pinned_product_id,
+            'sender_type' => $senderType,
             'body' => $validated['body'] ?? null,
+            'context_type' => $conversation->pinnable_type,
+            'context_id' => $conversation->pinnable_id,
         ]);
 
         foreach ($request->file('attachments', []) as $file) {
@@ -74,6 +83,8 @@ class ShopConversationController extends Controller
                 'size' => $file->getSize(),
             ]);
         }
+
+        $conversation->update(['last_message_at' => $message->created_at]);
 
         $this->notifier->notifyOther($conversation, $message, $request->user()->id);
 
