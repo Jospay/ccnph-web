@@ -28,7 +28,7 @@ const submitStore = () => {
         <h1
           class="flex items-center gap-3 text-3xl font-black text-zinc-900 dark:text-white"
         >
-          <StoreIcon class="h-8 w-8 text-[#009933]" /> Seller Center
+          <StoreIcon class="h-8 w-8 text-[#033e94]" /> Seller Center
         </h1>
         <p class="mt-1 font-medium text-zinc-500 dark:text-zinc-400">
           Manage your storefront, products, and orders.
@@ -39,7 +39,7 @@ const submitStore = () => {
         class="flex flex-col items-start gap-12 rounded-3xl border border-zinc-200 bg-zinc-50 p-8 shadow-sm transition-colors md:flex-row dark:border-zinc-800 dark:bg-zinc-900"
       >
         <div class="w-full md:w-1/2">
-          <h2 class="mb-4 text-2xl font-black text-[#009933]">
+          <h2 class="mb-4 text-2xl font-black text-[#033e94]">
             Set Up Your Storefront
           </h2>
           <form @submit.prevent="submitStore" class="space-y-5">
@@ -52,7 +52,7 @@ const submitStore = () => {
                 type="text"
                 v-model="form.name"
                 required
-                class="w-full rounded-xl border border-zinc-200 bg-white p-3.5 text-zinc-900 transition-colors outline-none focus:border-[#009933] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+                class="w-full rounded-xl border border-zinc-200 bg-white p-3.5 text-zinc-900 transition-colors outline-none focus:border-[#033e94] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
               />
             </div>
             <div>
@@ -64,13 +64,13 @@ const submitStore = () => {
                 v-model="form.description"
                 required
                 rows="4"
-                class="w-full resize-none rounded-xl border border-zinc-200 bg-white p-3.5 text-zinc-900 transition-colors outline-none focus:border-[#009933] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+                class="w-full resize-none rounded-xl border border-zinc-200 bg-white p-3.5 text-zinc-900 transition-colors outline-none focus:border-[#033e94] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
               ></textarea>
             </div>
             <button
               type="submit"
               :disabled="form.processing"
-              class="mt-2 w-full rounded-xl bg-[#009933] py-4 text-lg font-black text-white shadow-md transition-colors hover:bg-green-700 disabled:bg-zinc-400"
+              class="mt-2 w-full rounded-xl bg-[#033e94] py-4 text-lg font-black text-white shadow-md transition-colors hover:bg-green-700 disabled:bg-zinc-400"
             >
               {{ form.processing ? 'Creating...' : 'Create Store' }}
             </button>
