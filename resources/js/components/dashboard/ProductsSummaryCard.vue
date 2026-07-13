@@ -22,6 +22,7 @@ const color = (d: Segment) => `var(--color-${d.key})`;
 
 const tooltipTemplate = (d: { data: Segment }) => {
   const segment = d.data;
+  
   return `
     <div class="flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs shadow-md dark:border-zinc-800 dark:bg-zinc-900">
       <span class="h-2.5 w-2.5 shrink-0 rounded-full" style="background-color:${color(segment)}"></span>
@@ -53,7 +54,7 @@ const triggers = {
       </div>
       <Link
         :href="seller.products.index()"
-        class="flex items-center gap-1 text-xs font-bold text-[#009933] hover:underline dark:text-[#00cc44]"
+        class="flex items-center gap-1 text-xs font-bold text-[#033e94] hover:underline dark:text-[#00cc44]"
       >
         View all <ArrowRightIcon class="h-3 w-3" />
       </Link>
