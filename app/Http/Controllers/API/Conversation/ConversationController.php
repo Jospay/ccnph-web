@@ -12,28 +12,22 @@ class ConversationController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-
-        // 1. Fetch all threads where this specific user is marked as an active participant
         $conversations = Conversation::whereHas('participants', function ($query) use ($user) {
             $query->where('user_id', $user->id);
         })
             ->with([
                 'messages' => function ($query) {
-                    $query->latest(); // Pull messages to look up text previews
+                    $query->latest();
                 },
                 'messages.sender',
                 'participants.user',
-                'conversable', // Pulls the underlying Intellectual Property record context
+                'conversable',
             ])
             ->get();
 
-        // 2. Loop through and calculate the unread count for each individual thread
         $conversations->each(function ($conversation) use ($user) {
-            // Find the current user's participant pivot record
             $myParticipant = $conversation->participants->firstWhere('user_id', $user->id);
             $lastReadAt = $myParticipant?->last_read_at;
-
-            // Count messages sent by anyone else *after* the user's last read timestamp
             $conversation->unread_count = $conversation->messages()
                 ->where('sender_id', '!=', $user->id)
                 ->when($lastReadAt, function ($query) use ($lastReadAt) {
