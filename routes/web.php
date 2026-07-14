@@ -17,6 +17,7 @@ use App\Http\Controllers\Web\IntellectualPropertyController;
 use App\Http\Controllers\Web\SuperAdmin\CoopMembershipController;
 use App\Http\Controllers\Web\SuperAdmin\AdminManagementController;
 use App\Http\Controllers\Web\Seller\DashboardController as SellerDashboardController;
+use App\Http\Controllers\Web\Seller\ShopController;
 
 Route::inertia('/', 'Home', [
     'canRegister' => Features::enabled(Features::registration()),
@@ -36,6 +37,12 @@ Route::middleware([
 
         Route::get('/dashboard', [SellerDashboardController::class, 'index'])
             ->name('dashboard.index');
+
+        Route::get('/shop/create', [ShopController::class, 'create'])
+            ->name('shop.create');
+            
+        Route::post('/shop', [ShopController::class, 'store'])
+            ->name('shop.store');
 
         // shop conversations
         Route::prefix('conversations')->name('conversations.')->group(function () {
