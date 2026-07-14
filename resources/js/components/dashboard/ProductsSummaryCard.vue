@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { VisSingleContainer, VisDonut, VisTooltip } from '@unovis/vue';
 import { Donut } from '@unovis/ts';
+import { VisSingleContainer, VisDonut, VisTooltip } from '@unovis/vue';
 import { PackageIcon, ArrowRightIcon } from 'lucide-vue-next';
 import { ChartContainer, type ChartConfig } from '@/components/ui/chart';
 import seller from '@/routes/seller';
