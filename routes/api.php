@@ -153,6 +153,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('conversations')
         ->middleware('role.api:'.UserType::MEMBER)
         ->group(function () {
+            Route::get('/', [ConversationController::class, 'index']);
             Route::get('{conversation}', [ConversationController::class, 'show']);
             Route::post('{conversation}/messages', [MessageController::class, 'store']);
             Route::post('{conversation}/read', [ConversationController::class, 'markRead']);
