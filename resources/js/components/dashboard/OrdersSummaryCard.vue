@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
+import { GroupedBar } from '@unovis/ts';
 import {
   VisXYContainer,
   VisGroupedBar,
   VisAxis,
   VisTooltip,
 } from '@unovis/vue';
-import { GroupedBar } from '@unovis/ts';
 import { ShoppingBagIcon, ArrowRightIcon } from 'lucide-vue-next';
 import { ChartContainer, type ChartConfig } from '@/components/ui/chart';
 import seller from '@/routes/seller';
