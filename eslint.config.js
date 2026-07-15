@@ -40,6 +40,17 @@ export default defineConfigWithVueTs(
         rules: {
             'vue/multi-word-component-names': 'off',
             '@typescript-eslint/no-explicit-any': 'off',
+            
+            // Added rule to handle unused variables gracefully
+            '@typescript-eslint/no-unused-vars': [
+                'warn', // Change to 'error' if you want it to strictly fail on non-prefixed unused vars
+                {
+                    argsIgnorePattern: '^_',
+                    varsIgnorePattern: '^_',
+                    caughtErrorsIgnorePattern: '^_',
+                },
+            ],
+
             '@typescript-eslint/consistent-type-imports': [
                 'error',
                 {
