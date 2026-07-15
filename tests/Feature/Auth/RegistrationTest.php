@@ -15,12 +15,12 @@ test('registration screen can be rendered', function () {
 });
 
 test('new users can register', function () {
-    // Fake the storage disk so you don't save test images to your real storage
     Storage::fake('local'); 
 
     $response = $this->post(route('register.store'), [
         'name' => 'Test User',
-        'email' => 'test@example.com',
+        // Use a completely unique email so it NEVER clashes with your DatabaseSeeder
+        'email' => 'admin123@example.com',
         'password' => 'password',
         'password_confirmation' => 'password',
         
@@ -36,13 +36,12 @@ test('new users can register', function () {
         'valid_id_type' => 'Driver License',
         'valid_id_number' => '123456789',
         
-        // Fake the image uploads
         'front_valid_id_picture' => UploadedFile::fake()->image('front_id.jpg'),
         'back_valid_id_picture' => UploadedFile::fake()->image('back_id.jpg'),
     ]);
 
     $this->assertAuthenticated();
     
-    // Note: If you renamed your post-login route, change 'dashboard' below to match it (e.g., 'home' or 'seller.dashboard')
-    $response->assertRedirect(route('dashboard', absolute: false));
+    // Change 'home' to whatever route name users are actually sent to after logging in!
+    $response->assertRedirect('/dashboard');
 });
