@@ -1,7 +1,8 @@
-import { h } from 'vue';
 import type { ColumnDef } from '@tanstack/vue-table';
-import type { AdminUser, AdminService, AdminStatus } from '@/types';
+import { MoreHorizontal } from 'lucide-vue-next';
+import { h } from 'vue';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,8 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { MoreHorizontal } from 'lucide-vue-next';
+import type { AdminUser, AdminService, AdminStatus } from '@/types';
 
 const STATUS_STYLES: Record<AdminStatus, string> = {
   active: 'bg-blue-500 hover:bg-blue-600',
@@ -38,6 +38,7 @@ export const getAdminUserColumns = ({
     header: 'Phone',
     cell: ({ row }) => {
       const phone = row.original.phone;
+
       return h('div', phone ?? '-');
     },
   },

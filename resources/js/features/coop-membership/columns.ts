@@ -1,7 +1,8 @@
-import { h } from 'vue';
 import type { ColumnDef } from '@tanstack/vue-table';
-import type { MemberUser } from '@/types';
+import { MoreHorizontal } from 'lucide-vue-next';
+import { h } from 'vue';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,8 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { MoreHorizontal } from 'lucide-vue-next';
+import type { MemberUser } from '@/types';
 
 const STATUS_STYLES: Record<string, string> = {
   for_approval: 'bg-amber-500 hover:bg-amber-600',

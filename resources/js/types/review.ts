@@ -1,4 +1,4 @@
-import { OrderItem } from './order';
+import type { OrderItem } from './order';
 
 interface Review {
   id: number;

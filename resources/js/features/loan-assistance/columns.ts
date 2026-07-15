@@ -1,7 +1,8 @@
-import { h } from 'vue';
 import type { ColumnDef } from '@tanstack/vue-table';
-import type { LoanAssistance, LoanSchedule } from '@/types';
+import { MoreHorizontal } from 'lucide-vue-next';
+import { h } from 'vue';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,8 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { MoreHorizontal } from 'lucide-vue-next';
+import type { LoanAssistance, LoanSchedule } from '@/types';
 
 const STATUS_STYLES: Record<string, string> = {
   active: 'bg-blue-500 hover:bg-blue-600',
@@ -57,6 +57,7 @@ export const getAssistanceColumns = ({
     header: 'Duration',
     cell: ({ row }) => {
       const months = row.getValue('term_months') as number;
+
       return `${months} month${months > 1 ? 's' : ''}`;
     },
   },
@@ -71,6 +72,7 @@ export const getAssistanceColumns = ({
       const status = row.getValue('status_name') as string;
       const badgeClass =
         STATUS_STYLES[status] ?? 'bg-gray-400 hover:bg-gray-500';
+
       return h('div', { class: 'text-center' }, [
         h(
           Badge,
@@ -168,6 +170,7 @@ export const scheduleColumns: ColumnDef<LoanSchedule>[] = [
       const status = row.getValue('status_name') as string;
       const badgeClass =
         STATUS_STYLES[status] ?? 'bg-gray-500 hover:bg-gray-600';
+
       return h('div', { class: 'text-center' }, [
         h(
           Badge,

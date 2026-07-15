@@ -1,4 +1,4 @@
-import { Store } from './store';
+import type { Store } from './store';
 
 export interface Product {
   id: string;
@@ -180,7 +180,7 @@ export interface ExistingProductVariant extends Omit<
   price: number;
   compare_price: number | null;
   weight: number | null;
-  image: string | null;
+  image_url: string | null;
   attributes: ProductVariantAttributeForm[];
 }
 export interface ProductUpdateForm extends ProductForm {
