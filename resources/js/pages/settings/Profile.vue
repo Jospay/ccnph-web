@@ -2,10 +2,13 @@
 import { Form, Head, Link, usePage, useForm } from '@inertiajs/vue3';
 import { computed, watch, onMounted } from 'vue';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
+import DatePicker from '@/components/DatePicker.vue';
 import DeleteUser from '@/components/DeleteUser.vue';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
-import DatePicker from '@/components/DatePicker.vue';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -13,13 +16,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
+import { useAddress } from '@/composables/useAddress';
 import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
-import { useAddress } from '@/composables/useAddress';
-import { Spinner } from '@/components/ui/spinner';
 
 type Props = {
   mustVerifyEmail: boolean;
