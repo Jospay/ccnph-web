@@ -11,9 +11,7 @@ use Illuminate\Support\Facades\Gate;
 
 class MessageController extends Controller
 {
-    public function __construct(private readonly ConversationNotifier $notifier)
-    {
-    }
+    public function __construct(private readonly ConversationNotifier $notifier) {}
 
     public function store(Conversation $conversation, Request $request)
     {
@@ -64,7 +62,7 @@ class MessageController extends Controller
 
         $participants->merge($admins)
             ->unique('id')
-            ->reject(fn($user) => $user->id === $senderId)
-            ->each(fn($user) => $user->notify(new NewMessageNotification($message)));
+            ->reject(fn ($user) => $user->id === $senderId)
+            ->each(fn ($user) => $user->notify(new NewMessageNotification($message)));
     }
 }
