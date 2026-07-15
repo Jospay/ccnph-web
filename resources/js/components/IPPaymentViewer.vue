@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { InfoIcon, ChevronDownIcon } from 'lucide-vue-next';
+import { Badge } from '@/components/ui/badge';
 import {
   Collapsible,
   CollapsibleContent,
@@ -14,9 +16,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 
-import { Badge } from '@/components/ui/badge';
 
-import { InfoIcon, ChevronDownIcon } from 'lucide-vue-next';
 
 import type { IntellectualPropertyDetail } from '@/types';
 

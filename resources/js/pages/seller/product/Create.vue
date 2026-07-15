@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { Head, useForm, Link } from '@inertiajs/vue3';
 import { ArrowLeftIcon, PackageIcon, PackagePlusIcon } from 'lucide-vue-next';
-import ProductInfoSection from '@/components/products/ProductInfoSection.vue';
-import ProductMediaSection from '@/components/products/ProductMediaSection.vue';
-import ProductVariantsSection from '@/components/products/ProductVariantsSection.vue';
-import Navbar from '@/components/sections/Navbar.vue';
-import TopBar from '@/components/sections/TopBar.vue';
+import NavBar from '@/components/landing/NavBar.vue';
 import { Button } from '@/components/ui/button';
 import seller from '@/routes/seller';
 import type { ProductForm, FormAttribute, Category } from '@/types';
+import ProductInfoSection from '@/components/products/ProductInfoSection.vue';
+import ProductMediaSection from '@/components/products/ProductMediaSection.vue';
+import ProductVariantsSection from '@/components/products/ProductVariantsSection.vue';
 
 defineProps<{
   categories: Category[];
@@ -34,7 +33,7 @@ const submit = () => {
   <Head title="Create Product" />
   <div class="min-h-screen transition-colors duration-300">
     <TopBar />
-    <div class="sticky top-0 z-50 mt-8"><Navbar /></div>
+    <div class="sticky top-0 z-50 mt-8"><NavBar /></div>
     <div class="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
       <div
         class="mb-8 flex flex-col justify-between gap-4 px-5 sm:flex-row sm:items-center"

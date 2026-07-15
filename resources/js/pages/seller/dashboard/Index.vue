@@ -9,11 +9,11 @@ import {
   MessageCircleMoreIcon,
 } from 'lucide-vue-next';
 
-import SellerStoreHeader from '@/components/SellerStoreHeader.vue';
-import ProductsSummaryCard from '@/components/dashboard/ProductsSummaryCard.vue';
 import OrdersSummaryCard from '@/components/dashboard/OrdersSummaryCard.vue';
+import ProductsSummaryCard from '@/components/dashboard/ProductsSummaryCard.vue';
 import SalesSummaryCard from '@/components/dashboard/SalesSummaryCard.vue';
 import NavBar from '@/components/landing/NavBar.vue';
+import SellerStoreHeader from '@/components/SellerStoreHeader.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import seller from '@/routes/seller';
 

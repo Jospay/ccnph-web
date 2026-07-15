@@ -7,18 +7,18 @@ import {
   ChartSplineIcon,
 } from 'lucide-vue-next';
 import { ref, computed, h } from 'vue';
-import DataTable from '@/components/DataTable.vue';
-import OrderItemsTable from '@/components/orders/OrderItemsTable.vue';
-import SellerTab, { type SellerTabItem } from '@/components/SellerTab.vue';
-import SellerStoreHeader from '@/components/SellerStoreHeader.vue';
-import SellerOrderDetailsDialog from '@/components/orders/SellerOrderDetailsDialog.vue';
-import Navbar from '@/components/sections/Navbar.vue';
-import TopBar from '@/components/sections/TopBar.vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
-import Pagination from '@/components/Pagination.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import DataTable from '@/components/DataTable.vue';
+import { getSellerOrdersColumns } from '@/components/features/seller/columns';
+import NavBar from '@/components/landing/NavBar.vue';
+import OrderItemsTable from '@/components/orders/OrderItemsTable.vue';
+import SellerOrderDetailsDialog from '@/components/orders/SellerOrderDetailsDialog.vue';
+import Pagination from '@/components/Pagination.vue';
+import SellerStoreHeader from '@/components/SellerStoreHeader.vue';
+import SellerTab from '@/components/SellerTab.vue';
+import type {SellerTabItem} from '@/components/SellerTab.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { getSellerOrdersColumns } from '@/features/seller/columns';
 import seller from '@/routes/seller';
 import type {
   Store,
@@ -27,6 +27,8 @@ import type {
   ApiResponse,
   SellerOrderShow,
 } from '@/types';
+
+
 
 const props = defineProps<{
   store: Store;
@@ -70,6 +72,7 @@ const currentTabLabel = computed(() => {
   const currentTab = orderTabs.value.find(
     (tab) => tab.value === activeTab.value,
   );
+
   return currentTab ? currentTab.label : 'Orders';
 });
 
@@ -105,7 +108,10 @@ function handleDetailsOpenChange(value: boolean) {
   isDetailsOpen.value = value;
 
   if (!value) {
-    if (detailsCloseTimeout) clearTimeout(detailsCloseTimeout);
+    if (detailsCloseTimeout) {
+clearTimeout(detailsCloseTimeout);
+}
+
     detailsCloseTimeout = setTimeout(() => {
       detailsOrder.value = null;
       detailsCloseTimeout = null;
@@ -137,13 +143,21 @@ const isDeclineReturn = computed(
   () => selectedAction.value === 'decline_return',
 );
 const canConfirmAction = computed(() => {
-  if (!isDeclineReturn.value) return true;
+  if (!isDeclineReturn.value) {
+return true;
+}
+
   return rejectionReason.value.trim().length > 0;
 });
 
 const processOrderAction = () => {
-  if (!selectedOrder.value || !selectedAction.value) return;
-  if (!canConfirmAction.value) return;
+  if (!selectedOrder.value || !selectedAction.value) {
+return;
+}
+
+  if (!canConfirmAction.value) {
+return;
+}
 
   const resetState = () => {
     selectedOrder.value = null;
@@ -204,7 +218,7 @@ function changeTab(tab: string) {
 
   <div class="flex min-h-screen flex-col transition-colors duration-300">
     <TopBar />
-    <div class="sticky top-0 z-50 mt-8"><Navbar /></div>
+    <div class="sticky top-0 z-50 mt-8"><NavBar /></div>
 
     <main class="mx-auto w-full max-w-7xl grow px-4 py-10 sm:px-6 lg:px-8">
       <div class="mb-5 px-5">
@@ -214,7 +228,7 @@ function changeTab(tab: string) {
       <div v-if="props.store.is_active" class="flex flex-col gap-4">
         <SellerStoreHeader
           :store="props.store"
-          :edit-store-href="seller.store.edit.url(props.store.slug)"
+          :edit-store-href="seller.shop.edit.url(props.store.slug)"
         >
           <template #actions>
             <Link

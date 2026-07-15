@@ -4,8 +4,8 @@ import { useDebounceFn } from '@vueuse/core';
 import { CreditCard, Calendar, Percent, EditIcon } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
-import DataTable from '@/components/DataTable.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import DataTable from '@/components/DataTable.vue';
 import FormDialog from '@/components/FormDialog.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -57,6 +57,7 @@ const displayStats = computed(() => {
   if (!props.global_settings) {
     return [];
   }
+
   const rate = Number(props.global_settings.default_interest_rate || 0);
 
   return [

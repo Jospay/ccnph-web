@@ -29,6 +29,7 @@ export function useAddress() {
   // Computed property
   const isNcr = computed(() => {
     const region = regions.value.find((r) => r.name === selectedRegion.value);
+
     // Check for NCR code or name, handle potential undefined region
     return region
       ? region.code === '130000000' || region.name.includes('NCR')
@@ -39,6 +40,7 @@ export function useAddress() {
 
   async function fetchRegions() {
     isLoadingRegions.value = true;
+
     try {
       const res = await fetch('https://psgc.gitlab.io/api/regions/');
       regions.value = await res.json();
@@ -51,6 +53,7 @@ export function useAddress() {
 
   async function fetchProvinces(regionCode: string) {
     isLoadingProvinces.value = true;
+
     try {
       const res = await fetch(
         `https://psgc.gitlab.io/api/regions/${regionCode}/provinces/`,
@@ -68,6 +71,7 @@ export function useAddress() {
     const url = isNcr
       ? `https://psgc.gitlab.io/api/regions/${provinceOrRegionCode}/cities-municipalities/`
       : `https://psgc.gitlab.io/api/provinces/${provinceOrRegionCode}/cities-municipalities/`;
+
     try {
       const res = await fetch(url);
       cities.value = await res.json();
@@ -80,6 +84,7 @@ export function useAddress() {
 
   async function fetchBarangays(cityCode: string) {
     isLoadingBarangays.value = true;
+
     try {
       const res = await fetch(
         `https://psgc.gitlab.io/api/cities-municipalities/${cityCode}/barangays/`,
@@ -95,7 +100,9 @@ export function useAddress() {
   // --- Watchers to chain requests ---
 
   watch(selectedRegion, async (name) => {
-    if (isInitialLoad.value) return; // Skip on initial load
+    if (isInitialLoad.value) {
+return;
+} // Skip on initial load
 
     // Clear downstream selections
     selectedProvince.value = '';
@@ -105,10 +112,15 @@ export function useAddress() {
     cities.value = [];
     barangays.value = [];
 
-    if (!name) return;
+    if (!name) {
+return;
+}
 
     const region = regions.value.find((r) => r.name === name);
-    if (!region) return;
+
+    if (!region) {
+return;
+}
 
     if (isNcr.value) {
       // Use the computed prop
@@ -119,7 +131,9 @@ export function useAddress() {
   });
 
   watch(selectedProvince, async (name) => {
-    if (isNcr.value || !name) return; // Skip if NCR or empty
+    if (isNcr.value || !name) {
+return;
+} // Skip if NCR or empty
 
     // Clear downstream selections
     selectedCity.value = '';
@@ -128,19 +142,23 @@ export function useAddress() {
     barangays.value = [];
 
     const province = provinces.value.find((p) => p.name === name);
+
     if (province) {
       await fetchCities(province.code, false);
     }
   });
 
   watch(selectedCity, async (name) => {
-    if (!name) return; // Skip if empty
+    if (!name) {
+return;
+} // Skip if empty
 
     // Clear downstream selections
     selectedBarangay.value = '';
     barangays.value = [];
 
     const city = cities.value.find((c) => c.name === name);
+
     if (city) {
       await fetchBarangays(city.code);
     }
@@ -156,10 +174,13 @@ export function useAddress() {
 
     // 1. Load Regions first
     await fetchRegions();
+
     if (!initialData.region) {
       isInitialLoad.value = false;
+
       return;
     }
+
     selectedRegion.value = initialData.region;
     const region = regions.value.find((r) => r.name === initialData.region);
 
@@ -169,12 +190,16 @@ export function useAddress() {
         await fetchCities(region.code, true);
       } else {
         await fetchProvinces(region.code);
+
         if (initialData.province) {
           selectedProvince.value = initialData.province;
           const province = provinces.value.find(
             (p) => p.name === initialData.province,
           );
-          if (province) await fetchCities(province.code, false);
+
+          if (province) {
+await fetchCities(province.code, false);
+}
         }
       }
 
@@ -182,8 +207,10 @@ export function useAddress() {
       if (initialData.city) {
         selectedCity.value = initialData.city;
         const city = cities.value.find((c) => c.name === initialData.city);
+
         if (city) {
           await fetchBarangays(city.code);
+
           if (initialData.barangay) {
             selectedBarangay.value = initialData.barangay;
           }

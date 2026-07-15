@@ -1,28 +1,21 @@
 <script setup lang="ts">
 import { Head, router, useHttp, useForm } from '@inertiajs/vue3';
+import { useDebounceFn } from '@vueuse/core';
 import {
   SquarePenIcon,
   AlertCircleIcon,
   PlusIcon,
   Trash2Icon,
 } from 'lucide-vue-next';
-import { useDebounceFn } from '@vueuse/core';
 import { ref, watch, computed } from 'vue';
 import { toast } from 'vue-sonner';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
-import FormDialog from '@/components/FormDialog.vue';
 import DataTable from '@/components/DataTable.vue';
 import DetailsDialog from '@/components/DetailsDialog.vue';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import FormDialog from '@/components/FormDialog.vue';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,7 +23,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { getAdminUserColumns } from '@/features/admin-management/columns';
 import { getUserDetails } from '@/features/admin-management/details';
 import { getAdminUserFields } from '@/features/admin-management/fields';

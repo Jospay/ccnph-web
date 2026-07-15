@@ -2,17 +2,14 @@
 import { Head, useForm, useHttp, Link, router } from '@inertiajs/vue3';
 import { PackageIcon, PlusIcon, AlertCircleIcon } from 'lucide-vue-next';
 import { ref, computed, h } from 'vue';
-import DataTable from '@/components/DataTable.vue';
-import ProductVariantsTable from '@/components/products/ProductVariantsTable.vue';
-import SellerProductDetailsDilaog from '@/components/products/SellerProductDetailsDilaog.vue';
-import SellerTab, { type SellerTabItem } from '@/components/SellerTab.vue';
-import SellerStoreHeader from '@/components/SellerStoreHeader.vue';
-import Navbar from '@/components/sections/Navbar.vue';
-import TopBar from '@/components/sections/TopBar.vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
-import Pagination from '@/components/Pagination.vue';
+import DataTable from '@/components/DataTable.vue';
+import { getSellerProductsColumns } from '@/components/features/seller/columns';
+import NavBar from '@/components/landing/NavBar.vue';
+import SellerStoreHeader from '@/components/SellerStoreHeader.vue';
+import SellerTab from '@/components/SellerTab.vue';
+import type {SellerTabItem} from '@/components/SellerTab.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { getSellerProductsColumns } from '@/features/seller/columns';
 import seller from '@/routes/seller';
 import type {
   Store,
@@ -20,6 +17,9 @@ import type {
   ProductShow,
   ApiResponse,
 } from '@/types';
+import Pagination from '@/components/Pagination.vue';
+import ProductVariantsTable from '@/components/products/ProductVariantsTable.vue';
+import SellerProductDetailsDilaog from '@/components/products/SellerProductDetailsDilaog.vue';
 
 const props = defineProps<{
   store: Store;
@@ -61,6 +61,7 @@ const currentTabLabel = computed(() => {
   const currentTab = productTabs.value.find(
     (tab) => tab.value === activeTab.value,
   );
+
   return currentTab ? currentTab.label : 'Products';
 });
 

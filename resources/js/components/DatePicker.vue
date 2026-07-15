@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue';
 import {
   CalendarDate,
   DateFormatter,
@@ -8,7 +7,7 @@ import {
   today,
 } from '@internationalized/date';
 import { CalendarIcon } from 'lucide-vue-next';
-import { cn } from '@/lib/utils';
+import { computed } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -16,6 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 const props = defineProps<{
   modelValue?: string | null;
@@ -37,7 +37,9 @@ const value = computed({
   },
 
   set(val) {
-    if (!val) return;
+    if (!val) {
+return;
+}
 
     emit('update:modelValue', val.toString());
   },

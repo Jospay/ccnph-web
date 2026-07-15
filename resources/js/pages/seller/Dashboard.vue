@@ -15,8 +15,7 @@ import {
   AlertCircle,
 } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
-import Navbar from '@/components/sections/Navbar.vue';
-import TopBar from '@/components/sections/TopBar.vue';
+import NavBar from '@/components/landing/NavBar.vue';
 
 interface Product {
   id: number;
@@ -121,8 +120,7 @@ const getStatusColor = (status: string) => {
   <Head title="Seller Dashboard" />
 
   <div class="flex min-h-screen flex-col transition-colors duration-300">
-    <TopBar />
-    <div class="sticky top-0 z-50 mt-8"><Navbar /></div>
+    <div class="sticky top-0 z-50 mt-8"><NavBar /></div>
 
     <main class="mx-auto w-full max-w-7xl grow px-4 py-10 sm:px-6 lg:px-8">
       <div class="mb-8">

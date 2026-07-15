@@ -2,9 +2,7 @@
 import { Head, useForm, Link } from '@inertiajs/vue3';
 import { ArrowLeftIcon } from 'lucide-vue-next';
 import { ref } from 'vue';
-import Footer from '@/components/sections/Footer.vue';
-import Navbar from '@/components/sections/Navbar.vue';
-import TopBar from '@/components/sections/TopBar.vue';
+import NavBar from '@/components/landing/NavBar.vue';
 import seller from '@/routes/seller';
 import type { Store } from '@/types';
 
@@ -63,9 +61,8 @@ const submit = () => {
   <div
     class="flex min-h-screen flex-col bg-zinc-50 transition-colors duration-300 dark:bg-zinc-950"
   >
-    <TopBar />
     <div class="sticky top-0 z-50 mt-8">
-      <Navbar />
+      <NavBar />
     </div>
 
     <div class="mx-auto flex w-full max-w-5xl justify-end px-4 pt-8 pb-5">

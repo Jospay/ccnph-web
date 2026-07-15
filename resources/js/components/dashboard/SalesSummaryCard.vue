@@ -8,7 +8,8 @@ import {
   VisTooltip,
 } from '@unovis/vue';
 import { TrendingUpIcon, ArrowRightIcon } from 'lucide-vue-next';
-import { ChartContainer, type ChartConfig } from '@/components/ui/chart';
+import { ChartContainer  } from '@/components/ui/chart';
+import type {ChartConfig} from '@/components/ui/chart';
 import seller from '@/routes/seller';
 import type { SalesSummary } from '@/types';
 

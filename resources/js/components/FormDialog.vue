@@ -2,6 +2,7 @@
 import { useForm } from '@inertiajs/vue3';
 import { computed, watch, ref } from 'vue';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -28,7 +29,6 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { useFileValidation } from '@/composables/useFileValidation';
-import { Checkbox } from '@/components/ui/checkbox';
 import type { FormField } from '@/types';
 
 const props = defineProps<{
@@ -82,7 +82,10 @@ const fieldMap = Object.fromEntries(props.fields.map((f) => [f.name, f]));
 const hasChanges = computed(() => {
   return Object.keys(form.data()).some((key) => {
     const field = fieldMap[key];
-    if (!field) return false;
+
+    if (!field) {
+return false;
+}
 
     let current = form[key];
     let original = baseline.value[key];
@@ -94,7 +97,10 @@ const hasChanges = computed(() => {
       field?.type === 'percentage'
     ) {
       const toNumber = (val: any) => {
-        if (val === '' || val === null || val === undefined) return null;
+        if (val === '' || val === null || val === undefined) {
+return null;
+}
+
         return Number(val);
       };
 
@@ -110,7 +116,9 @@ const hasChanges = computed(() => {
 watch(
   () => props.initialValues,
   (newValues) => {
-    if (!newValues) return;
+    if (!newValues) {
+return;
+}
 
     const defaults = {
       ...Object.fromEntries(props.fields.map((f) => [f.name, ''])),
@@ -134,10 +142,13 @@ const { handleFileChange, fileInputKeys } = useFileValidation(form);
 const isValid = computed(() => {
   // Check if all required fields are filled
   const requiredFieldsFilled = props.fields.every((f) => {
-    if (!f.required) return true;
+    if (!f.required) {
+return true;
+}
 
     // checker for checkbox group
     const value = form[f.name];
+
     if (Array.isArray(value)) {
       return value.length > 0;
     }
