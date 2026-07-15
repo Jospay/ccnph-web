@@ -3,7 +3,8 @@ import { Link } from '@inertiajs/vue3';
 import { Donut } from '@unovis/ts';
 import { VisSingleContainer, VisDonut, VisTooltip } from '@unovis/vue';
 import { PackageIcon, ArrowRightIcon } from 'lucide-vue-next';
-import { ChartContainer, type ChartConfig } from '@/components/ui/chart';
+import { ChartContainer  } from '@/components/ui/chart';
+import type {ChartConfig} from '@/components/ui/chart';
 import seller from '@/routes/seller';
 import type { ProductsSummary } from '@/types';
 
