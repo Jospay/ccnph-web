@@ -164,6 +164,11 @@ class User extends Authenticatable
         return $this->hasOne(MemberShareCapital::class);
     }
 
+    public function store(): HasOne
+{
+    return $this->hasOne(Store::class);
+}
+
     // checker for service management
     public function managesService(int $serviceId): bool
     {
