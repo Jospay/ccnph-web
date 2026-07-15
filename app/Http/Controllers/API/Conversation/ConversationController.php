@@ -45,7 +45,15 @@ class ConversationController extends Controller
 
         $conversation->ensureParticipant($request->user());
 
-        return $conversation->load(['messages.sender', 'participants.user']);
+        $conversation->load(['messages.sender', 'messages.attachments', 'participants.user']);
+
+        $conversation->messages->each(function ($message) {
+            $message->attachments->each(function ($attachment) {
+                $attachment->path = $attachment->path ? asset('storage/'.$attachment->path) : null;
+            });
+        });
+
+        return $conversation;
     }
 
     public function markRead(Conversation $conversation, Request $request)
