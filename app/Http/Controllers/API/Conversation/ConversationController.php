@@ -39,21 +39,51 @@ class ConversationController extends Controller
         return response()->json($conversations);
     }
 
+    // public function show(Conversation $conversation, Request $request)
+    // {
+    //     Gate::authorize('view', $conversation);
+
+    //     $conversation->ensureParticipant($request->user());
+
+    //     $conversation->load(['messages.sender', 'messages.attachments', 'participants.user']);
+
+    //     $conversation->messages->each(function ($message) {
+    //         $message->attachments->each(function ($attachment) {
+    //             $attachment->path = $attachment->path ? asset('storage/'.$attachment->path) : null;
+    //         });
+    //     });
+
+    //     return $conversation;
+    // }
+
     public function show(Conversation $conversation, Request $request)
     {
         Gate::authorize('view', $conversation);
 
         $conversation->ensureParticipant($request->user());
 
-        $conversation->load(['messages.sender', 'messages.attachments', 'participants.user']);
+        $messages = $conversation->messages()
+            ->with(['sender', 'attachments'])
+            ->latest()
+            ->paginate(15);
 
-        $conversation->messages->each(function ($message) {
+        $messages->setCollection($messages->getCollection()->reverse()->values());
+
+        $messages->getCollection()->each(function ($message) {
             $message->attachments->each(function ($attachment) {
                 $attachment->path = $attachment->path ? asset('storage/'.$attachment->path) : null;
             });
         });
 
-        return $conversation;
+        return response()->json([
+            'conversation' => $conversation->load('participants.user'),
+            'messages' => $messages->items(),
+            'pagination' => [
+                'current_page' => $messages->currentPage(),
+                'last_page' => $messages->lastPage(),
+                'has_more' => $messages->hasMorePages(),
+            ],
+        ]);
     }
 
     public function markRead(Conversation $conversation, Request $request)
