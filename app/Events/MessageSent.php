@@ -3,9 +3,7 @@
 namespace App\Events;
 
 use App\Models\Message;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
@@ -15,40 +13,24 @@ class MessageSent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    /**
-     * Create a new event instance.
-     */
     public function __construct(public Message $message)
     {
+        // ✅ LOAD RELATIONSHIPS BEFORE BROADCASTING
+        $this->message->load(['sender', 'attachments']);
     }
 
-    /**
-     * Get the channels the event should broadcast on.
-     *
-     * @return array<int, Channel>
-     */
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('conversation.' . $this->message->conversation_id),
+            new PrivateChannel('conversation.'.$this->message->conversation_id),
         ];
     }
 
-    /**
-     * Get the name of the event to broadcast.
-     *
-     * @return string
-     */
     public function broadcastAs(): string
     {
         return 'message.sent';
     }
 
-    /**
-     * Get the data to broadcast with the event.
-     *
-     * @return array<string, mixed>
-     */
     public function broadcastWith(): array
     {
         return [
@@ -60,7 +42,17 @@ class MessageSent implements ShouldBroadcast
             'sender' => [
                 'id' => $this->message->sender->id,
                 'name' => $this->message->sender->name,
+                'email' => $this->message->sender->email,
             ],
+            'attachments' => $this->message->attachments->map(function ($attachment) {
+                return [
+                    'id' => $attachment->id,
+                    'path' => $attachment->path,
+                    'original_name' => $attachment->original_name,
+                    'mime_type' => $attachment->mime_type,
+                    'size' => $attachment->size,
+                ];
+            })->toArray(),
         ];
     }
 }
