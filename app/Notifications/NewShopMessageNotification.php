@@ -10,19 +10,19 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Str;
 
-
 class NewShopMessageNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public $afterCommit = true;
-
     /**
      * Create a new notification instance.
+     * afterCommit is set here (not as a redeclared property) since Queueable
+     * already declares $afterCommit — redeclaring it causes a fatal
+     * "incompatible property" error.
      */
     public function __construct(public ShopMessage $message)
     {
-        //
+        $this->afterCommit = true;
     }
 
     /**
@@ -37,9 +37,6 @@ class NewShopMessageNotification extends Notification implements ShouldQueue
 
     /**
      * Summary of toMail
-     * 
-     * @param object $notifiable
-     * @return MailMessage
      */
     public function toMail(object $notifiable): MailMessage
     {
@@ -51,10 +48,9 @@ class NewShopMessageNotification extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject("New message from {$senderName}")
             ->line("You have a new message from {$senderName}.")
-            ->line(str($this->message->body)->limit(150))
+            ->line(str($this->message->body ?? '')->limit(150))
             ->action('View Conversation', url("/conversations/{$conversation->id}"));
     }
-
 
     /**
      * Get the array representation of the notification.
@@ -69,14 +65,12 @@ class NewShopMessageNotification extends Notification implements ShouldQueue
             'shop_conversation_id' => $conversation->id,
             'shop_message_id' => $this->message->id,
             'sender_type' => $this->message->sender_type,
-            'body' => str($this->message->body)->limit(100)->toString(),
+            'body' => str($this->message->body ?? '')->limit(100)->toString(),
         ];
     }
 
     /**
      * Get the broadcastable representation of the notification.
-     *
-     * @return BroadcastMessage
      */
     public function toBroadcast($notifiable): BroadcastMessage
     {
