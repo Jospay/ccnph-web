@@ -29,7 +29,7 @@ class OrderController extends Controller
         $user = $request->user()->loadMissing(['store']);
 
         if (! $user->store) {
-            return redirect()->route('seller.store.create');
+            return redirect()->route('seller.shop.create');
         }
 
         $orders = $this->buildBaseQuery($user->store->id, $filters)

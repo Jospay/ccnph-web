@@ -51,6 +51,46 @@ Route::middleware([
             Route::post('{conversation}/messages', [ShopConversationController::class, 'storeMessage'])->name('messages.store');
         });
 
+
+    Route::get('/store/create', [SellerStoreController::class, 'create'])
+        ->name('store.create');
+    Route::post('/store', [SellerStoreController::class, 'store'])
+        ->name('store.store');
+    Route::get('/store/{store:slug}/edit', [SellerStoreController::class, 'edit'])
+        ->name('store.edit');
+    Route::post('/store/{store:slug}', [SellerStoreController::class, 'update'])
+        ->name('store.update');
+
+    Route::get('/products', [SellerProductController::class, 'index'])
+        ->name('products.index');
+    Route::get('/products/create', [SellerProductController::class, 'create'])
+        ->name('products.create');
+    Route::get('/products/{product:slug}', [SellerProductController::class, 'show'])
+        ->name('products.show');
+    Route::post('/products', [SellerProductController::class, 'store'])
+        ->name('products.store');
+    Route::get('/products/{product:slug}/edit', [SellerProductController::class, 'edit'])
+        ->name('products.edit');
+    Route::post('/products/{product:slug}', [SellerProductController::class, 'update'])
+        ->name('products.update');
+    Route::get('/orders', [SellerOrderController::class, 'index'])
+        ->name('orders.index');
+    Route::get('/orders/{order:order_number}', [SellerOrderController::class, 'show'])
+        ->name('orders.show');
+    Route::patch('/orders/{order}/action', [SellerOrderController::class, 'action'])
+        ->name('orders.action');
+    Route::patch('/orders/{order}/cancel', [SellerOrderController::class, 'cancel'])
+        ->name('orders.cancel');
+
+
+    Route::get('/sales', [SellerSalesController::class, 'index'])
+        ->name('sales.index');
+    Route::patch('/sales/{order}/action', [SellerSalesController::class, 'action'])
+        ->name('sales.action');
+    Route::get('/sales/analytics', [SellerSalesAnalyticsController::class, 'analytics'])
+        ->name('sales.analytics');
+    
+
     });
 
 Route::middleware([

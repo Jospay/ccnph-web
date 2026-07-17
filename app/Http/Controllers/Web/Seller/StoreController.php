@@ -20,7 +20,7 @@ class StoreController extends Controller
             abort(403, 'You already have a store.');
         }
 
-        return Inertia::render('seller/store/Create');
+        return Inertia::render('seller/shop/Create');
     }
 
     public function store(StoreCreateRequest $request)
