@@ -10,10 +10,13 @@ use App\Notifications\NewShopMessageNotification;
 class ShopConversationNotifier
 {
     /**
-     * Create a new class instance.
+     * Notify the other participant in the conversation.
      */
-    public function notifyOther(ShopConversation $conversation, ShopMessage $message, int $senderId): void
-    {
+    public function notifyOther(
+        ShopConversation $conversation,
+        ShopMessage $message,
+        int $senderId
+    ): void {
         $recipient = $senderId === $conversation->user_id
             ? $conversation->shop->user
             : $conversation->user;

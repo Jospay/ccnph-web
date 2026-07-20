@@ -203,6 +203,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('start', [ShopConversationController::class, 'start']);
             Route::get('{conversation}', [ShopConversationController::class, 'show']);
             Route::post('{conversation}/messages', [ShopConversationController::class, 'storeMessage']);
+            Route::post('{conversation}/read', [ShopConversationController::class, 'markRead']);
         });
 
 });

@@ -16,17 +16,15 @@ class NewShopMessageNotification extends Notification implements ShouldQueue
 
     /**
      * Create a new notification instance.
-     * afterCommit is set here (not as a redeclared property) since Queueable
-     * already declares $afterCommit — redeclaring it causes a fatal
-     * "incompatible property" error.
      */
     public function __construct(public ShopMessage $message)
     {
+        // Queue notification only after DB transaction commits.
         $this->afterCommit = true;
     }
 
     /**
-     * Get the notification's delivery channels.
+     * Delivery channels.
      *
      * @return array<int, string>
      */
@@ -36,7 +34,7 @@ class NewShopMessageNotification extends Notification implements ShouldQueue
     }
 
     /**
-     * Summary of toMail
+     * Mail notification.
      */
     public function toMail(object $notifiable): MailMessage
     {
@@ -48,12 +46,15 @@ class NewShopMessageNotification extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject("New message from {$senderName}")
             ->line("You have a new message from {$senderName}.")
-            ->line(str($this->message->body ?? '')->limit(150))
-            ->action('View Conversation', url("/conversations/{$conversation->id}"));
+            ->line(Str::limit($this->message->body ?? '', 150))
+            ->action(
+                'View Conversation',
+                url("/conversations/{$conversation->id}")
+            );
     }
 
     /**
-     * Get the array representation of the notification.
+     * Database notification payload.
      *
      * @return array<string, mixed>
      */
@@ -62,22 +63,44 @@ class NewShopMessageNotification extends Notification implements ShouldQueue
         $conversation = $this->message->conversation;
 
         return [
+            // Conversation
+            'conversation_id' => $conversation->id,
             'shop_conversation_id' => $conversation->id,
+
+            // Shop
+            'shop_id' => $conversation->shop->id,
+            'shop_name' => $conversation->shop->name,
+
+            // Message
+            'message_id' => $this->message->id,
             'shop_message_id' => $this->message->id,
+            'sender_id' => $this->message->sender_id,
             'sender_type' => $this->message->sender_type,
-            'body' => str($this->message->body ?? '')->limit(100)->toString(),
+            'body' => Str::limit($this->message->body ?? '', 100),
         ];
     }
 
     /**
-     * Get the broadcastable representation of the notification.
+     * Broadcast notification payload.
      */
-    public function toBroadcast($notifiable): BroadcastMessage
+    public function toBroadcast(object $notifiable): BroadcastMessage
     {
+        $conversation = $this->message->conversation;
+
         return new BroadcastMessage([
-            'shop_conversation_id' => $this->message->shop_conversation_id,
+            // Conversation
+            'conversation_id' => $conversation->id,
+            'shop_conversation_id' => $conversation->id,
+
+            // Shop
+            'shop_id' => $conversation->shop->id,
+            'shop_name' => $conversation->shop->name,
+
+            // Message
             'message_id' => $this->message->id,
+            'shop_message_id' => $this->message->id,
             'sender_id' => $this->message->sender_id,
+            'sender_type' => $this->message->sender_type,
             'body' => Str::limit($this->message->body ?? '', 100),
         ]);
     }

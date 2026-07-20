@@ -16,20 +16,35 @@ use Illuminate\Support\Facades\Gate;
 
 class ShopConversationController extends Controller
 {
-    public function __construct(private readonly ShopConversationNotifier $notifier)
-    {
-    }
+    public function __construct(private readonly ShopConversationNotifier $notifier) {}
 
     /**
      * List the authenticated customer's conversations across shops.
      */
     public function index(Request $request): JsonResponse
     {
+        $userId = $request->user()->id;
+
         $conversations = ShopConversation::query()
-            ->where('user_id', $request->user()->id)
+            ->where('user_id', $userId)
             ->with(['shop', 'pinnable', 'latestMessage'])
             ->latest('updated_at')
             ->paginate(20);
+
+        $conversations->getCollection()->each(function ($conversation) use ($userId) {
+            $isShopOwner = $conversation->shop->user_id === $userId;
+
+            $lastReadAt = $isShopOwner
+                ? $conversation->shop_read_at
+                : $conversation->user_read_at;
+
+            $conversation->unread_count = $conversation->messages()
+                ->where('sender_id', '!=', $userId)
+                ->when($lastReadAt, function ($query) use ($lastReadAt) {
+                    $query->where('created_at', '>', $lastReadAt);
+                })
+                ->count();
+        });
 
         return response()->json($conversations);
     }
@@ -101,23 +116,41 @@ class ShopConversationController extends Controller
     }
 
     /**
-     * View a single conversation and its messages.
+     * View a single conversation and its (paginated) messages.
+     *
+     * Mirrors ConversationController::show — latest() + paginate(15),
+     * then reverse the page's collection to oldest-first so the client
+     * can build an inverted FlatList the same way it does for the
+     * intellectual chat.
      */
     public function show(ShopConversation $conversation, Request $request): JsonResponse
     {
         Gate::authorize('view', $conversation);
 
-        $conversation->load([
-            'messages.sender',
-            'messages.attachments',
-            'messages.context',
-            'pinnable',
-            'shop',
-        ]);
-
         $conversation->update(['user_read_at' => now()]);
 
-        return response()->json($conversation);
+        $messages = $conversation->messages()
+            ->with(['sender', 'attachments', 'context'])
+            ->latest()
+            ->paginate(15);
+
+        $messages->setCollection($messages->getCollection()->reverse()->values());
+
+        $messages->getCollection()->each(function ($message) {
+            $message->attachments->each(function ($attachment) {
+                $attachment->path = $attachment->path ? asset('storage/'.$attachment->path) : null;
+            });
+        });
+
+        return response()->json([
+            'conversation' => $conversation->load(['pinnable', 'shop']),
+            'messages' => $messages->items(),
+            'pagination' => [
+                'current_page' => $messages->currentPage(),
+                'last_page' => $messages->lastPage(),
+                'has_more' => $messages->hasMorePages(),
+            ],
+        ]);
     }
 
     /**
@@ -161,5 +194,30 @@ class ShopConversationController extends Controller
         $this->notifier->notifyOther($conversation, $message, $request->user()->id);
 
         return response()->json($message->load('attachments'), 201);
+    }
+
+    /**
+     * Mark all messages in the shop conversation as read for the authenticated user.
+     */
+    public function markRead(ShopConversation $conversation, Request $request): JsonResponse
+    {
+        // Authorize that the user belongs to this conversation or owns the shop
+        Gate::authorize('view', $conversation);
+
+        $userId = $request->user()->id;
+
+        // Check if the current user is the owner of the shop
+        $isShopOwner = $conversation->shop && $conversation->shop->user_id === $userId;
+
+        if ($isShopOwner) {
+            $conversation->update(['shop_read_at' => now()]);
+        } else {
+            $conversation->update(['user_read_at' => now()]);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Conversation marked as read.',
+        ]);
     }
 }
