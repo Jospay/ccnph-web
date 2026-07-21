@@ -9,28 +9,28 @@ use Illuminate\Support\Facades\Storage;
 
 class OrderIndexResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
+            'order_number' => $this->order_number,
             'store_name' => $this->store?->name,
             'status' => match ($this->status) {
                 OrderStatus::PENDING => 'to-pay',
-                OrderStatus::CONFIRMED => 'to-ship',
-                OrderStatus::PROCESSING => 'to-ship',
+                OrderStatus::CONFIRMED,
+                OrderStatus::PROCESSING,
                 OrderStatus::PACKED => 'to-ship',
-                OrderStatus::SHIPPED => 'to-receive',
-                OrderStatus::DELIVERED => 'completed',
+                OrderStatus::SHIPPED,
+                OrderStatus::DELIVERED => 'to-receive',
+                OrderStatus::COMPLETED => 'completed',
                 OrderStatus::CANCELLED => 'cancelled',
                 OrderStatus::RETURNED => 'returned',
                 default => 'all'
             },
-            'status_label' => method_exists($this->status, 'label') ? $this->status->label() : str_replace('_', ' ', $this->status->value ?? $this->status),
+            'raw_status' => $this->status->value ?? $this->status,
+            'status_label' => method_exists($this->status, 'label')
+                ? $this->status->label()
+                : str_replace('_', ' ', $this->status->value ?? $this->status),
             'shipping_fee' => (float) $this->shipping_fee,
             'total' => (float) $this->total,
             'items' => $this->items->map(fn ($item) => [
@@ -40,6 +40,16 @@ class OrderIndexResource extends JsonResource
                 'price' => (float) $item->price,
                 'quantity' => $item->quantity,
             ])->values()->all(),
+            'tracking' => [
+                'created_at' => $this->created_at ? $this->created_at->toIso8601String() : null,
+                'confirmed_at' => $this->confirmed_at ? $this->confirmed_at->toIso8601String() : null,
+                'processing_at' => $this->processing_at ? $this->processing_at->toIso8601String() : null,
+                'packed_at' => $this->packed_at ? $this->packed_at->toIso8601String() : null,
+                'shipped_at' => $this->shipped_at ? $this->shipped_at->toIso8601String() : null,
+                'delivered_at' => $this->delivered_at ? $this->delivered_at->toIso8601String() : null,
+                'cancelled_at' => $this->cancelled_at ? $this->cancelled_at->toIso8601String() : null,
+                'returned_at' => $this->returned_at ? $this->returned_at->toIso8601String() : null,
+            ],
             'created_at' => $this->created_at ? $this->created_at->toIso8601String() : null,
         ];
     }

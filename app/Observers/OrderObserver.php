@@ -10,6 +10,7 @@ class OrderObserver
 {
     protected array $terminalStatuses = [
         OrderStatus::DELIVERED->value,
+        OrderStatus::COMPLETED->value,
         OrderStatus::CANCELLED->value,
         OrderStatus::RETURNED->value,
     ];
@@ -31,7 +32,7 @@ class OrderObserver
             return;
         }
 
-        if (! in_array($order->status, $this->terminalStatuses)) {
+        if (! in_array($order->status->value ?? $order->status, $this->terminalStatuses)) {
             return;
         }
 

@@ -190,6 +190,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/orders/{order}', [CustomerOrderController::class, 'show']);
             Route::get('/orders/{order}/rate', [CustomerOrderController::class, 'rate']);
             Route::post('/orders/{order}/rate', [CustomerOrderController::class, 'storeRating']);
+            Route::post('/orders/{order}/status', [CustomerOrderController::class, 'updateStatus']);
 
             Route::get('/{store}', [ShopStoreController::class, 'show']);
             Route::post('register-seller', [ShopStoreController::class, 'registerSeller']);
