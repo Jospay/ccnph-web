@@ -246,20 +246,48 @@ class CustomerOrderController extends Controller
             'items.*.order_item_id' => ['required', 'exists:order_items,id'],
             'items.*.rating' => ['required', 'integer', 'min:1', 'max:5'],
             'items.*.comment' => ['nullable', 'string', 'max:1000'],
+            'items.*.is_anonymous' => ['nullable', 'boolean'],
+            'items.*.video' => ['nullable', 'file', 'mimes:mp4,mov,avi', 'max:20480'], // 20MB max
+            'items.*.images' => ['nullable', 'array', 'max:5'],
+            'items.*.images.*' => ['file', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'], // 5MB each
         ]);
 
         DB::transaction(function () use ($validated, $order, $request) {
-            foreach ($validated['items'] as $itemData) {
+            foreach ($validated['items'] as $index => $itemData) {
                 $item = OrderItem::where('id', $itemData['order_item_id'])
                     ->where('order_id', $order->id)
                     ->first();
 
-                if ($item && method_exists($item, 'reviews')) {
-                    $item->reviews()->create([
-                        'user_id' => $request->user()->id,
-                        'rating' => $itemData['rating'],
-                        'comment' => $itemData['comment'] ?? null,
-                    ]);
+                if (! $item) {
+                    continue;
+                }
+
+                // 1. Save video to 'feedback_products/videos'
+                $videoPath = null;
+                if ($request->hasFile("items.{$index}.video")) {
+                    $videoPath = $request->file("items.{$index}.video")->store('feedback_products/videos', 'public');
+                }
+
+                // 2. Create Review via HasOne 'review()' relationship
+                $review = $item->review()->create([
+                    'user_id' => $request->user()->id,
+                    'order_item_id' => $item->id,
+                    'shop_id' => $order->shop_id,
+                    'product_id' => $item->product_id ?? null,
+                    'rating' => $itemData['rating'],
+                    'review' => $itemData['comment'] ?? null,
+                    'video' => $videoPath,
+                    'is_anonymous' => $itemData['is_anonymous'] ?? false,
+                ]);
+
+                // 3. Save Images to 'feedback_products/images'
+                if ($request->hasFile("items.{$index}.images")) {
+                    foreach ($request->file("items.{$index}.images") as $imageFile) {
+                        $imagePath = $imageFile->store('feedback_products/images', 'public');
+                        $review->images()->create([
+                            'image' => $imagePath,
+                        ]);
+                    }
                 }
             }
         });
