@@ -7,10 +7,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\Store\OrderIndexResource;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Review;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class CustomerOrderController extends Controller
@@ -80,6 +81,7 @@ class CustomerOrderController extends Controller
             ->with([
                 'store:id,name',
                 'items:id,order_id,product_name,product_image,variant_name,price,quantity',
+                'items.review:id,order_item_id', // <-- add this
             ])
             ->when(
                 $filters['status'] !== 'all',
@@ -87,6 +89,15 @@ class CustomerOrderController extends Controller
             )
             ->latest()
             ->paginate(10);
+
+        // Attach a computed is_rated flag before the resource transforms it
+        $paginator->getCollection()->transform(function (Order $order) {
+            $order->is_rated = $order->status === OrderStatus::COMPLETED
+                && $order->items->isNotEmpty()
+                && $order->items->every(fn ($item) => $item->review !== null);
+
+            return $order;
+        });
 
         $ordersCollection = OrderIndexResource::collection($paginator);
 
@@ -180,7 +191,8 @@ class CustomerOrderController extends Controller
                     'items' => $order->items->map(fn ($item) => [
                         'id' => $item->id,
                         'product_name' => $item->product_name,
-                        'product_image' => $item->product_image ? Storage::url($item->product_image) : null,
+                        // 'product_image' => $item->product_image ? Storage::url($item->product_image) : null,
+                        'product_image' => $item->product_image ? asset('storage'.$item->product_image) : null,
                         'variant_name' => $item->variant_name,
                         'price' => (float) $item->price,
                         'quantity' => $item->quantity,
@@ -223,11 +235,33 @@ class CustomerOrderController extends Controller
 
         $order->load(['store:id,name', 'items:id,order_id,product_name,product_image,variant_name']);
 
+        // Block access if the user already rated any item in this order
+        $alreadyRated = Review::where('user_id', $request->user()->id)
+            ->whereIn('order_item_id', $order->items->pluck('id'))
+            ->exists();
+
+        if ($alreadyRated) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You have already submitted a review for this order.',
+            ], 409);
+        }
+
         return response()->json([
             'success' => true,
             'data' => [
                 'user' => $request->user()->only('name', 'phone', 'avatar'),
-                'order' => $order,
+                'order' => [
+                    'id' => $order->id,
+                    'store' => $order->store,
+                    'items' => $order->items->map(fn ($item) => [
+                        'id' => $item->id,
+                        'order_id' => $item->order_id,
+                        'product_name' => $item->product_name,
+                        'product_image' => $item->product_image ? asset('storage'.$item->product_image) : null,
+                        'variant_name' => $item->variant_name,
+                    ])->values()->all(),
+                ],
             ],
         ]);
     }
@@ -247,50 +281,77 @@ class CustomerOrderController extends Controller
             'items.*.rating' => ['required', 'integer', 'min:1', 'max:5'],
             'items.*.comment' => ['nullable', 'string', 'max:1000'],
             'items.*.is_anonymous' => ['nullable', 'boolean'],
-            'items.*.video' => ['nullable', 'file', 'mimes:mp4,mov,avi', 'max:20480'], // 20MB max
+            'items.*.video' => ['nullable', 'file', 'mimes:mp4,mov,avi', 'max:20480'],
             'items.*.images' => ['nullable', 'array', 'max:5'],
-            'items.*.images.*' => ['file', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'], // 5MB each
+            'items.*.images.*' => ['file', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
         ]);
 
-        DB::transaction(function () use ($validated, $order, $request) {
-            foreach ($validated['items'] as $index => $itemData) {
-                $item = OrderItem::where('id', $itemData['order_item_id'])
-                    ->where('order_id', $order->id)
-                    ->first();
+        // Pre-check: don't let the same order_item get rated twice
+        $orderItemIds = collect($validated['items'])->pluck('order_item_id');
+        $alreadyRatedIds = Review::where('user_id', $request->user()->id)
+            ->whereIn('order_item_id', $orderItemIds)
+            ->pluck('order_item_id')
+            ->toArray();
 
-                if (! $item) {
-                    continue;
-                }
+        if (! empty($alreadyRatedIds)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'One or more items in this order have already been rated.',
+                'errors' => [
+                    'items' => ['You already submitted a review for this order.'],
+                ],
+            ], 422);
+        }
 
-                // 1. Save video to 'feedback_products/videos'
-                $videoPath = null;
-                if ($request->hasFile("items.{$index}.video")) {
-                    $videoPath = $request->file("items.{$index}.video")->store('feedback_products/videos', 'public');
-                }
+        try {
+            DB::transaction(function () use ($validated, $order, $request) {
+                foreach ($validated['items'] as $index => $itemData) {
+                    $item = OrderItem::where('id', $itemData['order_item_id'])
+                        ->where('order_id', $order->id)
+                        ->first();
 
-                // 2. Create Review via HasOne 'review()' relationship
-                $review = $item->review()->create([
-                    'user_id' => $request->user()->id,
-                    'order_item_id' => $item->id,
-                    'shop_id' => $order->shop_id,
-                    'product_id' => $item->product_id ?? null,
-                    'rating' => $itemData['rating'],
-                    'review' => $itemData['comment'] ?? null,
-                    'video' => $videoPath,
-                    'is_anonymous' => $itemData['is_anonymous'] ?? false,
-                ]);
+                    if (! $item) {
+                        continue;
+                    }
 
-                // 3. Save Images to 'feedback_products/images'
-                if ($request->hasFile("items.{$index}.images")) {
-                    foreach ($request->file("items.{$index}.images") as $imageFile) {
-                        $imagePath = $imageFile->store('feedback_products/images', 'public');
-                        $review->images()->create([
-                            'image' => $imagePath,
-                        ]);
+                    $videoPath = null;
+                    if ($request->hasFile("items.{$index}.video")) {
+                        $videoPath = $request->file("items.{$index}.video")->store('feedback_products/videos', 'public');
+                    }
+
+                    // updateOrCreate as a safety net against race conditions / double taps
+                    $review = $item->review()->updateOrCreate(
+                        ['order_item_id' => $item->id],
+                        [
+                            'user_id' => $request->user()->id,
+                            'shop_id' => $order->shop_id,
+                            'product_id' => $item->product_id ?? null,
+                            'rating' => $itemData['rating'],
+                            'review' => $itemData['comment'] ?? null,
+                            'video' => $videoPath,
+                            'is_anonymous' => $itemData['is_anonymous'] ?? false,
+                        ]
+                    );
+
+                    if ($request->hasFile("items.{$index}.images")) {
+                        foreach ($request->file("items.{$index}.images") as $imageFile) {
+                            $imagePath = $imageFile->store('feedback_products/images', 'public');
+                            $review->images()->create([
+                                'image' => $imagePath,
+                            ]);
+                        }
                     }
                 }
+            });
+        } catch (QueryException $e) {
+            if ((string) $e->getCode() === '23000') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You have already submitted a review for one of these items.',
+                ], 422);
             }
-        });
+            throw $e;
+        }
 
         return response()->json([
             'success' => true,

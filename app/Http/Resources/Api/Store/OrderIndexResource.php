@@ -5,7 +5,6 @@ namespace App\Http\Resources\Api\Store;
 use App\Enums\OrderStatus;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 class OrderIndexResource extends JsonResource
 {
@@ -36,8 +35,10 @@ class OrderIndexResource extends JsonResource
             'shipping_fee' => (float) $this->shipping_fee,
             'total' => (float) $this->total,
             'items' => $this->items->map(fn ($item) => [
+                'id' => $item->id,
+                'product_id' => $item->product_id,
                 'product_name' => $item->product_name,
-                'product_image' => $item->product_image ? Storage::url($item->product_image) : null,
+                'product_image' => $item->product_image ? asset('storage'.$item->product_image) : null,
                 'variant_name' => $item->variant_name,
                 'price' => (float) $item->price,
                 'quantity' => $item->quantity,
@@ -53,6 +54,7 @@ class OrderIndexResource extends JsonResource
                 'returned_at' => $this->returned_at ? $this->returned_at->toIso8601String() : null,
             ],
             'created_at' => $this->created_at ? $this->created_at->toIso8601String() : null,
+            'is_rated' => (bool) $this->is_rated, // <-- ADD THIS
         ];
     }
 }
