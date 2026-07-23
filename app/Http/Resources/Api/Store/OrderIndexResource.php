@@ -54,7 +54,13 @@ class OrderIndexResource extends JsonResource
                 'returned_at' => $this->returned_at ? $this->returned_at->toIso8601String() : null,
             ],
             'created_at' => $this->created_at ? $this->created_at->toIso8601String() : null,
-            'is_rated' => (bool) $this->is_rated, // <-- ADD THIS
+
+            // Evaluates dynamically if dynamically set attribute isn't found
+            'is_rated' => $this->is_rated ?? (
+                ($this->status === OrderStatus::COMPLETED || $this->status === OrderStatus::COMPLETED->value)
+                && $this->items->isNotEmpty()
+                && $this->items->every(fn ($item) => $item->relationLoaded('review') && $item->review !== null)
+            ),
         ];
     }
 }

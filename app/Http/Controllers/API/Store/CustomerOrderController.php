@@ -27,7 +27,6 @@ class CustomerOrderController extends Controller
             ], 401);
         }
 
-        // 1. ADD 'return_requested' and 'return_approved' TO VALIDATION
         $validated = $request->validate([
             'status' => [
                 'sometimes',
@@ -50,21 +49,33 @@ class CustomerOrderController extends Controller
             'status' => $validated['status'] ?? 'all',
         ];
 
-        // Optimized single-query badge counter aggregation
+        $completedStatus = OrderStatus::COMPLETED->value ?? 'completed';
+
+        // 1. Calculate Badges
+        // Count orders in 'completed' status that STILL HAVE at least one item WITHOUT a review
+        $toRateCount = Order::query()
+            ->where('user_id', $user->id)
+            ->where('status', $completedStatus)
+            ->whereHas('items', function ($query) {
+                $query->whereDoesntHave('review');
+            })
+            ->count();
+
+        // Raw query for other simple badge counts
         $badgeCountsRaw = Order::query()
             ->where('user_id', $user->id)
             ->selectRaw('
-                COUNT(CASE WHEN status = ? THEN 1 END) as to_pay,
-                COUNT(CASE WHEN status IN (?, ?, ?) THEN 1 END) as to_ship,
-                COUNT(CASE WHEN status = ? THEN 1 END) as to_receive,
-                COUNT(CASE WHEN status = ? THEN 1 END) as to_rate
-            ', [
-                OrderStatus::PENDING->value ?? OrderStatus::PENDING,
-                OrderStatus::CONFIRMED->value ?? OrderStatus::CONFIRMED,
-                OrderStatus::PROCESSING->value ?? OrderStatus::PROCESSING,
-                OrderStatus::PACKED->value ?? OrderStatus::PACKED,
-                OrderStatus::SHIPPED->value ?? OrderStatus::SHIPPED,
-                OrderStatus::DELIVERED->value ?? OrderStatus::DELIVERED,
+            COUNT(CASE WHEN status = ? THEN 1 END) as to_pay,
+            COUNT(CASE WHEN status IN (?, ?, ?) THEN 1 END) as to_ship,
+            COUNT(CASE WHEN status IN (?, ?, ?) THEN 1 END) as to_receive
+        ', [
+                OrderStatus::PENDING->value ?? 'pending',
+                OrderStatus::CONFIRMED->value ?? 'confirmed',
+                OrderStatus::PROCESSING->value ?? 'processing',
+                OrderStatus::PACKED->value ?? 'packed',
+                OrderStatus::SHIPPED->value ?? 'shipped',
+                OrderStatus::DELIVERED->value ?? 'delivered',
+                'to-receive',
             ])
             ->first();
 
@@ -72,16 +83,16 @@ class CustomerOrderController extends Controller
             'to_pay' => (int) ($badgeCountsRaw->to_pay ?? 0),
             'to_ship' => (int) ($badgeCountsRaw->to_ship ?? 0),
             'to_receive' => (int) ($badgeCountsRaw->to_receive ?? 0),
-            'to_rate' => (int) ($badgeCountsRaw->to_rate ?? 0),
+            'to_rate' => $toRateCount, // 👈 Accurately excludes already-rated orders
         ];
 
-        // Fetch records cleanly with relations loaded
+        // 2. Fetch paginated orders with relationships
         $paginator = Order::query()
             ->where('user_id', $user->id)
             ->with([
                 'store:id,name',
                 'items:id,order_id,product_name,product_image,variant_name,price,quantity',
-                'items.review:id,order_item_id', // <-- add this
+                'items.review:id,order_item_id',
             ])
             ->when(
                 $filters['status'] !== 'all',
@@ -90,9 +101,14 @@ class CustomerOrderController extends Controller
             ->latest()
             ->paginate(10);
 
-        // Attach a computed is_rated flag before the resource transforms it
+        // 3. Compute `is_rated` boolean on each order
         $paginator->getCollection()->transform(function (Order $order) {
-            $order->is_rated = $order->status === OrderStatus::COMPLETED
+            // Determine if the order status equals OrderStatus::COMPLETED
+            $isCompleted = ($order->status instanceof OrderStatus)
+                ? $order->status === OrderStatus::COMPLETED
+                : $order->status === OrderStatus::COMPLETED->value;
+
+            $order->is_rated = $isCompleted
                 && $order->items->isNotEmpty()
                 && $order->items->every(fn ($item) => $item->review !== null);
 
@@ -233,19 +249,12 @@ class CustomerOrderController extends Controller
             ], 403);
         }
 
-        $order->load(['store:id,name', 'items:id,order_id,product_name,product_image,variant_name']);
-
-        // Block access if the user already rated any item in this order
-        $alreadyRated = Review::where('user_id', $request->user()->id)
-            ->whereIn('order_item_id', $order->items->pluck('id'))
-            ->exists();
-
-        if ($alreadyRated) {
-            return response()->json([
-                'success' => false,
-                'message' => 'You have already submitted a review for this order.',
-            ], 409);
-        }
+        // Load store, items, and their associated reviews + images
+        $order->load([
+            'store:id,name',
+            'items:id,order_id,product_name,product_image,variant_name',
+            'items.review.images',
+        ]);
 
         return response()->json([
             'success' => true,
@@ -258,8 +267,19 @@ class CustomerOrderController extends Controller
                         'id' => $item->id,
                         'order_id' => $item->order_id,
                         'product_name' => $item->product_name,
-                        'product_image' => $item->product_image ? asset('storage'.$item->product_image) : null,
+                        'product_image' => $item->product_image ? asset('storage/'.$item->product_image) : null,
                         'variant_name' => $item->variant_name,
+                        // Pass the review data if it exists
+                        'review' => $item->review ? [
+                            'id' => $item->review->id,
+                            'rating' => (int) $item->review->rating,
+                            'comment' => $item->review->review,
+                            'video_url' => $item->review->video ? asset('storage/'.$item->review->video) : null,
+                            'is_anonymous' => (bool) $item->review->is_anonymous,
+                            'images' => $item->review->images->map(
+                                fn ($img) => asset('storage/'.$img->image)
+                            )->values()->all(),
+                        ] : null,
                     ])->values()->all(),
                 ],
             ],
