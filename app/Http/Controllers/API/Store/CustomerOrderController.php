@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\Store\OrderIndexResource;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Product;
 use App\Models\Review;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
@@ -286,6 +287,99 @@ class CustomerOrderController extends Controller
         ]);
     }
 
+    // public function storeRating(Request $request, Order $order)
+    // {
+    //     if ($order->user_id !== $request->user()->id) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Unauthorized action.',
+    //         ], 403);
+    //     }
+
+    //     $validated = $request->validate([
+    //         'items' => ['required', 'array', 'min:1'],
+    //         'items.*.order_item_id' => ['required', 'exists:order_items,id'],
+    //         'items.*.rating' => ['required', 'integer', 'min:1', 'max:5'],
+    //         'items.*.comment' => ['nullable', 'string', 'max:1000'],
+    //         'items.*.is_anonymous' => ['nullable', 'boolean'],
+    //         'items.*.video' => ['nullable', 'file', 'mimes:mp4,mov,avi', 'max:20480'],
+    //         'items.*.images' => ['nullable', 'array', 'max:5'],
+    //         'items.*.images.*' => ['file', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+    //     ]);
+
+    //     // Pre-check: don't let the same order_item get rated twice
+    //     $orderItemIds = collect($validated['items'])->pluck('order_item_id');
+    //     $alreadyRatedIds = Review::where('user_id', $request->user()->id)
+    //         ->whereIn('order_item_id', $orderItemIds)
+    //         ->pluck('order_item_id')
+    //         ->toArray();
+
+    //     if (! empty($alreadyRatedIds)) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'One or more items in this order have already been rated.',
+    //             'errors' => [
+    //                 'items' => ['You already submitted a review for this order.'],
+    //             ],
+    //         ], 422);
+    //     }
+
+    //     try {
+    //         DB::transaction(function () use ($validated, $order, $request) {
+    //             foreach ($validated['items'] as $index => $itemData) {
+    //                 $item = OrderItem::where('id', $itemData['order_item_id'])
+    //                     ->where('order_id', $order->id)
+    //                     ->first();
+
+    //                 if (! $item) {
+    //                     continue;
+    //                 }
+
+    //                 $videoPath = null;
+    //                 if ($request->hasFile("items.{$index}.video")) {
+    //                     $videoPath = $request->file("items.{$index}.video")->store('feedback_products/videos', 'public');
+    //                 }
+
+    //                 // updateOrCreate as a safety net against race conditions / double taps
+    //                 $review = $item->review()->updateOrCreate(
+    //                     ['order_item_id' => $item->id],
+    //                     [
+    //                         'user_id' => $request->user()->id,
+    //                         'shop_id' => $order->shop_id,
+    //                         'product_id' => $item->product_id ?? null,
+    //                         'rating' => $itemData['rating'],
+    //                         'review' => $itemData['comment'] ?? null,
+    //                         'video' => $videoPath,
+    //                         'is_anonymous' => $itemData['is_anonymous'] ?? false,
+    //                     ]
+    //                 );
+
+    //                 if ($request->hasFile("items.{$index}.images")) {
+    //                     foreach ($request->file("items.{$index}.images") as $imageFile) {
+    //                         $imagePath = $imageFile->store('feedback_products/images', 'public');
+    //                         $review->images()->create([
+    //                             'image' => $imagePath,
+    //                         ]);
+    //                     }
+    //                 }
+    //             }
+    //         });
+    //     } catch (QueryException $e) {
+    //         if ((string) $e->getCode() === '23000') {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'You have already submitted a review for one of these items.',
+    //             ], 422);
+    //         }
+    //         throw $e;
+    //     }
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'message' => 'Thank you for your feedback!',
+    //     ]);
+    // }
+
     public function storeRating(Request $request, Order $order)
     {
         if ($order->user_id !== $request->user()->id) {
@@ -330,7 +424,7 @@ class CustomerOrderController extends Controller
                         ->where('order_id', $order->id)
                         ->first();
 
-                    if (! $item) {
+                    if (! $item || ! $item->product_id) {
                         continue;
                     }
 
@@ -339,13 +433,13 @@ class CustomerOrderController extends Controller
                         $videoPath = $request->file("items.{$index}.video")->store('feedback_products/videos', 'public');
                     }
 
-                    // updateOrCreate as a safety net against race conditions / double taps
+                    // Save or update the review
                     $review = $item->review()->updateOrCreate(
                         ['order_item_id' => $item->id],
                         [
                             'user_id' => $request->user()->id,
                             'shop_id' => $order->shop_id,
-                            'product_id' => $item->product_id ?? null,
+                            'product_id' => $item->product_id,
                             'rating' => $itemData['rating'],
                             'review' => $itemData['comment'] ?? null,
                             'video' => $videoPath,
@@ -361,6 +455,16 @@ class CustomerOrderController extends Controller
                             ]);
                         }
                     }
+
+                    // --- RECALCULATE & UPDATE PRODUCT RATING & REVIEWS_COUNT ---
+                    $stats = Review::where('product_id', $item->product_id)
+                        ->selectRaw('COUNT(*) as total_reviews, AVG(rating) as average_rating')
+                        ->first();
+
+                    Product::where('id', $item->product_id)->update([
+                        'rating' => round((float) ($stats->average_rating ?? 0), 1),
+                        'reviews_count' => (int) ($stats->total_reviews ?? 0),
+                    ]);
                 }
             });
         } catch (QueryException $e) {
@@ -473,10 +577,23 @@ class CustomerOrderController extends Controller
                 ], 422);
             }
 
-            $order->update([
-                'status' => OrderStatus::COMPLETED,
-                'delivered_at' => $order->delivered_at ?? now(),
-            ]);
+            DB::transaction(function () use ($order) {
+                // 1. Update order status
+                $order->update([
+                    'status' => OrderStatus::COMPLETED,
+                    'delivered_at' => $order->delivered_at ?? now(),
+                ]);
+
+                // 2. Increment sold_count for each product in the order
+                $order->loadMissing('items');
+
+                foreach ($order->items as $item) {
+                    if ($item->product_id) {
+                        Product::where('id', $item->product_id)
+                            ->increment('sold_count', $item->quantity ?? 1);
+                    }
+                }
+            });
 
             return response()->json([
                 'success' => true,
