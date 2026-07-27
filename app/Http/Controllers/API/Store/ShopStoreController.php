@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\Store;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\Store\ProductCardResource;
 use App\Models\Shop;
+use App\Models\ShopFollower;
 use App\Models\UserType;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,7 +20,22 @@ class ShopStoreController extends Controller
      */
     public function show(Shop $store): JsonResponse
     {
-        $products = $this->buildBaseQuery($store)->paginate(20);
+        $userId = auth()->id();
+
+        // 1. Count active followers for this shop
+        $followersCount = ShopFollower::where('shop_id', $store->id)
+            ->where('is_active', true)
+            ->count();
+
+        // 2. Check if current user is actively following this shop
+        $isFollowed = auth()->check()
+            ? ShopFollower::where('shop_id', $store->id)
+                ->where('user_id', $userId)
+                ->where('is_active', true)
+                ->exists()
+            : false;
+
+        $products = $this->buildBaseQuery($store)->paginate(10);
 
         return response()->json([
             'success' => true,
@@ -34,6 +50,8 @@ class ShopStoreController extends Controller
                     'description' => $store->description,
                     'rating' => $store->rating,
                     'is_official' => (bool) $store->is_official,
+                    'followers_count' => $followersCount,
+                    'is_followed' => $isFollowed,
                     'created_at' => $store->created_at,
                 ],
                 'products' => ProductCardResource::collection($products),
@@ -41,8 +59,43 @@ class ShopStoreController extends Controller
                     'current_page' => $products->currentPage(),
                     'last_page' => $products->lastPage(),
                     'has_more' => $products->hasMorePages(),
+                    'total' => $products->total(),
                 ],
             ],
+        ]);
+    }
+
+    /**
+     * Toggle follow/unfollow for a shop.
+     */
+    public function toggleFollow(Shop $store): JsonResponse
+    {
+        $userId = auth()->id();
+
+        $follower = ShopFollower::firstOrCreate(
+            [
+                'user_id' => $userId,
+                'shop_id' => $store->id,
+            ],
+            [
+                'is_active' => true,
+            ]
+        );
+
+        if (! $follower->wasRecentlyCreated) {
+            $follower->is_active = ! $follower->is_active;
+            $follower->save();
+        }
+
+        $followersCount = ShopFollower::where('shop_id', $store->id)
+            ->where('is_active', true)
+            ->count();
+
+        return response()->json([
+            'success' => true,
+            'message' => $follower->is_active ? 'Shop followed successfully.' : 'Shop unfollowed successfully.',
+            'is_followed' => $follower->is_active,
+            'followers_count' => $followersCount,
         ]);
     }
 
@@ -51,6 +104,8 @@ class ShopStoreController extends Controller
      */
     private function buildBaseQuery(Shop $store)
     {
+        $userId = auth()->id();
+
         return $store->products()
             ->select([
                 'id',
@@ -68,6 +123,9 @@ class ShopStoreController extends Controller
                 'defaultVariant:id,product_id,price,compare_price',
             ])
             ->withSum('variants as total_stock', 'stock')
+            ->withExists(['collections as is_liked' => function ($query) use ($userId) {
+                $query->where('user_id', $userId)->where('is_active', true);
+            }])
             ->whereHas('variants', function ($query) {
                 $query->where('stock', '>', 0);
             })

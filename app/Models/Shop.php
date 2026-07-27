@@ -87,4 +87,21 @@ class Shop extends Model
     {
         return $this->hasMany(Review::class);
     }
+
+    /**
+     * Recalculate and save the shop's overall rating based on all its reviews.
+     */
+    public function updateRating(): void
+    {
+        $average = $this->reviews()->avg('rating') ?? 0;
+
+        $this->update([
+            'rating' => round((float) $average, 1),
+        ]);
+    }
+
+    public function followers(): HasMany
+    {
+        return $this->hasMany(ShopFollower::class);
+    }
 }

@@ -56,6 +56,7 @@ class ProductShowResource extends JsonResource
                 'id' => $this->store->id,
                 'name' => $this->store->name,
                 'rating' => $this->store->rating,
+                'description' => $this->store->description,
                 'slug' => $this->store->slug,
                 'logo' => $this->store->logo ? asset('storage/'.$this->store->logo) : null,
                 'is_official' => $this->store->is_official,
