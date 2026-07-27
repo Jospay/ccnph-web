@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Review;
+use App\Models\Shop;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -400,8 +401,9 @@ class CustomerOrderController extends Controller
             'items.*.images.*' => ['file', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
         ]);
 
-        // Pre-check: don't let the same order_item get rated twice
+        // Prevent duplicate reviews
         $orderItemIds = collect($validated['items'])->pluck('order_item_id');
+
         $alreadyRatedIds = Review::where('user_id', $request->user()->id)
             ->whereIn('order_item_id', $orderItemIds)
             ->pluck('order_item_id')
@@ -419,7 +421,11 @@ class CustomerOrderController extends Controller
 
         try {
             DB::transaction(function () use ($validated, $order, $request) {
+
+                $productIds = [];
+
                 foreach ($validated['items'] as $index => $itemData) {
+
                     $item = OrderItem::where('id', $itemData['order_item_id'])
                         ->where('order_id', $order->id)
                         ->first();
@@ -428,14 +434,19 @@ class CustomerOrderController extends Controller
                         continue;
                     }
 
+                    $productIds[] = $item->product_id;
+
                     $videoPath = null;
+
                     if ($request->hasFile("items.{$index}.video")) {
-                        $videoPath = $request->file("items.{$index}.video")->store('feedback_products/videos', 'public');
+                        $videoPath = $request->file("items.{$index}.video")
+                            ->store('feedback_products/videos', 'public');
                     }
 
-                    // Save or update the review
                     $review = $item->review()->updateOrCreate(
-                        ['order_item_id' => $item->id],
+                        [
+                            'order_item_id' => $item->id,
+                        ],
                         [
                             'user_id' => $request->user()->id,
                             'shop_id' => $order->shop_id,
@@ -450,30 +461,45 @@ class CustomerOrderController extends Controller
                     if ($request->hasFile("items.{$index}.images")) {
                         foreach ($request->file("items.{$index}.images") as $imageFile) {
                             $imagePath = $imageFile->store('feedback_products/images', 'public');
+
                             $review->images()->create([
                                 'image' => $imagePath,
                             ]);
                         }
                     }
+                }
 
-                    // --- RECALCULATE & UPDATE PRODUCT RATING & REVIEWS_COUNT ---
-                    $stats = Review::where('product_id', $item->product_id)
+                /**
+                 * Update all affected product ratings.
+                 */
+                foreach (array_unique($productIds) as $productId) {
+
+                    $stats = Review::where('product_id', $productId)
                         ->selectRaw('COUNT(*) as total_reviews, AVG(rating) as average_rating')
                         ->first();
 
-                    Product::where('id', $item->product_id)->update([
+                    Product::where('id', $productId)->update([
                         'rating' => round((float) ($stats->average_rating ?? 0), 1),
                         'reviews_count' => (int) ($stats->total_reviews ?? 0),
                     ]);
                 }
+
+                /**
+                 * Update shop rating.
+                 */
+                if ($shop = Shop::find($order->shop_id)) {
+                    $shop->updateRating();
+                }
             });
         } catch (QueryException $e) {
+
             if ((string) $e->getCode() === '23000') {
                 return response()->json([
                     'success' => false,
                     'message' => 'You have already submitted a review for one of these items.',
                 ], 422);
             }
+
             throw $e;
         }
 
