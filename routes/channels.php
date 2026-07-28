@@ -13,7 +13,7 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 Broadcast::channel('conversation.{conversationId}', function ($user, $conversationId) {
     $conversation = Conversation::find($conversationId);
 
-    if (!$conversation) {
+    if (! $conversation) {
         return false;
     }
 
@@ -41,4 +41,9 @@ Broadcast::channel('shop-conversation.{conversationId}', function ($user, $conve
     }
 
     return false;
+});
+
+// For Wallet balance updates (loan disbursements, recharges, refunds, etc.)
+Broadcast::channel('wallet.{userId}', function ($user, $userId) {
+    return (int) $user->id === (int) $userId;
 });

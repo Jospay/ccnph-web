@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API\Conversation;
 
 use App\Http\Controllers\Controller;
 use App\Models\Conversation;
+use App\Models\IntellectualProperty;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 
@@ -15,6 +16,7 @@ class ConversationController extends Controller
         $conversations = Conversation::whereHas('participants', function ($query) use ($user) {
             $query->where('user_id', $user->id);
         })
+            ->where('conversable_type', IntellectualProperty::class)
             ->with([
                 'messages' => function ($query) {
                     $query->latest();

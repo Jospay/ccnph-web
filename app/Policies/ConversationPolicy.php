@@ -3,8 +3,9 @@
 namespace App\Policies;
 
 use App\Models\Conversation;
+use App\Models\SupportConversation;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
+use App\Models\UserType;
 
 class ConversationPolicy
 {
@@ -12,6 +13,10 @@ class ConversationPolicy
     {
         if ($conversation->participants()->where('user_id', $user->id)->exists()) {
             return true;
+        }
+
+        if ($conversation->conversable instanceof SupportConversation) {
+            return $user->user_type === UserType::ADMIN;
         }
 
         $serviceId = $conversation->conversable->service_id ?? null;

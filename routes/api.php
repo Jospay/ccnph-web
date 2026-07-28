@@ -22,9 +22,11 @@ use App\Http\Controllers\API\Store\CollectionProductController;
 use App\Http\Controllers\API\Store\CustomerCartController;
 use App\Http\Controllers\API\Store\CustomerCheckoutController;
 use App\Http\Controllers\API\Store\CustomerOrderController;
+use App\Http\Controllers\API\Store\ProductReviewController;
 use App\Http\Controllers\API\Store\ShopHomeController;
 use App\Http\Controllers\API\Store\ShopProductController;
 use App\Http\Controllers\API\Store\ShopStoreController;
+use App\Http\Controllers\API\SupportChat\SupportChatController;
 use App\Http\Controllers\API\Verification\PhoneVerificationController;
 use App\Http\Controllers\API\Wallet\WalletController;
 use App\Models\UserType;
@@ -159,6 +161,14 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('{conversation}/read', [ConversationController::class, 'markRead']);
         });
 
+    // Support Chat Routes
+    Route::prefix('support-chat')
+        ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER)
+        ->group(function () {
+            Route::get('/', [SupportChatController::class, 'show']);
+            Route::post('/', [SupportChatController::class, 'store']);
+        });
+
     Route::get('/news', [NewsController::class, 'index'])
         ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER);
 
@@ -173,6 +183,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/top-deals', [ShopHomeController::class, 'topDeals']);
             Route::get('products', [ShopProductController::class, 'index']);
             Route::get('products/{product}', [ShopProductController::class, 'show']);
+            Route::get('/products/{productId}/reviews', [ProductReviewController::class, 'index']);
 
             Route::get('collections', [CollectionProductController::class, 'index']);
             Route::post('collections/{product}/toggle', [CollectionProductController::class, 'toggle']);
@@ -193,6 +204,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/orders/{order}/status', [CustomerOrderController::class, 'updateStatus']);
 
             Route::get('/{store}', [ShopStoreController::class, 'show']);
+            Route::post('/{store:slug}/toggle-follow', [ShopStoreController::class, 'toggleFollow']);
             Route::post('register-seller', [ShopStoreController::class, 'registerSeller']);
         });
 
@@ -207,4 +219,22 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('{conversation}/read', [ShopConversationController::class, 'markRead']);
         });
 
+    // FISMPC Online Store
+    // Route::prefix('store')
+    //     ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER)
+    //     ->group(function () {
+    //         Route::get('/orders', [CustomerOrderController::class, 'index']);
+    //         Route::get('/orders/{order}', [CustomerOrderController::class, 'show']);
+    //         Route::get('/orders/{order}/rate', [CustomerOrderController::class, 'rate']);
+    //         Route::post('/orders/{order}/rate', [CustomerOrderController::class, 'storeRating']);
+    //         Route::post('/orders/{order}/status', [CustomerOrderController::class, 'updateStatus']);
+    //     });
+
+    // FISMPC Online Store
+    // Route::prefix('store')
+    //     ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER)
+    //     ->group(function () {
+    //         Route::get('/{store}', [ShopStoreController::class, 'show']);
+    //         Route::post('register-seller', [ShopStoreController::class, 'registerSeller']);
+    //     });
 });
