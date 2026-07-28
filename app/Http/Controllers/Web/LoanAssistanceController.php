@@ -3,19 +3,19 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Inertia\Response;
-use Illuminate\Validation\Rule;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\Auth;
-use App\Models\UserType;
-use App\Models\LoanSetting;
-use App\Models\Loan;
-use App\Models\Status;
-use App\Http\Resources\LoanAssistanceResource;
 use App\Http\Requests\Loan\UpdateSettingRequest;
+use App\Http\Resources\LoanAssistanceResource;
+use App\Models\Loan;
+use App\Models\LoanSetting;
+use App\Models\Status;
+use App\Models\UserType;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class LoanAssistanceController extends Controller
 {
@@ -46,8 +46,8 @@ class LoanAssistanceController extends Controller
         return Inertia::render('loan-assistance/Index', [
             'loans' => LoanAssistanceResource::collection($loans),
             'global_settings' => $globalSettings,
-            'can_mutate' => $this->canMutate(), 
-            'filters' => $filters
+            'can_mutate' => $this->canMutate(),
+            'filters' => $filters,
         ]);
     }
 
@@ -59,14 +59,14 @@ class LoanAssistanceController extends Controller
         $query = Loan::with([
             'status:id,name',
             'user:id,name',
-        ])->whereHas('status', fn($q) => $q->where('name', $filters['status']));
+        ])->whereHas('status', fn ($q) => $q->where('name', $filters['status']));
 
         return $query;
     }
 
     public function updateStatus(Loan $loan, Request $request)
     {
-        if (!$this->canMutate()) {
+        if (! $this->canMutate()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -87,17 +87,15 @@ class LoanAssistanceController extends Controller
                 // Lock the wallet balance for the update
                 $wallet->lockForUpdate()->get();
 
-                // Update status and increment balance
+                // Update status
                 $loan->update(['status_id' => Status::ACTIVE]);
-                $wallet->increment('balance', $loan->amount);
 
-                // Log the transaction
-                $loan->walletTransactions()->create([
-                    'wallet_id'   => $wallet->id,
-                    'amount'      => $loan->amount,
-                    'type'        => 'deposit',
-                    'description' => "Loan disbursement for Loan ID: #{$loan->id}",
-                ]);
+                // Credit wallet, log transaction, broadcast balance update
+                $wallet->deposit(
+                    $loan->amount,
+                    $loan,
+                    "Loan disbursement for Loan ID: #{$loan->id}"
+                );
             });
         }
 
@@ -109,7 +107,6 @@ class LoanAssistanceController extends Controller
 
         return back();
     }
-
 
     public function updateSettings(UpdateSettingRequest $request)
     {
