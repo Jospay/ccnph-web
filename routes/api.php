@@ -153,20 +153,26 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Conversation Routes
     Route::prefix('conversations')
-        ->middleware('role.api:'.UserType::MEMBER)
         ->group(function () {
-            Route::get('/', [ConversationController::class, 'index']);
-            Route::get('{conversation}', [ConversationController::class, 'show']);
-            Route::post('{conversation}/messages', [MessageController::class, 'store']);
-            Route::post('{conversation}/read', [ConversationController::class, 'markRead']);
+            // Shared read route for both BASIC and MEMBER users
+            Route::post('{conversation}/read', [ConversationController::class, 'markRead'])
+                ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER);
+
+            Route::middleware('role.api:'.UserType::MEMBER)->group(function () {
+                Route::get('/', [ConversationController::class, 'index']);
+                Route::get('{conversation}', [ConversationController::class, 'show']);
+                Route::post('{conversation}/messages', [MessageController::class, 'store']);
+            });
         });
 
+    // Support Chat Routes
     // Support Chat Routes
     Route::prefix('support-chat')
         ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER)
         ->group(function () {
             Route::get('/', [SupportChatController::class, 'show']);
             Route::post('/', [SupportChatController::class, 'store']);
+            Route::post('/read', [SupportChatController::class, 'markRead']); // Add this
         });
 
     Route::get('/news', [NewsController::class, 'index'])

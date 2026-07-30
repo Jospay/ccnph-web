@@ -1,23 +1,23 @@
 <?php
 
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Shop\ShopConversationController;
+use App\Http\Controllers\Web\BusinessTrainingController;
 use App\Http\Controllers\Web\Conversation\ConversationController;
 use App\Http\Controllers\Web\Conversation\MessageController;
-use App\Http\Controllers\NotificationController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Web\Auth\RegistrationController;
-use Laravel\Fortify\Features;
-use App\Models\UserType;
-use Inertia\Inertia;
 use App\Http\Controllers\Web\DashboardController;
-use App\Http\Controllers\Web\BusinessTrainingController;
+use App\Http\Controllers\Web\IntellectualPropertyController;
 use App\Http\Controllers\Web\LoanAssistanceController;
 use App\Http\Controllers\Web\LoanScheduleController;
-use App\Http\Controllers\Web\IntellectualPropertyController;
-use App\Http\Controllers\Web\SuperAdmin\CoopMembershipController;
-use App\Http\Controllers\Web\SuperAdmin\AdminManagementController;
 use App\Http\Controllers\Web\Seller\DashboardController as SellerDashboardController;
 use App\Http\Controllers\Web\Seller\ShopController;
+use App\Http\Controllers\Web\SuperAdmin\AdminManagementController;
+use App\Http\Controllers\Web\SuperAdmin\CoopMembershipController;
+use App\Http\Controllers\Web\SupportChat\SupportChatController;
+use App\Models\UserType;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
+use Laravel\Fortify\Features;
 
 Route::inertia('/', 'Home', [
     'canRegister' => Features::enabled(Features::registration()),
@@ -29,7 +29,7 @@ Route::get('/join-us', function () {
 
 Route::middleware([
     'auth',
-    'role:' . UserType::MEMBER
+    'role:'.UserType::MEMBER,
 ])
     ->prefix('seller')
     ->name('seller.')
@@ -40,7 +40,7 @@ Route::middleware([
 
         Route::get('/shop/create', [ShopController::class, 'create'])
             ->name('shop.create');
-            
+
         Route::post('/shop', [ShopController::class, 'store'])
             ->name('shop.store');
 
@@ -51,51 +51,48 @@ Route::middleware([
             Route::post('{conversation}/messages', [ShopConversationController::class, 'storeMessage'])->name('messages.store');
         });
 
+        Route::get('/store/create', [SellerStoreController::class, 'create'])
+            ->name('store.create');
+        Route::post('/store', [SellerStoreController::class, 'store'])
+            ->name('store.store');
+        Route::get('/store/{store:slug}/edit', [SellerStoreController::class, 'edit'])
+            ->name('store.edit');
+        Route::post('/store/{store:slug}', [SellerStoreController::class, 'update'])
+            ->name('store.update');
 
-    Route::get('/store/create', [SellerStoreController::class, 'create'])
-        ->name('store.create');
-    Route::post('/store', [SellerStoreController::class, 'store'])
-        ->name('store.store');
-    Route::get('/store/{store:slug}/edit', [SellerStoreController::class, 'edit'])
-        ->name('store.edit');
-    Route::post('/store/{store:slug}', [SellerStoreController::class, 'update'])
-        ->name('store.update');
+        Route::get('/products', [SellerProductController::class, 'index'])
+            ->name('products.index');
+        Route::get('/products/create', [SellerProductController::class, 'create'])
+            ->name('products.create');
+        Route::get('/products/{product:slug}', [SellerProductController::class, 'show'])
+            ->name('products.show');
+        Route::post('/products', [SellerProductController::class, 'store'])
+            ->name('products.store');
+        Route::get('/products/{product:slug}/edit', [SellerProductController::class, 'edit'])
+            ->name('products.edit');
+        Route::post('/products/{product:slug}', [SellerProductController::class, 'update'])
+            ->name('products.update');
+        Route::get('/orders', [SellerOrderController::class, 'index'])
+            ->name('orders.index');
+        Route::get('/orders/{order:order_number}', [SellerOrderController::class, 'show'])
+            ->name('orders.show');
+        Route::patch('/orders/{order}/action', [SellerOrderController::class, 'action'])
+            ->name('orders.action');
+        Route::patch('/orders/{order}/cancel', [SellerOrderController::class, 'cancel'])
+            ->name('orders.cancel');
 
-    Route::get('/products', [SellerProductController::class, 'index'])
-        ->name('products.index');
-    Route::get('/products/create', [SellerProductController::class, 'create'])
-        ->name('products.create');
-    Route::get('/products/{product:slug}', [SellerProductController::class, 'show'])
-        ->name('products.show');
-    Route::post('/products', [SellerProductController::class, 'store'])
-        ->name('products.store');
-    Route::get('/products/{product:slug}/edit', [SellerProductController::class, 'edit'])
-        ->name('products.edit');
-    Route::post('/products/{product:slug}', [SellerProductController::class, 'update'])
-        ->name('products.update');
-    Route::get('/orders', [SellerOrderController::class, 'index'])
-        ->name('orders.index');
-    Route::get('/orders/{order:order_number}', [SellerOrderController::class, 'show'])
-        ->name('orders.show');
-    Route::patch('/orders/{order}/action', [SellerOrderController::class, 'action'])
-        ->name('orders.action');
-    Route::patch('/orders/{order}/cancel', [SellerOrderController::class, 'cancel'])
-        ->name('orders.cancel');
-
-
-    Route::get('/sales', [SellerSalesController::class, 'index'])
-        ->name('sales.index');
-    Route::patch('/sales/{order}/action', [SellerSalesController::class, 'action'])
-        ->name('sales.action');
-    Route::get('/sales/analytics', [SellerSalesAnalyticsController::class, 'analytics'])
-        ->name('sales.analytics');
-    
+        Route::get('/sales', [SellerSalesController::class, 'index'])
+            ->name('sales.index');
+        Route::patch('/sales/{order}/action', [SellerSalesController::class, 'action'])
+            ->name('sales.action');
+        Route::get('/sales/analytics', [SellerSalesAnalyticsController::class, 'analytics'])
+            ->name('sales.analytics');
 
     });
 
 Route::middleware([
     'auth',
-    'role:' . UserType::SUPER_ADMIN
+    'role:'.UserType::SUPER_ADMIN,
 ])->group(function () {
 
     Route::get('/admin-management', [AdminManagementController::class, 'index'])
@@ -128,7 +125,7 @@ Route::middleware([
 
 Route::middleware([
     'auth',
-    'role:' . UserType::SUPER_ADMIN . ',' . UserType::ADMIN
+    'role:'.UserType::SUPER_ADMIN.','.UserType::ADMIN,
 ])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])
@@ -199,6 +196,9 @@ Route::middleware([
         Route::post('{conversation}/read', [ConversationController::class, 'markRead'])->name('read');
     });
 
+    Route::prefix('admin/support-chat')->name('support-chat.')->group(function () {
+        Route::get('/', [SupportChatController::class, 'index'])->name('index');
+    });
 
 });
 
@@ -210,4 +210,4 @@ Route::middleware(['auth'])->group(function () {
     });
 });
 
-require __DIR__ . '/settings.php';
+require __DIR__.'/settings.php';

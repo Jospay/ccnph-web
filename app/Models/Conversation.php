@@ -35,4 +35,13 @@ class Conversation extends Model
             ['role' => $role]
         );
     }
+
+    public function getConversationTypeAttribute(): string
+    {
+        return match ($this->conversable_type) {
+            IntellectualProperty::class => 'intellectual',
+            SupportConversation::class => 'support',
+            default => 'unknown',
+        };
+    }
 }

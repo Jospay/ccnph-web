@@ -8,7 +8,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\Str;
 
 class NewMessageNotification extends Notification implements ShouldQueue
 {
@@ -19,6 +18,7 @@ class NewMessageNotification extends Notification implements ShouldQueue
      */
     public function __construct(public Message $message)
     {
+        $this->message->loadMissing(['sender', 'conversation']);
     }
 
     /**
@@ -47,28 +47,22 @@ class NewMessageNotification extends Notification implements ShouldQueue
      *
      * @return array<string, mixed>
      */
-    public function toArray(object $notifiable): array
+    public function toArray($notifiable): array
     {
         return [
             'conversation_id' => $this->message->conversation_id,
-            'message_id' => $this->message->id,
+            'conversation_type' => $this->message->conversation->conversation_type,
+            'body' => $this->message->body,
             'sender_id' => $this->message->sender_id,
-            'body' => Str::limit($this->message->body ?? '', 100),
+            'sender_name' => $this->message->sender->name ?? null,
         ];
     }
 
     /**
      * Get the broadcastable representation of the notification.
-     *
-     * @return BroadcastMessage
      */
     public function toBroadcast($notifiable): BroadcastMessage
     {
-        return new BroadcastMessage([
-            'conversation_id' => $this->message->conversation_id,
-            'message_id' => $this->message->id,
-            'sender_id' => $this->message->sender_id,
-            'body' => Str::limit($this->message->body ?? '', 100),
-        ]);
+        return new BroadcastMessage($this->toArray($notifiable));
     }
 }
