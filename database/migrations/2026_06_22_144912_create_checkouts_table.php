@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('checkout_number')->unique();
             $table->decimal('grand_total', 12, 2);
             $table->string('status')->default(CheckoutStatus::PENDING_PAYMENT->value);
+            $table->decimal('cancelled_amount', 12, 2)->default(0);
             $table->timestamps();
         });
     }
