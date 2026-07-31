@@ -24,6 +24,7 @@ return new class extends Migration
             $table->decimal('discount', 12, 2)->default(0);
             $table->decimal('total', 12, 2);
             $table->text('notes')->nullable();
+            $table->text('cancellation_reason')->nullable();
             // Shipping Address Reference
             $table->string('recipient_name');
             $table->string('recipient_phone');
@@ -40,9 +41,15 @@ return new class extends Migration
             $table->timestamp('packed_at')->nullable();
             $table->timestamp('shipped_at')->nullable();
             $table->timestamp('delivered_at')->nullable();
+            $table->timestamp('completed_at')->nullable();
             $table->timestamp('cancelled_at')->nullable();
+            $table->timestamp('return_requested_at')->nullable();
+            $table->timestamp('return_approved_at')->nullable();
             $table->timestamp('returned_at')->nullable();
             $table->timestamps();
+
+            // index for cron jobs auto completion of orders
+            $table->index(['status', 'delivered_at']);
         });
     }
 
