@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
     'discount',
     'total',
     'notes',
+    'cancellation_reason',
     'recipient_name',
     'recipient_phone',
     'region',
@@ -37,7 +38,10 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
     'packed_at',
     'shipped_at',
     'delivered_at',
+    'completed_at',
     'cancelled_at',
+    'return_requested_at',
+    'return_approved_at',
     'returned_at',
 ])]
 #[ObservedBy([OrderObserver::class])]
@@ -61,7 +65,10 @@ class Order extends Model
             'packed_at' => 'datetime',
             'shipped_at' => 'datetime',
             'delivered_at' => 'datetime',
+            'completed_at' => 'datetime',
             'cancelled_at' => 'datetime',
+            'return_requested_at' => 'datetime',
+            'return_approved_at' => 'datetime',
             'returned_at' => 'datetime',
         ];
     }
