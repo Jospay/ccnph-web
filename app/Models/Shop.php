@@ -19,6 +19,8 @@ use InvalidArgumentException;
     'logo',
     'banner',
     'rating',
+    'reviews_count',
+    'sold_count',
 ])]
 class Shop extends Model
 {
@@ -42,6 +44,9 @@ class Shop extends Model
         return [
             'is_active' => 'boolean',
             'is_official' => 'boolean',
+            'rating' => 'float',
+            'reviews_count' => 'integer',
+            'sold_count' => 'integer',
         ];
     }
 
