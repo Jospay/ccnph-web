@@ -27,7 +27,7 @@ class DashboardController extends Controller
         ]);
     }
 
-    private function productsSummary(shop $shop): array
+    private function productsSummary(Shop $shop): array
     {
         $total = $shop->products()->count();
         $inactive = $shop->products()->where('is_active', false)->count();
@@ -50,7 +50,7 @@ class DashboardController extends Controller
         ];
     }
 
-    private function ordersSummary(shop $shop): array
+    private function ordersSummary(Shop $shop): array
     {
         $counts = $shop->orders()
             ->selectRaw('status, count(*) as aggregate')
@@ -74,7 +74,7 @@ class DashboardController extends Controller
         ];
     }
 
-    private function salesSummary(shop $shop): array
+    private function salesSummary(Shop $shop): array
     {
         $counts = $shop->orders()
             ->selectRaw('status, count(*) as aggregate')
@@ -84,9 +84,9 @@ class DashboardController extends Controller
         $toReceive = $counts[OrderStatus::SHIPPED->value] ?? 0;
         $completed = ($counts[OrderStatus::DELIVERED->value] ?? 0)
             + ($counts[OrderStatus::COMPLETED->value] ?? 0);
-        $returnRequest = ($counts[OrderStatus::RETURN_REQUESTED->value] ?? 0)
-            + ($counts[OrderStatus::RETURN_APPROVED->value] ?? 0);
-        $returned = $counts[OrderStatus::RETURNED->value] ?? 0;
+        $returnRequest = $counts[OrderStatus::RETURN_REQUESTED->value] ?? 0;
+        $returned = ($counts[OrderStatus::RETURN_APPROVED->value] ?? 0)
+            + ($counts[OrderStatus::RETURNED->value] ?? 0);
 
         $totalAmount = (float) $shop->orders()
             ->where('status', OrderStatus::COMPLETED->value)
