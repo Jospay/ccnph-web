@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
 import { StoreIcon } from 'lucide-vue-next';
-// import Navbar from '@/components/sections/Navbar.vue';
-// import TopBar from '@/components/sections/TopBar.vue';
 import seller from '@/routes/seller';
 
 const form = useForm({
@@ -10,7 +8,7 @@ const form = useForm({
   description: '',
 });
 
-const submitStore = () => {
+const submitShop = () => {
   form.post(seller.shop.store.url(), {});
 };
 </script>
@@ -31,7 +29,7 @@ const submitStore = () => {
           <StoreIcon class="h-8 w-8 text-[#033e94]" /> Seller Center
         </h1>
         <p class="mt-1 font-medium text-zinc-500 dark:text-zinc-400">
-          Manage your storefront, products, and orders.
+          Manage your shopfront , products, and orders.
         </p>
       </div>
 
@@ -40,13 +38,13 @@ const submitStore = () => {
       >
         <div class="w-full md:w-1/2">
           <h2 class="mb-4 text-2xl font-black text-[#033e94]">
-            Set Up Your Storefront
+            Set Up Your Shopfront
           </h2>
-          <form @submit.prevent="submitStore" class="space-y-5">
+          <form @submit.prevent="submitShop" class="space-y-5">
             <div>
               <label
                 class="mb-1.5 block text-sm font-bold text-zinc-700 dark:text-zinc-300"
-                >Store Name</label
+                >Shop Name</label
               >
               <input
                 type="text"
@@ -58,7 +56,7 @@ const submitStore = () => {
             <div>
               <label
                 class="mb-1.5 block text-sm font-bold text-zinc-700 dark:text-zinc-300"
-                >Store Description</label
+                >Shop Description</label
               >
               <textarea
                 v-model="form.description"
@@ -70,9 +68,9 @@ const submitStore = () => {
             <button
               type="submit"
               :disabled="form.processing"
-              class="mt-2 w-full rounded-xl bg-[#033e94] py-4 text-lg font-black text-white shadow-md transition-colors hover:bg-green-700 disabled:bg-zinc-400"
+              class="mt-2 w-full cursor-pointer rounded-xl bg-[#033e94] py-4 text-lg font-black text-white shadow-md transition-colors hover:bg-[#033e94]/80 disabled:bg-zinc-400"
             >
-              {{ form.processing ? 'Creating...' : 'Create Store' }}
+              {{ form.processing ? 'Creating...' : 'Create Shop' }}
             </button>
           </form>
         </div>
