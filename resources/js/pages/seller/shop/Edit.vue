@@ -4,20 +4,20 @@ import { ArrowLeftIcon } from 'lucide-vue-next';
 import { ref } from 'vue';
 import NavBar from '@/components/landing/NavBar.vue';
 import seller from '@/routes/seller';
-import type { Store } from '@/types';
+import type { Shop } from '@/types';
 
 const props = defineProps<{
-  store: Store;
+  shop: Shop;
 }>();
 
 const form = useForm({
-  description: props.store.description || '',
+  description: props.shop.description || '',
   logo: null as File | null,
   banner: null as File | null,
 });
 
-const logoPreview = ref(props.store.logo_url || null);
-const coverPreview = ref(props.store.banner_url || null);
+const logoPreview = ref(props.shop.logo_url || null);
+const coverPreview = ref(props.shop.banner_url || null);
 
 const logoInput = ref<HTMLInputElement | null>(null);
 const coverInput = ref<HTMLInputElement | null>(null);
@@ -46,7 +46,7 @@ const handleCoverChange = (e: Event) => {
 };
 
 const submit = () => {
-  form.post(seller.store.update.url(props.store.slug), {
+  form.post(seller.shop.update.url(props.shop.slug), {
     preserveScroll: true,
     onSuccess: () => {
       form.reset();
@@ -56,7 +56,7 @@ const submit = () => {
 </script>
 
 <template>
-  <Head title="Edit Store Profile" />
+  <Head title="Edit Shop Profile" />
 
   <div
     class="flex min-h-screen flex-col bg-zinc-50 transition-colors duration-300 dark:bg-zinc-950"
@@ -65,9 +65,9 @@ const submit = () => {
       <NavBar />
     </div>
 
-    <div class="mx-auto flex w-full max-w-5xl justify-end px-4 pt-8 pb-5">
+    <div class="mx-auto mt-25 flex w-full max-w-5xl justify-end px-4 pt-8 pb-5">
       <Link
-        :href="seller.dashboard.url()"
+        :href="seller.dashboard.index()"
         class="flex cursor-pointer items-center gap-2 px-2 text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50"
       >
         <ArrowLeftIcon class="h-4 w-4" />
@@ -102,7 +102,7 @@ const submit = () => {
           <img
             v-if="coverPreview"
             :src="coverPreview"
-            alt="Store Cover"
+            alt="Shop Cover"
             class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
           <div
@@ -149,7 +149,7 @@ const submit = () => {
               <img
                 v-if="logoPreview"
                 :src="logoPreview"
-                alt="Store Logo"
+                alt="Shop Logo"
                 class="h-full w-full rounded-xl object-cover transition-transform duration-300 group-hover:scale-105"
               />
               <div
@@ -191,7 +191,7 @@ const submit = () => {
           >
             <div>
               <h1 class="text-2xl font-black text-zinc-900 dark:text-white">
-                Store Settings
+                Shop Settings
               </h1>
               <p class="mt-1 text-zinc-500 dark:text-zinc-400">
                 Manage public profile details and branding.
@@ -200,7 +200,7 @@ const submit = () => {
 
             <button
               type="submit"
-              form="storeUpdateForm"
+              form="shopUpdateForm"
               :disabled="form.processing || !form.isDirty"
               class="inline-flex justify-center rounded-xl bg-[#009933] px-5 py-2.5 text-sm font-bold whitespace-nowrap text-white shadow-sm transition-colors hover:bg-[#007a29] focus:ring-2 focus:ring-[#009933] focus:ring-offset-2 focus:outline-none disabled:opacity-50"
             >
@@ -208,7 +208,7 @@ const submit = () => {
             </button>
           </div>
 
-          <form id="storeUpdateForm" @submit.prevent="submit" class="space-y-8">
+          <form id="shopUpdateForm" @submit.prevent="submit" class="space-y-8">
             <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
               <div>
                 <h3
@@ -224,15 +224,15 @@ const submit = () => {
                 <div>
                   <label
                     class="mb-2 block text-xs font-bold tracking-wider text-zinc-500 uppercase dark:text-zinc-400"
-                    >Store Name</label
+                    >Shop Name</label
                   >
                   <div
                     class="rounded-xl border border-zinc-200 bg-zinc-50 p-3 px-4 font-medium text-zinc-700 dark:border-zinc-800/80 dark:bg-zinc-950/50 dark:text-zinc-300"
                   >
-                    {{ props.store.name }}
+                    {{ props.shop.name }}
                   </div>
                   <p class="mt-2 text-xs text-zinc-400 dark:text-zinc-500">
-                    The store name cannot be customized here.
+                    The shop name cannot be customized here.
                   </p>
                 </div>
               </div>
@@ -263,7 +263,7 @@ const submit = () => {
                   v-model="form.description"
                   rows="6"
                   class="block w-full rounded-xl border-zinc-200 p-4 placeholder-zinc-400 shadow-sm transition-colors focus:border-[#009933] focus:ring-1 focus:ring-[#009933] sm:text-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-white"
-                  placeholder="Tell customers about your store..."
+                  placeholder="Tell customers about your shop..."
                 ></textarea>
                 <p
                   v-if="form.errors.description"

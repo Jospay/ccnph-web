@@ -41,6 +41,10 @@ Route::middleware([
         ->name('shop.create');
     Route::post('/shop', [SellerShopController::class, 'store'])
         ->name('shop.store');
+    Route::get('/shop/{shop:slug}/edit', [SellerShopController::class, 'edit'])
+        ->name('shop.edit');
+    Route::post('/shop/{shop:slug}', [SellerShopController::class, 'update'])
+        ->name('shop.update');
 
     // shop conversations
     Route::prefix('conversations')->name('conversations.')->group(function () {
