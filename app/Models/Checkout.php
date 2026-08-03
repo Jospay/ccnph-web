@@ -15,6 +15,7 @@ use App\Enums\CheckoutStatus;
     'checkout_number',
     'grand_total',
     'status',
+    'cancelled_amount',
 ])]
 class Checkout extends Model
 {
@@ -25,7 +26,8 @@ class Checkout extends Model
         return [
             'user_id' => 'integer',
             'grand_total' => 'decimal:2',
-            'status' => CheckoutStatus::class
+            'status' => CheckoutStatus::class,
+            'cancelled_amount' => 'decimal:2',
         ];
     }
 

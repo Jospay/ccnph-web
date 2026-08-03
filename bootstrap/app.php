@@ -3,6 +3,7 @@
 use App\Http\Middleware\CheckServiceAccess;
 use App\Http\Middleware\CheckUserType;
 use App\Http\Middleware\HandleAppearance;
+use App\Http\Middleware\EnsureUserIsSeller;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -41,6 +42,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => CheckUserType::class,
             'service_access' => CheckServiceAccess::class,
+            'seller' => EnsureUserIsSeller::class,
 
             // API Middleware
             'role.api' => App\Http\Middleware\Api\CheckUserType::class,

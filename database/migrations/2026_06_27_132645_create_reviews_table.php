@@ -18,9 +18,11 @@ return new class extends Migration
             $table->foreignId('shop_id')->nullable()->constrained()->cascadeOnDelete();
             $table->foreignId('product_id')->nullable()->constrained()->nullOnDelete();
             $table->unsignedTinyInteger('rating');
-            $table->text('review')->nullable();
+            $table->text('comment')->nullable();
             $table->string('video')->nullable();
             $table->boolean('is_anonymous')->default(false);
+            $table->text('reply')->nullable();
+            $table->timestamp('replied_at')->nullable();
             $table->timestamps();
         });
     }

@@ -22,6 +22,8 @@ return new class extends Migration
             $table->string('logo')->nullable();
             $table->string('banner')->nullable();
             $table->decimal('rating', 2, 1)->default(0);
+            $table->unsignedBigInteger('reviews_count')->default(0);
+            $table->unsignedBigInteger('sold_count')->default(0);
             $table->timestamps();
         });
     }

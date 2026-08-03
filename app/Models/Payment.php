@@ -13,9 +13,11 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
     'payable_type',
     'payable_id',
     'payment_method_id',
+    'checkout_id',
     'status_id',
     'payment_date',
     'amount',
+    'cancelled_amount',
     'gateway',
     'gateway_payment_intent_id',
     'gateway_payment_id',
@@ -32,7 +34,10 @@ class Payment extends Model
     {
         return [
             'status_id' => 'integer',
+            'checkout_id' => 'integer',
+            'payment_method_id' => 'integer',
             'amount' => 'integer',
+            'cancelled_amount' => 'integer',
             'payment_date' => 'date',
             'gateway_response' => 'array',
         ];
@@ -66,5 +71,10 @@ class Payment extends Model
     public function intellectualProperties(): HasMany
     {
         return $this->hasMany(IntellectualProperty::class);
+    }
+
+    public function checkout(): BelongsTo
+    {
+        return $this->belongsTo(Checkout::class);
     }
 }

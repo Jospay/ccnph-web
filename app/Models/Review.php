@@ -14,9 +14,11 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
     'shop_id',
     'product_id',
     'rating',
-    'review',
+    'comment',
     'video',
     'is_anonymous',
+    'reply',
+    'replied_at',
 ])]
 class Review extends Model
 {
@@ -25,8 +27,13 @@ class Review extends Model
     protected function casts(): array
     {
         return [
+            'user_id' => 'integer',
+            'order_item_id' => 'integer',
+            'store_id' => 'integer',
+            'product_id' => 'integer',
             'is_anonymous' => 'boolean',
             'rating' => 'integer',
+            'replied_at' => 'datetime',
         ];
     }
 
