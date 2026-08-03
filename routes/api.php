@@ -12,6 +12,7 @@ use App\Http\Controllers\API\IntellectualProperty\IntellectualPropertyController
 use App\Http\Controllers\API\Loan\LoanController;
 use App\Http\Controllers\API\Membership\MembershipController;
 use App\Http\Controllers\API\News\NewsController;
+use App\Http\Controllers\API\Notification\NotificationController;
 use App\Http\Controllers\API\Payment\PaymentMethodController;
 use App\Http\Controllers\API\Payment\PaymentWebhookController;
 use App\Http\Controllers\API\PaymentController;
@@ -153,26 +154,21 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Conversation Routes
     Route::prefix('conversations')
+        ->middleware('role.api:'.UserType::MEMBER)
         ->group(function () {
-            // Shared read route for both BASIC and MEMBER users
-            Route::post('{conversation}/read', [ConversationController::class, 'markRead'])
-                ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER);
-
-            Route::middleware('role.api:'.UserType::MEMBER)->group(function () {
-                Route::get('/', [ConversationController::class, 'index']);
-                Route::get('{conversation}', [ConversationController::class, 'show']);
-                Route::post('{conversation}/messages', [MessageController::class, 'store']);
-            });
+            Route::get('/', [ConversationController::class, 'index']);
+            Route::get('{conversation}', [ConversationController::class, 'show']);
+            Route::post('{conversation}/messages', [MessageController::class, 'store']);
+            Route::post('{conversation}/read', [ConversationController::class, 'markRead']);
         });
 
-    // Support Chat Routes
     // Support Chat Routes
     Route::prefix('support-chat')
         ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER)
         ->group(function () {
             Route::get('/', [SupportChatController::class, 'show']);
             Route::post('/', [SupportChatController::class, 'store']);
-            Route::post('/read', [SupportChatController::class, 'markRead']); // Add this
+            Route::post('/read', [SupportChatController::class, 'markRead']);
         });
 
     Route::get('/news', [NewsController::class, 'index'])
@@ -223,6 +219,14 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('{conversation}', [ShopConversationController::class, 'show']);
             Route::post('{conversation}/messages', [ShopConversationController::class, 'storeMessage']);
             Route::post('{conversation}/read', [ShopConversationController::class, 'markRead']);
+        });
+
+    Route::prefix('notifications')
+        ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER)
+        ->group(function () {
+            Route::get('/', [NotificationController::class, 'index']);
+            Route::patch('/{id}/read', [NotificationController::class, 'markAsRead']);
+            Route::post('/read-all', [NotificationController::class, 'markAllAsRead']);
         });
 
     // FISMPC Online Store
