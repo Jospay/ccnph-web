@@ -227,6 +227,8 @@ class CustomerOrderController extends Controller
                         'shipped_at' => $order->shipped_at ? $order->shipped_at->toIso8601String() : null,
                         'delivered_at' => $order->delivered_at ? $order->delivered_at->toIso8601String() : null,
                         'cancelled_at' => $order->cancelled_at ? $order->cancelled_at->toIso8601String() : null,
+                        'return_requested_at' => $order->return_requested_at ? $order->return_requested_at->toIso8601String() : null,
+                        'return_approved_at' => $order->return_approved_at ? $order->return_approved_at->toIso8601String() : null,
                         'returned_at' => $order->returned_at ? $order->returned_at->toIso8601String() : null,
                     ],
 
@@ -236,6 +238,8 @@ class CustomerOrderController extends Controller
                     'shipped_at' => $order->shipped_at ? $order->shipped_at->toIso8601String() : null,
                     'delivered_at' => $order->delivered_at ? $order->delivered_at->toIso8601String() : null,
                     'cancelled_at' => $order->cancelled_at ? $order->cancelled_at->toIso8601String() : null,
+                    'return_requested_at' => $order->return_requested_at ? $order->return_requested_at->toIso8601String() : null,
+                    'return_approved_at' => $order->return_approved_at ? $order->return_approved_at->toIso8601String() : null,
                     'returned_at' => $order->returned_at ? $order->returned_at->toIso8601String() : null,
                 ],
             ],
@@ -275,7 +279,7 @@ class CustomerOrderController extends Controller
                         'review' => $item->review ? [
                             'id' => $item->review->id,
                             'rating' => (int) $item->review->rating,
-                            'comment' => $item->review->review,
+                            'comment' => $item->review->comment,
                             'video_url' => $item->review->video ? asset('storage/'.$item->review->video) : null,
                             'is_anonymous' => (bool) $item->review->is_anonymous,
                             'images' => $item->review->images->map(
@@ -452,7 +456,7 @@ class CustomerOrderController extends Controller
                             'shop_id' => $order->shop_id,
                             'product_id' => $item->product_id,
                             'rating' => $itemData['rating'],
-                            'review' => $itemData['comment'] ?? null,
+                            'comment' => $itemData['comment'] ?? null,
                             'video' => $videoPath,
                             'is_anonymous' => $itemData['is_anonymous'] ?? false,
                         ]
@@ -518,7 +522,7 @@ class CustomerOrderController extends Controller
             ], 403);
         }
 
-        $request->validate([
+        $validated = $request->validate([
             'status' => [
                 'required',
                 'string',
@@ -531,9 +535,15 @@ class CustomerOrderController extends Controller
                     'returned',
                 ]),
             ],
+            'cancellation_reason' => [
+                'required_if:status,cancelled',
+                'nullable',
+                'string',
+                'max:500',
+            ],
         ]);
 
-        $targetStatus = $request->input('status');
+        $targetStatus = $validated['status'];
 
         // --- CANCEL ORDER ---
         if ($targetStatus === 'cancelled') {
@@ -546,6 +556,7 @@ class CustomerOrderController extends Controller
 
             $order->update([
                 'status' => OrderStatus::CANCELLED,
+                'cancellation_reason' => $validated['cancellation_reason'],
                 'cancelled_at' => now(),
             ]);
 
@@ -566,6 +577,7 @@ class CustomerOrderController extends Controller
 
             $order->update([
                 'status' => OrderStatus::RETURN_REQUESTED,
+                'return_requested_at' => now(),
             ]);
 
             return response()->json([
@@ -604,13 +616,11 @@ class CustomerOrderController extends Controller
             }
 
             DB::transaction(function () use ($order) {
-                // 1. Update order status
                 $order->update([
                     'status' => OrderStatus::COMPLETED,
                     'delivered_at' => $order->delivered_at ?? now(),
                 ]);
 
-                // 2. Increment sold_count for each product in the order
                 $order->loadMissing('items');
 
                 foreach ($order->items as $item) {
