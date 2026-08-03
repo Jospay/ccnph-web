@@ -9,6 +9,7 @@ use App\Http\Resources\IntellectualPropertyResource;
 use App\Models\IntellectualProperty;
 use App\Models\Status;
 use App\Models\UserType;
+use App\Notifications\GeneralNotification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -59,14 +60,14 @@ class IntellectualPropertyController extends Controller
         $query = IntellectualProperty::with([
             'status:id,name',
             'user:id,name',
-            'conversation'
-        ])->whereHas('status', fn($q) => $q->where('name', $filters['status']));
+            'conversation',
+        ])->whereHas('status', fn ($q) => $q->where('name', $filters['status']));
 
-        if (!empty($filters['creation'])) {
+        if (! empty($filters['creation'])) {
             $query->where('creation_type', $filters['creation']);
         }
 
-        if (!empty($filters['form'])) {
+        if (! empty($filters['form'])) {
             $query->where('form_type', $filters['form']);
         }
 
@@ -85,7 +86,7 @@ class IntellectualPropertyController extends Controller
 
         if (
             $property->form_type === 'payment' &&
-            !in_array($property->status_id, [
+            ! in_array($property->status_id, [
                 Status::PENDING,
                 Status::REJECTED,
             ], true)
@@ -98,9 +99,45 @@ class IntellectualPropertyController extends Controller
         return IntellectualPropertyDetailResource::make($property);
     }
 
+    // public function updateStatus(UpdateStatusRequest $request, IntellectualProperty $property)
+    // {
+    //     $validated = $request->validated();
+
+    //     if ($validated['action'] === 'approve' && $property->status_id === Status::PENDING) {
+    //         if ($property->form_type === 'payment') {
+    //             $property->update([
+    //                 'status_id' => Status::WAITING_FOR_PAYMENT,
+    //             ]);
+
+    //             $amountInCents = (int) round($validated['amount'] * 100);
+    //             $property->setting()->updateOrCreate(
+    //                 [
+    //                     'intellectual_property_id' => $property->id,
+    //                 ],
+    //                 [
+    //                     'amount' => $amountInCents,
+    //                     'allowed_term_months' => $validated['allowed_term_months'],
+    //                 ]
+    //             );
+
+    //         } elseif ($property->form_type === 'grant') {
+    //             $property->update([
+    //                 'status_id' => Status::REGISTERED,
+    //             ]);
+    //         }
+    //     }
+
+    //     if ($validated['action'] === 'decline' && $property->status_id === Status::PENDING) {
+    //         $property->update([
+    //             'status_id' => Status::REJECTED,
+    //         ]);
+    //     }
+
+    //     return back();
+    // }
+
     public function updateStatus(UpdateStatusRequest $request, IntellectualProperty $property)
     {
-        // Authorization and Validation
         $validated = $request->validated();
 
         if ($validated['action'] === 'approve' && $property->status_id === Status::PENDING) {
@@ -120,10 +157,38 @@ class IntellectualPropertyController extends Controller
                     ]
                 );
 
+                // Send general notification for payment required
+                $property->user?->notify(new GeneralNotification(
+                    type: 'ip_approved_payment_required',
+                    title: 'Application Approved',
+                    body: "Your Intellectual Property application ({$property->title}) was approved and is waiting for payment.",
+                    actionType: 'MAKE_PAYMENT',
+                    route: "(intellectual)/details?id={$property->id}",
+                    extraData: [
+                        'property_id' => $property->id,
+                        'form_type' => $property->form_type,
+                        'status' => 'waiting_for_payment',
+                    ]
+                ));
+
             } elseif ($property->form_type === 'grant') {
                 $property->update([
                     'status_id' => Status::REGISTERED,
                 ]);
+
+                // Send general notification for grant registration
+                $property->user?->notify(new GeneralNotification(
+                    type: 'ip_registered',
+                    title: 'Application Registered',
+                    body: "Your Intellectual Property application ({$property->title}) has been successfully registered.",
+                    actionType: 'VIEW_PROPERTY',
+                    route: "(intellectual)/details?id={$property->id}",
+                    extraData: [
+                        'property_id' => $property->id,
+                        'form_type' => $property->form_type,
+                        'status' => 'registered',
+                    ]
+                ));
             }
         }
 
@@ -131,6 +196,19 @@ class IntellectualPropertyController extends Controller
             $property->update([
                 'status_id' => Status::REJECTED,
             ]);
+
+            // Send general notification for declined status
+            $property->user?->notify(new GeneralNotification(
+                type: 'ip_declined',
+                title: 'Application Declined',
+                body: "Your Intellectual Property application ({$property->title}) was declined by the admin.",
+                actionType: 'VIEW_PROPERTY',
+                route: "(intellectual)/details?id={$property->id}",
+                extraData: [
+                    'property_id' => $property->id, // Fixed: changed from $property->title to $property->id
+                    'status' => 'rejected',
+                ]
+            ));
         }
 
         return back();
