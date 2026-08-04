@@ -16,65 +16,57 @@ const submitShop = () => {
 <template>
   <Head title="Seller Dashboard" />
 
-  <div class="flex min-h-screen flex-col transition-colors duration-300">
-    <div class="sticky top-0 z-50 mt-8">
-      <Navbar />
-    </div>
+  <div class="mb-8">
+    <h1
+      class="flex items-center gap-3 text-3xl font-black text-zinc-900 dark:text-white"
+    >
+      <StoreIcon class="h-8 w-8 text-[#033e94]" /> Seller Center
+    </h1>
+    <p class="mt-1 font-medium text-zinc-500 dark:text-zinc-400">
+      Manage your shopfront , products, and orders.
+    </p>
+  </div>
 
-    <main class="mx-auto w-full max-w-7xl grow px-4 py-10 sm:px-6 lg:px-8">
-      <div class="mb-8">
-        <h1
-          class="flex items-center gap-3 text-3xl font-black text-zinc-900 dark:text-white"
-        >
-          <StoreIcon class="h-8 w-8 text-[#033e94]" /> Seller Center
-        </h1>
-        <p class="mt-1 font-medium text-zinc-500 dark:text-zinc-400">
-          Manage your shopfront , products, and orders.
-        </p>
-      </div>
-
-      <div
-        class="flex flex-col items-start gap-12 rounded-3xl border border-zinc-200 bg-zinc-50 p-8 shadow-sm transition-colors md:flex-row dark:border-zinc-800 dark:bg-zinc-900"
-      >
-        <div class="w-full md:w-1/2">
-          <h2 class="mb-4 text-2xl font-black text-[#033e94]">
-            Set Up Your Shopfront
-          </h2>
-          <form @submit.prevent="submitShop" class="space-y-5">
-            <div>
-              <label
-                class="mb-1.5 block text-sm font-bold text-zinc-700 dark:text-zinc-300"
-                >Shop Name</label
-              >
-              <input
-                type="text"
-                v-model="form.name"
-                required
-                class="w-full rounded-xl border border-zinc-200 bg-white p-3.5 text-zinc-900 transition-colors outline-none focus:border-[#033e94] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
-              />
-            </div>
-            <div>
-              <label
-                class="mb-1.5 block text-sm font-bold text-zinc-700 dark:text-zinc-300"
-                >Shop Description</label
-              >
-              <textarea
-                v-model="form.description"
-                required
-                rows="4"
-                class="w-full resize-none rounded-xl border border-zinc-200 bg-white p-3.5 text-zinc-900 transition-colors outline-none focus:border-[#033e94] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
-              ></textarea>
-            </div>
-            <button
-              type="submit"
-              :disabled="form.processing"
-              class="mt-2 w-full cursor-pointer rounded-xl bg-[#033e94] py-4 text-lg font-black text-white shadow-md transition-colors hover:bg-[#033e94]/80 disabled:bg-zinc-400"
-            >
-              {{ form.processing ? 'Creating...' : 'Create Shop' }}
-            </button>
-          </form>
+  <div
+    class="flex flex-col items-start gap-12 rounded-3xl border border-zinc-200 bg-zinc-50 p-8 shadow-sm transition-colors md:flex-row dark:border-zinc-800 dark:bg-zinc-900"
+  >
+    <div class="w-full md:w-1/2">
+      <h2 class="mb-4 text-2xl font-black text-[#033e94]">
+        Set Up Your Shopfront
+      </h2>
+      <form @submit.prevent="submitShop" class="space-y-5">
+        <div>
+          <label
+            class="mb-1.5 block text-sm font-bold text-zinc-700 dark:text-zinc-300"
+            >Shop Name</label
+          >
+          <input
+            type="text"
+            v-model="form.name"
+            required
+            class="w-full rounded-xl border border-zinc-200 bg-white p-3.5 text-zinc-900 transition-colors outline-none focus:border-[#033e94] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+          />
         </div>
-      </div>
-    </main>
+        <div>
+          <label
+            class="mb-1.5 block text-sm font-bold text-zinc-700 dark:text-zinc-300"
+            >Shop Description</label
+          >
+          <textarea
+            v-model="form.description"
+            required
+            rows="4"
+            class="w-full resize-none rounded-xl border border-zinc-200 bg-white p-3.5 text-zinc-900 transition-colors outline-none focus:border-[#033e94] dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
+          ></textarea>
+        </div>
+        <button
+          type="submit"
+          :disabled="form.processing"
+          class="mt-2 w-full cursor-pointer rounded-xl bg-[#033e94] py-4 text-lg font-black text-white shadow-md transition-colors hover:bg-[#033e94]/80 disabled:bg-zinc-400"
+        >
+          {{ form.processing ? 'Creating...' : 'Create Shop' }}
+        </button>
+      </form>
+    </div>
   </div>
 </template>
