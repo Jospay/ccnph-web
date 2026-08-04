@@ -11,6 +11,7 @@ use App\Http\Controllers\Web\LoanAssistanceController;
 use App\Http\Controllers\Web\LoanScheduleController;
 use App\Http\Controllers\Web\Seller\DashboardController as SellerDashboardController;
 use App\Http\Controllers\Web\Seller\ShopController as SellerShopController;
+use App\Http\Controllers\Web\Seller\ProductController as SellerProductController;
 use App\Http\Controllers\Web\SuperAdmin\AdminManagementController;
 use App\Http\Controllers\Web\SuperAdmin\CoopMembershipController;
 use App\Http\Controllers\Web\SupportChat\SupportChatController;
@@ -46,21 +47,15 @@ Route::middleware([
     Route::post('/shop/{shop:slug}', [SellerShopController::class, 'update'])
         ->name('shop.update');
 
+    Route::get('/products', [SellerProductController::class, 'index'])
+        ->name('products.index');
+
     // shop conversations
     Route::prefix('conversations')->name('conversations.')->group(function () {
         Route::get('/', [ShopConversationController::class, 'index'])->name('index');
         Route::get('{conversation}', [ShopConversationController::class, 'show'])->name('show');
         Route::post('{conversation}/messages', [ShopConversationController::class, 'storeMessage'])->name('messages.store');
     });
-
-    // Route::get('/store/create', [SellerStoreController::class, 'create'])
-    //     ->name('store.create');
-    // Route::post('/store', [SellerStoreController::class, 'store'])
-    //     ->name('store.store');
-    // Route::get('/store/{store:slug}/edit', [SellerStoreController::class, 'edit'])
-    //     ->name('store.edit');
-    // Route::post('/store/{store:slug}', [SellerStoreController::class, 'update'])
-    //     ->name('store.update');
 
     // Route::get('/products', [SellerProductController::class, 'index'])
     //     ->name('products.index');
