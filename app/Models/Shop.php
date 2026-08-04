@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Facades\Storage;
 use InvalidArgumentException;
 
 #[Fillable([
@@ -48,6 +50,28 @@ class Shop extends Model
             'reviews_count' => 'integer',
             'sold_count' => 'integer',
         ];
+    }
+
+    protected $appends = [
+        'logo_url',
+        'banner_url',
+    ];
+
+    protected function logoUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->logo
+                ? Storage::url($this->logo)
+                : null,
+        );
+    }
+    protected function bannerUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->banner
+                ? Storage::url($this->banner)
+                : null,
+        );
     }
 
     protected static function booted()
