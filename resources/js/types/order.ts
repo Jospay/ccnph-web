@@ -1,4 +1,4 @@
-import { LaravelPaginationItem } from './product';
+import { LaravelPaginationItem } from './seller/product';
 
 export type OrderFilterStatus =
   | 'all'
