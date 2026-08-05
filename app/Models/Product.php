@@ -47,14 +47,10 @@ class Product extends Model
             'sold_count' => 'integer',
         ];
     }
-
-    /**
-     * Named 'store' to cleanly align with eager loading execution statements
-     * and ProductShowResource definitions.
-     */
-    public function store(): BelongsTo
+    
+    public function shop(): BelongsTo
     {
-        return $this->belongsTo(Shop::class, 'shop_id');
+        return $this->belongsTo(Shop::class);
     }
 
     public function categories(): BelongsToMany
