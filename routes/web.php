@@ -49,6 +49,16 @@ Route::middleware([
 
     Route::get('/products', [SellerProductController::class, 'index'])
         ->name('products.index');
+    Route::get('/products/create', [SellerProductController::class, 'create'])
+        ->name('products.create');
+    Route::get('/products/{product:slug}', [SellerProductController::class, 'show'])
+        ->name('products.show');
+    Route::post('/products', [SellerProductController::class, 'store'])
+        ->name('products.store');
+    Route::get('/products/{product:slug}/edit', [SellerProductController::class, 'edit'])
+        ->name('products.edit');
+    Route::post('/products/{product:slug}', [SellerProductController::class, 'update'])
+        ->name('products.update');
 
     // shop conversations
     Route::prefix('conversations')->name('conversations.')->group(function () {
@@ -57,18 +67,6 @@ Route::middleware([
         Route::post('{conversation}/messages', [ShopConversationController::class, 'storeMessage'])->name('messages.store');
     });
 
-    // Route::get('/products', [SellerProductController::class, 'index'])
-    //     ->name('products.index');
-    // Route::get('/products/create', [SellerProductController::class, 'create'])
-    //     ->name('products.create');
-    // Route::get('/products/{product:slug}', [SellerProductController::class, 'show'])
-    //     ->name('products.show');
-    // Route::post('/products', [SellerProductController::class, 'store'])
-    //     ->name('products.store');
-    // Route::get('/products/{product:slug}/edit', [SellerProductController::class, 'edit'])
-    //     ->name('products.edit');
-    // Route::post('/products/{product:slug}', [SellerProductController::class, 'update'])
-    //     ->name('products.update');
     // Route::get('/orders', [SellerOrderController::class, 'index'])
     //     ->name('orders.index');
     // Route::get('/orders/{order:order_number}', [SellerOrderController::class, 'show'])
