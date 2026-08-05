@@ -70,7 +70,7 @@ const displayStats = computed(() => {
     {
       title: 'Current Interest Rate',
       value: `${parseFloat((rate * 100).toFixed(2))}%`,
-      description: 'Annual percentage rate',
+      description: 'Default percentage rate',
       icon: Percent,
     },
     {
