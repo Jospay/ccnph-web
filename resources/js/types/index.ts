@@ -10,9 +10,7 @@ export * from './auth';
 export * from './navigation';
 export * from './seller/product';
 export * from './seller/shop';
-export * from './cart';
-export * from './checkout';
-export * from './order';
+export * from './seller/order';
 export * from './seller/dashboard';
 export * from './seller/review';
 
