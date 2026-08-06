@@ -13,6 +13,8 @@ use App\Http\Controllers\Web\Seller\DashboardController as SellerDashboardContro
 use App\Http\Controllers\Web\Seller\ShopController as SellerShopController;
 use App\Http\Controllers\Web\Seller\ProductController as SellerProductController;
 use App\Http\Controllers\Web\Seller\OrderController as SellerOrderController;
+use App\Http\Controllers\Web\Seller\SalesController as SellerSalesController;
+use App\Http\Controllers\Web\Seller\SalesAnalyticsController as SellerSalesAnalyticsController;
 use App\Http\Controllers\Web\SuperAdmin\AdminManagementController;
 use App\Http\Controllers\Web\SuperAdmin\CoopMembershipController;
 use App\Http\Controllers\Web\SupportChat\SupportChatController;
@@ -70,6 +72,13 @@ Route::middleware([
     Route::patch('/orders/{order}/cancel', [SellerOrderController::class, 'cancel'])
         ->name('orders.cancel');
 
+    Route::get('/sales', [SellerSalesController::class, 'index'])
+        ->name('sales.index');
+    Route::patch('/sales/{order}/action', [SellerSalesController::class, 'action'])
+        ->name('sales.action');
+    Route::get('/sales/analytics', [SellerSalesAnalyticsController::class, 'analytics'])
+        ->name('sales.analytics');
+
     // shop conversations
     Route::prefix('conversations')->name('conversations.')->group(function () {
         Route::get('/', [ShopConversationController::class, 'index'])->name('index');
@@ -77,12 +86,6 @@ Route::middleware([
         Route::post('{conversation}/messages', [ShopConversationController::class, 'storeMessage'])->name('messages.store');
     });
     
-    // Route::get('/sales', [SellerSalesController::class, 'index'])
-    //     ->name('sales.index');
-    // Route::patch('/sales/{order}/action', [SellerSalesController::class, 'action'])
-    //     ->name('sales.action');
-    // Route::get('/sales/analytics', [SellerSalesAnalyticsController::class, 'analytics'])
-    //     ->name('sales.analytics');
 });
 
 Route::middleware([

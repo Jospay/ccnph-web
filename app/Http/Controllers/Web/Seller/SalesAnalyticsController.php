@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Seller;
+namespace App\Http\Controllers\Web\Seller;
 
 use App\Http\Controllers\Controller;
-use App\Models\Store;
+use App\Models\Shop;
 use App\Enums\OrderStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -13,30 +13,30 @@ class SalesAnalyticsController extends Controller
 {
     public function analytics(Request $request)
     {
-        $user = $request->user()->loadMissing('store');
+        $user = $request->user()->loadMissing('shop');
 
-        if (! $user->store) {
-            return redirect()->route('seller.store.create');
+        if (! $user->shop) {
+            return redirect()->route('seller.shop.create');
         }
 
-        $store = $user->store;
+        $shop = $user->shop;
 
         return Inertia::render('seller/sales/Analytics', [
-            'store' => $store,
-            'salesSummary' => $this->getSalesSummary($store),
-            'topProducts' => $this->getTopProducts($store),
-            'ordersOverview' => $this->getOrdersOverview($store),
-            'orderStatusBreakdown' => $this->getOrderStatusBreakdown($store),
+            'shop' => $shop,
+            'salesSummary' => $this->getSalesSummary($shop),
+            'topProducts' => $this->getTopProducts($shop),
+            'ordersOverview' => $this->getOrdersOverview($shop),
+            'orderStatusBreakdown' => $this->getOrderStatusBreakdown($shop),
         ]);
     }
 
     /**
      * Today / weekly / monthly / yearly totals from completed orders.
      */
-    private function getSalesSummary(Store $store): array
+    private function getSalesSummary(Shop $shop): array
     {
         $now = Carbon::now();
-        $completed = fn () => $store->orders()->where('status', OrderStatus::COMPLETED);
+        $completed = fn () => $shop->orders()->where('status', OrderStatus::COMPLETED);
 
         return [
             'today' => (float) $completed()
@@ -59,11 +59,11 @@ class SalesAnalyticsController extends Controller
     }
 
     /**
-     * Top 10 best-selling products for this store.
+     * Top 10 best-selling products for this shop.
      */
-    private function getTopProducts(Store $store): array
+    private function getTopProducts(Shop $shop): array
     {
-        return $store->products()
+        return $shop->products()
             ->orderByDesc('sold_count')
             ->limit(10)
             ->get(['id', 'name', 'sold_count'])
@@ -77,14 +77,14 @@ class SalesAnalyticsController extends Controller
     }
 
     /**
-     * Last 6 months of orders placed on the store, grouped by month.
+     * Last 6 months of orders placed on the shop, grouped by month.
      * Zero-filled so months with no orders still appear.
      */
-    private function getOrdersOverview(Store $store): array
+    private function getOrdersOverview(Shop $shop): array
     {
         $start = Carbon::now()->subMonths(5)->startOfMonth();
 
-        $rows = $store->orders()
+        $rows = $shop->orders()
             ->where('created_at', '>=', $start)
             ->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as total")
             ->groupBy('month')
@@ -109,11 +109,11 @@ class SalesAnalyticsController extends Controller
     /**
      * Order status breakdown for the current month.
      */
-    private function getOrderStatusBreakdown(Store $store): array
+    private function getOrderStatusBreakdown(Shop $shop): array
     {
         $now = Carbon::now();
 
-        $counts = $store->orders()
+        $counts = $shop->orders()
             ->whereYear('created_at', $now->year)
             ->whereMonth('created_at', $now->month)
             ->selectRaw('status, COUNT(*) as total')

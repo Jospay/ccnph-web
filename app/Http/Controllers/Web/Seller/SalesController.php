@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Controllers\Seller;
+namespace App\Http\Controllers\Web\Seller;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Enums\OrderStatus;
 use App\Http\Resources\Seller\OrderIndexResource;
 use App\Http\Resources\Seller\OrderShowResource;
-use App\Http\Requests\Seller\SalesActionRequest;
+use App\Http\Requests\Seller\Sales\ActionSalesRequest;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
@@ -25,29 +25,29 @@ class SalesController extends Controller
             'tab' => $validated['tab'] ?? 'to-receive',
         ];
 
-        $user = $request->user()->loadMissing(['store']);
+        $user = $request->user()->loadMissing(['shop']);
 
-        if (! $user->store) {
-            return redirect()->route('seller.store.create');
+        if (! $user->shop) {
+            return redirect()->route('seller.shop.create');
         }
 
-        $orders = $this->buildBaseQuery($user->store->id, $filters)
+        $orders = $this->buildBaseQuery($user->shop->id, $filters)
             ->paginate(10)
             ->withQueryString();
 
         return Inertia::render('seller/sales/Index', [
-            'store' => $user->store,
+            'shop' => $user->shop,
             'orders' => OrderIndexResource::collection($orders),
-            'counts' => $this->getSummaryCounts($user->store->id),
+            'counts' => $this->getSummaryCounts($user->shop->id),
             'filters' => $filters
         ]);
         
     }
 
-    private function buildBaseQuery(int $storeId, array $filters): Builder
+    private function buildBaseQuery(int $shopId, array $filters): Builder
     {
         return Order::query()
-            ->where('store_id', $storeId)
+            ->where('shop_id', $shopId)
             ->with(['items'])
             ->when(
                 $filters['tab'],
@@ -66,19 +66,19 @@ class SalesController extends Controller
                 OrderStatus::DELIVERED,
                 OrderStatus::COMPLETED
             ]),
-            'return-request' => $query->whereIn('status', [
-                OrderStatus::RETURN_REQUESTED,
+            'return-request' => $query->where('status', OrderStatus::RETURN_REQUESTED),
+            'returned' => $query->whereIn('status',  [
                 OrderStatus::RETURN_APPROVED,
+                OrderStatus::RETURNED,
             ]),
-            'returned' => $query->where('status', OrderStatus::RETURNED),
             default => $query,
         };
     }
 
-    private function getSummaryCounts(int $storeId): array
+    private function getSummaryCounts(int $shopId): array
     {
         $counts = Order::query()
-            ->where('store_id', $storeId)
+            ->where('shop_id', $shopId)
             ->groupBy('status')
             ->selectRaw('status, count(*) as total')
             ->pluck('total', 'status');
@@ -87,22 +87,21 @@ class SalesController extends Controller
             'to_receive'   => (int) $counts->get(OrderStatus::SHIPPED->value, 0),
             'completed'      =>(int) ($counts->get(OrderStatus::DELIVERED->value, 0)
                             + $counts->get(OrderStatus::COMPLETED->value, 0)),
-            'return_request'   => (int) ($counts->get(OrderStatus::RETURN_REQUESTED->value, 0)) 
-                            + ($counts->get(OrderStatus::RETURN_APPROVED->value, 0)),
-            'returned'      =>(int) $counts->get(OrderStatus::RETURNED->value, 0),
+            'return_request'   => (int) $counts->get(OrderStatus::RETURN_REQUESTED->value, 0),
+            'returned'      =>(int) ($counts->get(OrderStatus::RETURN_APPROVED->value, 0) 
+                            + $counts->get(OrderStatus::RETURNED->value, 0)),
         ];
     }
 
     public function show(Request $request, Order $order)
     {
         $order->loadMissing([
-            'store',
-            'items',
-            'return',
+            'shop',
+            'items.orderReturn.images',
         ]);
 
         abort_unless(
-            $request->user()->id === $order->store->user_id,
+            $request->user()->id === $order->shop->user_id,
             403
         );
 
@@ -110,19 +109,14 @@ class SalesController extends Controller
     }
 
 
-    public function action(SalesActionRequest $request, Order $order) {
-        $user = $request->user();
-
-        abort_unless(
-            $order->store_id === $user->store?->id,
-            403
-        );
+    public function action(ActionSalesRequest $request, Order $order) {
         $action = $request->validated('action');
 
         match ($action) {
             'deliver' => $this->deliverOrder($order),
             'accept_return' => $this->acceptReturnOrder($order),
             'decline_return' => $this->declineReturnOrder($order, $request->validated('rejection_reason')),
+            'confirm_return' => $this->confirmReturnOrder($order),
         };
 
         return back()->with(
@@ -145,10 +139,12 @@ class SalesController extends Controller
 
     private function acceptReturnOrder(Order $order): void
     {
-        $order->loadMissing('return');
-        if ($order->status !== OrderStatus::RETURN_REQUESTED || !$order->return) {
-            abort(422, 'Invalid order state');
-        }
+        abort_unless(
+            $order->status === OrderStatus::RETURN_REQUESTED
+                && $order->returns()->exists(),
+            422,
+            'Invalid order state'
+        );
 
         $order->update([
             'status' => OrderStatus::RETURN_APPROVED,
@@ -158,19 +154,38 @@ class SalesController extends Controller
 
     private function declineReturnOrder(Order $order, string $rejectionReason): void
     {
-        $order->loadMissing('return');
-        if ($order->status !== OrderStatus::RETURN_REQUESTED || !$order->return) {
-            abort(422, 'Invalid order state');
-        }
+        abort_unless(
+            ($order->status === OrderStatus::RETURN_REQUESTED || $order->status === OrderStatus::RETURN_APPROVED)
+                && $order->returns()->exists(),
+            422,
+            'Invalid order state'
+        );
 
-        $order->return->update([
+        // applies to every item-level return under this order —
+        // decline is an order-wide decision even though returns are stored per item
+        $order->returns()->update([
             'rejection_reason' => $rejectionReason,
         ]);
 
+        $order->update([
+            'status' => OrderStatus::COMPLETED,
+            'completed_at' => now(),
+            'return_approved_at' => null,
+        ]);
+    }
+
+    private function confirmReturnOrder(Order $order): void
+    {
+        abort_unless(
+            $order->status === OrderStatus::RETURN_APPROVED
+                && $order->returns()->exists(),
+            422,
+            'Invalid order state'
+        );
 
         $order->update([
-            'status' => OrderStatus::DELIVERED,
-            'return_approved_at' => null,
+            'status' => OrderStatus::RETURNED,
+            'returned_at' => now(),
         ]);
     }
 }
