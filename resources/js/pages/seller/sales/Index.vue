@@ -8,30 +8,27 @@ import {
 } from 'lucide-vue-next';
 import { ref, computed, h } from 'vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
-import ConfirmDialog from '@/components/ConfirmDialog.vue';
-import DataTable from '@/components/DataTable.vue';
+import ConfirmDialog from '@/components/seller/ConfirmDialog.vue';
+import DataTable from '@/components/seller/DataTable.vue';
 import { getSellerOrdersColumns } from '@/components/features/seller/columns';
-import NavBar from '@/components/landing/NavBar.vue';
-import OrderItemsTable from '@/components/orders/OrderItemsTable.vue';
-import SellerOrderDetailsDialog from '@/components/orders/SellerOrderDetailsDialog.vue';
-import Pagination from '@/components/Pagination.vue';
-import SellerStoreHeader from '@/components/SellerStoreHeader.vue';
-import SellerTab from '@/components/SellerTab.vue';
-import type {SellerTabItem} from '@/components/SellerTab.vue';
+import OrderItemsTable from '@/components/seller/order/OrderItemsTable.vue';
+import OrderDetailsDialog from '@/components/seller/order/OrderDetailsDialog.vue';
+import Pagination from '@/components/seller/Pagination.vue';
+import ShopHeader from '@/components/seller/shop/ShopHeader.vue';
+import Tab from '@/components/seller/Tab.vue';
+import type { TabItem } from '@/components/seller/Tab.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import seller from '@/routes/seller';
 import type {
-  Store,
+  Shop,
   PaginatedSellerOrders,
   SellerOrder,
   ApiResponse,
   SellerOrderShow,
 } from '@/types';
 
-
-
 const props = defineProps<{
-  store: Store;
+  shop: Shop;
   orders: PaginatedSellerOrders;
   filters: {
     tab: string;
@@ -46,7 +43,7 @@ const props = defineProps<{
 
 // tab state
 const activeTab = computed(() => props.filters.tab);
-const orderTabs = computed<SellerTabItem[]>(() => [
+const orderTabs = computed<TabItem[]>(() => [
   {
     label: 'To Receive Orders',
     value: 'to-receive',
@@ -109,8 +106,8 @@ function handleDetailsOpenChange(value: boolean) {
 
   if (!value) {
     if (detailsCloseTimeout) {
-clearTimeout(detailsCloseTimeout);
-}
+      clearTimeout(detailsCloseTimeout);
+    }
 
     detailsCloseTimeout = setTimeout(() => {
       detailsOrder.value = null;
@@ -144,20 +141,20 @@ const isDeclineReturn = computed(
 );
 const canConfirmAction = computed(() => {
   if (!isDeclineReturn.value) {
-return true;
-}
+    return true;
+  }
 
   return rejectionReason.value.trim().length > 0;
 });
 
 const processOrderAction = () => {
   if (!selectedOrder.value || !selectedAction.value) {
-return;
-}
+    return;
+  }
 
   if (!canConfirmAction.value) {
-return;
-}
+    return;
+  }
 
   const resetState = () => {
     selectedOrder.value = null;
@@ -190,7 +187,7 @@ const orderColumns = computed(() =>
 const breadcrumbs = [
   {
     title: 'Dashboard',
-    href: seller.dashboard(),
+    href: seller.dashboard.index(),
   },
   {
     title: 'Sales',
@@ -216,73 +213,59 @@ function changeTab(tab: string) {
 <template>
   <Head title="Seller Order Sales" />
 
-  <div class="flex min-h-screen flex-col transition-colors duration-300">
-    <TopBar />
-    <div class="sticky top-0 z-50 mt-8"><NavBar /></div>
+  <div class="mb-5 px-5">
+    <Breadcrumbs :breadcrumbs="breadcrumbs" />
+  </div>
 
-    <main class="mx-auto w-full max-w-7xl grow px-4 py-10 sm:px-6 lg:px-8">
-      <div class="mb-5 px-5">
-        <Breadcrumbs :breadcrumbs="breadcrumbs" />
-      </div>
-
-      <div v-if="props.store.is_active" class="flex flex-col gap-4">
-        <SellerStoreHeader
-          :store="props.store"
-          :edit-store-href="seller.shop.edit.url(props.store.slug)"
+  <div v-if="shop.is_active" class="flex flex-col gap-4">
+    <ShopHeader :shop="shop" :edit-shop-href="seller.shop.edit.url(shop.slug)">
+      <template #actions>
+        <Link
+          :href="seller.sales.analytics()"
+          class="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#009933] px-6 py-3.5 font-bold text-white shadow-md transition-colors hover:bg-green-700 active:scale-95"
         >
-          <template #actions>
-            <Link
-              :href="seller.sales.analytics()"
-              class="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#009933] px-6 py-3.5 font-bold text-white shadow-md transition-colors hover:bg-green-700 active:scale-95"
-            >
-              <ChartSplineIcon class="h-5 w-5" /> View Analytics
-            </Link>
-          </template>
-        </SellerStoreHeader>
+          <ChartSplineIcon class="h-5 w-5" /> View Analytics
+        </Link>
+      </template>
+    </ShopHeader>
+    <div
+      class="overflow-hidden rounded-3xl border border-zinc-200 bg-zinc-50 shadow-sm transition-colors dark:border-zinc-800 dark:bg-zinc-900"
+    >
+      <Tab :model-value="activeTab" :tabs="orderTabs" @change="changeTab" />
+
+      <div v-if="orders.data.length === 0" class="p-16 text-center">
         <div
-          class="overflow-hidden rounded-3xl border border-zinc-200 bg-zinc-50 shadow-sm transition-colors dark:border-zinc-800 dark:bg-zinc-900"
+          class="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-800"
         >
-          <SellerTab
-            :model-value="activeTab"
-            :tabs="orderTabs"
-            @change="changeTab"
-          />
-
-          <div v-if="orders.data.length === 0" class="p-16 text-center">
-            <div
-              class="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-800"
-            >
-              <PackageIcon class="h-10 w-10 text-zinc-400" />
-            </div>
-            <h3 class="mb-2 text-xl font-bold text-zinc-800 dark:text-white">
-              No {{ currentTabLabel }}
-            </h3>
-          </div>
-
-          <div v-else class="custom-scrollbar overflow-x-auto">
-            <DataTable :columns="orderColumns" :data="orders.data">
-              <template #expanded-row="{ row }">
-                <OrderItemsTable :items="row.items" />
-              </template>
-            </DataTable>
-          </div>
+          <PackageIcon class="h-10 w-10 text-zinc-400" />
         </div>
-        <div class="-mt-4">
-          <Pagination :links="props.orders.meta.links" />
-        </div>
+        <h3 class="mb-2 text-xl font-bold text-zinc-800 dark:text-white">
+          No {{ currentTabLabel }}
+        </h3>
       </div>
 
-      <div v-else class="flex flex-col gap-8">
-        <Alert variant="destructive">
-          <AlertCircleIcon class="mt-1 h-5 w-5" />
-          <AlertTitle class="text-xl font-semibold">Store Inactive</AlertTitle>
-          <AlertDescription class="mt-1">
-            The store {{ props.store.name }} is currently deactivated.
-            <span> Please contact support for more information. </span>
-          </AlertDescription>
-        </Alert>
+      <div v-else class="custom-scrollbar overflow-x-auto">
+        <DataTable :columns="orderColumns" :data="orders.data">
+          <template #expanded-row="{ row }">
+            <OrderItemsTable :items="row.items" />
+          </template>
+        </DataTable>
       </div>
-    </main>
+    </div>
+    <div class="-mt-4">
+      <Pagination :links="props.orders.meta.links" />
+    </div>
+  </div>
+
+  <div v-else class="flex flex-col gap-8">
+    <Alert variant="destructive">
+      <AlertCircleIcon class="mt-1 h-5 w-5" />
+      <AlertTitle class="text-xl font-semibold">Shop Inactive</AlertTitle>
+      <AlertDescription class="mt-1">
+        The shop {{ shop.name }} is currently deactivated.
+        <span> Please contact support for more information. </span>
+      </AlertDescription>
+    </Alert>
   </div>
 
   <ConfirmDialog
@@ -319,7 +302,7 @@ function changeTab(tab: string) {
     </div>
   </ConfirmDialog>
 
-  <SellerOrderDetailsDialog
+  <OrderDetailsDialog
     :open="isDetailsOpen"
     :order="detailsOrder"
     @update:open="handleDetailsOpenChange"
