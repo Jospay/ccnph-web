@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Seller;
+namespace App\Http\Controllers\Web\Seller;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Validation\Rule;
 use App\Http\Resources\Seller\OrderIndexResource;
 use App\Http\Resources\Seller\OrderShowResource;
-use App\Http\Requests\Seller\OrderActionRequest;
+use App\Http\Requests\Seller\Order\ActionOrderRequest;
 use App\Models\Order;
 use App\Models\PaymentMethod;
 use App\Enums\OrderStatus;
@@ -26,29 +26,29 @@ class OrderController extends Controller
             'tab' => $validated['tab'] ?? 'to-confirm',
         ];
 
-        $user = $request->user()->loadMissing(['store']);
+        $user = $request->user()->loadMissing(['shop']);
 
-        if (! $user->store) {
+        if (! $user->shop) {
             return redirect()->route('seller.shop.create');
         }
 
-        $orders = $this->buildBaseQuery($user->store->id, $filters)
+        $orders = $this->buildBaseQuery($user->shop->id, $filters)
             ->paginate(10)
             ->withQueryString();
 
         return Inertia::render('seller/order/Index', [
-            'store' => $user->store,
+            'shop' => $user->shop,
             'orders' => OrderIndexResource::collection($orders),
-            'counts' => $this->getSummaryCounts($user->store->id),
+            'counts' => $this->getSummaryCounts($user->shop->id),
             'filters' => $filters
         ]);
         
     }
 
-    private function buildBaseQuery(int $storeId, array $filters): Builder
+    private function buildBaseQuery(int $shopId, array $filters): Builder
     {
         return Order::query()
-            ->where('store_id', $storeId)
+            ->where('shop_id', $shopId)
             ->with(['items'])
             ->when(
                 $filters['tab'],
@@ -73,10 +73,10 @@ class OrderController extends Controller
         };
     }
 
-    private function getSummaryCounts(int $storeId): array
+    private function getSummaryCounts(int $shopId): array
     {
         $counts = Order::query()
-            ->where('store_id', $storeId)
+            ->where('shop_id', $shopId)
             ->groupBy('status')
             ->selectRaw('status, count(*) as total')
             ->pluck('total', 'status');
@@ -93,23 +93,23 @@ class OrderController extends Controller
     public function show(Request $request, Order $order)
     {
         $order->loadMissing([
-            'store',
+            'shop',
             'items',
         ]);
 
         abort_unless(
-            $request->user()->id === $order->store->user_id,
+            $request->user()->id === $order->shop->user_id,
             403
         );
 
         return OrderShowResource::make($order);
     }
 
-    public function action(OrderActionRequest $request, Order $order) {
+    public function action(ActionOrderRequest $request, Order $order) {
         $user = $request->user();
 
         abort_unless(
-            $order->store_id === $user->store?->id,
+            $order->shop_id === $user->shop?->id,
             403
         );
 
@@ -177,7 +177,7 @@ class OrderController extends Controller
         $user = $request->user();
 
         abort_unless(
-            $order->store_id === $user->store?->id,
+            $order->shop_id === $user->shop?->id,
             403
         );
 
@@ -185,9 +185,18 @@ class OrderController extends Controller
             abort(422, 'Invalid order state');
         }
 
+         $validated = $request->validate([
+            'cancellation_reason' => [
+                'required',
+                'string',
+                'max:500',
+            ],
+        ]);
+
         $order->update([
             'status' => OrderStatus::CANCELLED,
             'cancelled_at' => now(),
+            'cancellation_reason' => $validated['cancellation_reason']
         ]);
 
         return back()->with(
