@@ -83,13 +83,9 @@ class Order extends Model
         return $this->hasMany(OrderItem::class);
     }
 
-    /**
-     * Renamed to store to match frontend services and API Resources.
-     * Explicitly uses 'shop_id' as the foreign key matching your fillables.
-     */
-    public function store(): BelongsTo
+    public function shop(): BelongsTo
     {
-        return $this->belongsTo(Shop::class, 'shop_id');
+        return $this->belongsTo(Shop::class);
     }
 
     public function checkout(): BelongsTo

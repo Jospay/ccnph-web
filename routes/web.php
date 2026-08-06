@@ -12,6 +12,7 @@ use App\Http\Controllers\Web\LoanScheduleController;
 use App\Http\Controllers\Web\Seller\DashboardController as SellerDashboardController;
 use App\Http\Controllers\Web\Seller\ShopController as SellerShopController;
 use App\Http\Controllers\Web\Seller\ProductController as SellerProductController;
+use App\Http\Controllers\Web\Seller\OrderController as SellerOrderController;
 use App\Http\Controllers\Web\SuperAdmin\AdminManagementController;
 use App\Http\Controllers\Web\SuperAdmin\CoopMembershipController;
 use App\Http\Controllers\Web\SupportChat\SupportChatController;
@@ -60,22 +61,22 @@ Route::middleware([
     Route::post('/products/{product:slug}', [SellerProductController::class, 'update'])
         ->name('products.update');
 
+    Route::get('/orders', [SellerOrderController::class, 'index'])
+        ->name('orders.index');
+    Route::get('/orders/{order:order_number}', [SellerOrderController::class, 'show'])
+        ->name('orders.show');
+    Route::patch('/orders/{order}/action', [SellerOrderController::class, 'action'])
+        ->name('orders.action');
+    Route::patch('/orders/{order}/cancel', [SellerOrderController::class, 'cancel'])
+        ->name('orders.cancel');
+
     // shop conversations
     Route::prefix('conversations')->name('conversations.')->group(function () {
         Route::get('/', [ShopConversationController::class, 'index'])->name('index');
         Route::get('{conversation}', [ShopConversationController::class, 'show'])->name('show');
         Route::post('{conversation}/messages', [ShopConversationController::class, 'storeMessage'])->name('messages.store');
     });
-
-    // Route::get('/orders', [SellerOrderController::class, 'index'])
-    //     ->name('orders.index');
-    // Route::get('/orders/{order:order_number}', [SellerOrderController::class, 'show'])
-    //     ->name('orders.show');
-    // Route::patch('/orders/{order}/action', [SellerOrderController::class, 'action'])
-    //     ->name('orders.action');
-    // Route::patch('/orders/{order}/cancel', [SellerOrderController::class, 'cancel'])
-    //     ->name('orders.cancel');
-
+    
     // Route::get('/sales', [SellerSalesController::class, 'index'])
     //     ->name('sales.index');
     // Route::patch('/sales/{order}/action', [SellerSalesController::class, 'action'])
