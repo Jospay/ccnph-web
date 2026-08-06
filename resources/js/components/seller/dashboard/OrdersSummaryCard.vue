@@ -58,12 +58,12 @@ const triggers = {
           {{ total }} orders to action
         </p>
       </div>
-      <!-- <Link
+      <Link
         :href="seller.orders.index()"
         class="flex items-center gap-1 text-xs font-bold text-[#009933] hover:underline dark:text-[#00cc44]"
       >
         View all <ArrowRightIcon class="h-3 w-3" />
-      </Link> -->
+      </Link>
     </div>
 
     <ChartContainer :config="chartConfig" class="h-32 w-full">
