@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\Shop\ShopConversationController;
 use App\Http\Controllers\Web\BusinessTrainingController;
 use App\Http\Controllers\Web\Conversation\ConversationController;
 use App\Http\Controllers\Web\Conversation\MessageController;
@@ -15,6 +14,8 @@ use App\Http\Controllers\Web\Seller\ProductController as SellerProductController
 use App\Http\Controllers\Web\Seller\OrderController as SellerOrderController;
 use App\Http\Controllers\Web\Seller\SalesController as SellerSalesController;
 use App\Http\Controllers\Web\Seller\SalesAnalyticsController as SellerSalesAnalyticsController;
+use App\Http\Controllers\Web\Seller\ReviewController as SellerReviewController;
+use App\Http\Controllers\Web\Seller\ShopConversationController as SellerShopConversationController;
 use App\Http\Controllers\Web\SuperAdmin\AdminManagementController;
 use App\Http\Controllers\Web\SuperAdmin\CoopMembershipController;
 use App\Http\Controllers\Web\SupportChat\SupportChatController;
@@ -79,11 +80,16 @@ Route::middleware([
     Route::get('/sales/analytics', [SellerSalesAnalyticsController::class, 'analytics'])
         ->name('sales.analytics');
 
+    Route::get('/reviews', [SellerReviewController::class, 'index'])
+        ->name('reviews.index');
+    Route::patch('reviews/{review}/reply', [SellerReviewController::class, 'reply'])
+        ->name('reviews.reply');
+
     // shop conversations
     Route::prefix('conversations')->name('conversations.')->group(function () {
-        Route::get('/', [ShopConversationController::class, 'index'])->name('index');
-        Route::get('{conversation}', [ShopConversationController::class, 'show'])->name('show');
-        Route::post('{conversation}/messages', [ShopConversationController::class, 'storeMessage'])->name('messages.store');
+        Route::get('/', [SellerShopConversationController::class, 'index'])->name('index');
+        Route::get('{conversation}', [SellerShopConversationController::class, 'show'])->name('show');
+        Route::post('{conversation}/messages', [SellerShopConversationController::class, 'storeMessage'])->name('messages.store');
     });
     
 });
