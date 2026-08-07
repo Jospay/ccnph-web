@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\GeneralNotification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -66,8 +67,21 @@ class Loan extends Model
             ->where('status_id', '!=', Status::PAID)
             ->exists();
 
-        if (!$hasUnpaid) {
+        if (! $hasUnpaid) {
             $this->update(['status_id' => Status::FINISHED]);
+
+            $this->user?->notify(new GeneralNotification(
+                type: 'loan_finished',
+                title: 'Loan Fully Paid!',
+                body: 'Congratulations! Your loan of ₱'.number_format($this->amount, 2).' has been fully settled.',
+                actionType: 'VIEW_LOAN',
+                route: "/(loan)/breakdown?id={$this->id}&include=user,status,loanSchedules,loanPayments",
+                extraData: [
+                    'loan_id' => $this->id,
+                    'amount' => $this->amount,
+                    'status' => 'finished',
+                ]
+            ));
         }
     }
 }
