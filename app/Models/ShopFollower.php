@@ -44,4 +44,9 @@ class ShopFollower extends Model
     {
         return $this->belongsTo(Shop::class);
     }
+
+    public function store(): BelongsTo
+    {
+        return $this->belongsTo(Shop::class, 'shop_id');
+    }
 }

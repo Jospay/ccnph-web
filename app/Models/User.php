@@ -7,14 +7,14 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Fortify\TwoFactorAuthenticatable;
-use InvalidArgumentException;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use InvalidArgumentException;
+use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 
 #[Fillable([
@@ -52,10 +52,10 @@ use Laravel\Sanctum\HasApiTokens;
 ])]
 class User extends Authenticatable
 {
+    use HasApiTokens;
+
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, TwoFactorAuthenticatable;
-
-    use HasApiTokens;
 
     /**
      * Get the attributes that should be cast.
@@ -128,6 +128,11 @@ class User extends Authenticatable
         return $this->hasOne(Shop::class);
     }
 
+    public function store(): BelongsTo
+    {
+        return $this->belongsTo(Shop::class, 'shop_id');
+    }
+
     public function cart(): HasOne
     {
         return $this->hasOne(Cart::class);
@@ -147,7 +152,7 @@ class User extends Authenticatable
     {
         return $this->hasMany(Checkout::class);
     }
-    
+
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
@@ -163,11 +168,6 @@ class User extends Authenticatable
     {
         return $this->hasOne(MemberShareCapital::class);
     }
-
-    public function store(): HasOne
-{
-    return $this->hasOne(Store::class);
-}
 
     // checker for service management
     public function managesService(int $serviceId): bool
@@ -212,7 +212,7 @@ class User extends Authenticatable
     {
         $shareCapital = $this->shareCapital;
 
-        if (!$shareCapital || !$shareCapital->isFullyPaid()) {
+        if (! $shareCapital || ! $shareCapital->isFullyPaid()) {
             return 0;
         }
 

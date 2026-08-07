@@ -47,10 +47,15 @@ class Product extends Model
             'sold_count' => 'integer',
         ];
     }
-    
+
+    public function store(): BelongsTo
+    {
+        return $this->belongsTo(Shop::class, 'shop_id');
+    }
+
     public function shop(): BelongsTo
     {
-        return $this->belongsTo(Shop::class);
+        return $this->belongsTo(Shop::class, 'shop_id');
     }
 
     public function categories(): BelongsToMany
