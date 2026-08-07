@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Notifications\GeneralNotification;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 class IntellectualProperty extends Model
@@ -37,31 +38,26 @@ class IntellectualProperty extends Model
         'expires_at' => 'date',
     ];
 
-    // one to many, intellectual property has one user
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    // one to many, intellectual property has one status
     public function status(): BelongsTo
     {
         return $this->belongsTo(Status::class);
     }
 
-    // one to many, intellectual property has one payment
     public function payments(): MorphMany
     {
         return $this->morphMany(Payment::class, 'payable');
     }
 
-    // one to many, intellectual property has many claims
     public function claims(): HasMany
     {
         return $this->hasMany(IntellectualPropertyClaim::class);
     }
 
-    // one to many, intellectual property has many documents
     public function documents(): HasMany
     {
         return $this->hasMany(IntellectualPropertyDocument::class);
@@ -87,18 +83,35 @@ class IntellectualProperty extends Model
         return $this->morphOne(Conversation::class, 'conversable');
     }
 
+    /**
+     * Check if all schedules are paid, then activate and register the IP.
+     */
     public function tryActivate(): void
     {
         $hasUnpaid = $this->schedules()
             ->where('status_id', '!=', Status::PAID)
             ->exists();
 
-        if (!$hasUnpaid) {
+        if (! $hasUnpaid) {
             $this->update([
                 'status_id' => Status::REGISTERED,
                 'activated_at' => now(),
                 'expires_at' => now()->addYear(),
             ]);
+
+            // Notify user that payment is complete and IP is fully registered
+            $this->user?->notify(new GeneralNotification(
+                type: 'ip_registered',
+                title: 'Application Registered',
+                body: "Congrats! Your Intellectual Property application ({$this->title}) is now fully paid and registered.",
+                actionType: 'VIEW_PROPERTY',
+                route: "/(intellectual)/details?id={$this->id}",
+                extraData: [
+                    'property_id' => $this->id,
+                    'form_type' => $this->form_type,
+                    'status' => 'registered',
+                ]
+            ));
         }
     }
 }
