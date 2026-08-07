@@ -163,7 +163,7 @@ class IntellectualPropertyController extends Controller
                     title: 'Application Approved',
                     body: "Your Intellectual Property application ({$property->title}) was approved and is waiting for payment.",
                     actionType: 'MAKE_PAYMENT',
-                    route: "(intellectual)/details?id={$property->id}",
+                    route: "/(intellectual)/details?id={$property->id}",
                     extraData: [
                         'property_id' => $property->id,
                         'form_type' => $property->form_type,
@@ -182,7 +182,7 @@ class IntellectualPropertyController extends Controller
                     title: 'Application Registered',
                     body: "Your Intellectual Property application ({$property->title}) has been successfully registered.",
                     actionType: 'VIEW_PROPERTY',
-                    route: "(intellectual)/details?id={$property->id}",
+                    route: "/(intellectual)/details?id={$property->id}",
                     extraData: [
                         'property_id' => $property->id,
                         'form_type' => $property->form_type,
@@ -203,7 +203,7 @@ class IntellectualPropertyController extends Controller
                 title: 'Application Declined',
                 body: "Your Intellectual Property application ({$property->title}) was declined by the admin.",
                 actionType: 'VIEW_PROPERTY',
-                route: "(intellectual)/details?id={$property->id}",
+                route: "/(intellectual)/details?id={$property->id}",
                 extraData: [
                     'property_id' => $property->id, // Fixed: changed from $property->title to $property->id
                     'status' => 'rejected',
