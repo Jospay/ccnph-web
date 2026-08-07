@@ -27,7 +27,7 @@ defineProps<{
       </div>
 
       <div>
-        <h2 class="text-2xl font-black text-zinc-900 dark:text-white">
+        <h2 class="text-2xl font-bold text-zinc-900 dark:text-white">
           {{ shop.name }}
         </h2>
 
@@ -39,10 +39,14 @@ defineProps<{
           Edit Shop Profile
           <ExternalLinkIcon class="h-3 w-3" />
         </Link>
+
+        <div class="mt-1 flex items-center gap-2">
+          <slot name="details" />
+        </div>
       </div>
     </div>
 
-    <div class="flex shrink-0 items-center">
+    <div class="flex shrink-0 items-center gap-2">
       <slot name="actions" />
     </div>
   </div>
