@@ -10,6 +10,7 @@ use App\Models\ShareCapitalSchedule;
 use App\Models\ShareCapitalSetting;
 use App\Models\Status;
 use App\Models\User;
+use App\Notifications\GeneralNotification;
 use App\Services\Payments\PaymentGatewayFactory;
 use Carbon\Carbon;
 use DomainException;
@@ -26,11 +27,11 @@ class ShareCapitalService
 
         $setting = ShareCapitalSetting::getLatest();
 
-        if (!$setting) {
+        if (! $setting) {
             throw new DomainException('Share capital is not configured yet.');
         }
 
-        if (!in_array($data['term_months'], $setting->allowed_term_months)) {
+        if (! in_array($data['term_months'], $setting->allowed_term_months)) {
             throw new DomainException('Invalid term selected.');
         }
 
@@ -61,24 +62,44 @@ class ShareCapitalService
                 ]);
             }
 
+            // Determine term label for clear notification messaging
+            $termLabel = $data['term_months'] === 1
+                ? 'Pay in Full'
+                : "{$data['term_months']} Monthly Installments";
+
+            // Send notification to user upon share capital setup/application
+            $user->notify(new GeneralNotification(
+                type: 'share_capital_applied',
+                title: 'Share Capital Applied',
+                body: "You have selected {$termLabel} for your share capital. Please complete your payment schedule to unlock features like loan applications.",
+                actionType: 'VIEW_SHARE_CAPITAL',
+                route: '/(loan)/',
+                extraData: [
+                    'share_capital_id' => $shareCapital->id,
+                    'term_months' => $data['term_months'],
+                    'term_label' => $termLabel,
+                    'amount' => $setting->required_amount / 100,
+                ]
+            ));
+
             return $shareCapital;
         });
     }
 
-  public function pay(
-    User $user,
-    ShareCapitalSchedule $schedule,
-    array $data
-): array
-{
-    $paymentMethod = PaymentMethod::findOrFail($data['payment_method_id']);
+    public function pay(
+        User $user,
+        ShareCapitalSchedule $schedule,
+        array $data
+    ): array {
+        $paymentMethod = PaymentMethod::findOrFail($data['payment_method_id']);
 
-    return DB::transaction(function () use ($user, $schedule, $data, $paymentMethod){
+        return DB::transaction(function () use ($user, $schedule, $data, $paymentMethod) {
 
-        $schedule = $this->lockAndValidateSchedule(
-            $user,
-            $schedule
-        );
+            $schedule = $this->lockAndValidateSchedule(
+                $user,
+                $schedule
+            );
+
             $payment = $this->createPendingPayment($schedule, $data, $paymentMethod);
 
             if ($paymentMethod->isOffline()) {
@@ -94,15 +115,14 @@ class ShareCapitalService
     // -------------------------------------------------------------------------
 
     private function lockAndValidateSchedule(
-    User $user,
-    ShareCapitalSchedule $schedule
-): ShareCapitalSchedule
-{
-    $schedule = ShareCapitalSchedule::query()
-        ->where('id', $schedule->id)
-        ->lockForUpdate()
-        ->with('shareCapital')
-        ->firstOrFail();
+        User $user,
+        ShareCapitalSchedule $schedule
+    ): ShareCapitalSchedule {
+        $schedule = ShareCapitalSchedule::query()
+            ->where('id', $schedule->id)
+            ->lockForUpdate()
+            ->with('shareCapital')
+            ->firstOrFail();
 
         if ($schedule->shareCapital->user_id !== $user->id) {
             throw new DomainException('Unauthorized.');
@@ -134,7 +154,7 @@ class ShareCapitalService
         if ($providedInCents !== $remainingInCents) {
             throw new DomainException(
                 'Amount must exactly match the remaining balance of '
-                . number_format($remainingInCents / 100, 2)
+                .number_format($remainingInCents / 100, 2)
             );
         }
     }
@@ -169,6 +189,22 @@ class ShareCapitalService
 
         $payment->update(['status_id' => Status::SUCCESS]);
         $payment->payable->onPaymentSuccess($payment);
+
+        // Check if fully paid after payment processing to dispatch success notification
+        $shareCapital = $payment->payable->shareCapital;
+        if ($shareCapital && $shareCapital->isFullyPaid()) {
+            $shareCapital->user->notify(new GeneralNotification(
+                type: 'share_capital_fully_paid',
+                title: 'Congratulations! Share Capital Completed',
+                body: 'Your share capital has been fully paid! You are now eligible to apply for loans.',
+                actionType: 'APPLY_LOAN',
+                route: '/(loan)/',
+                extraData: [
+                    'share_capital_id' => $shareCapital->id,
+                    'status' => 'fully_paid',
+                ]
+            ));
+        }
 
         return ['payment' => $payment, 'next_action' => null];
     }
