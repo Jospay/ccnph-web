@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class CustomerOrderController extends Controller
@@ -387,6 +388,20 @@ class CustomerOrderController extends Controller
 
     public function storeRating(Request $request, Order $order)
     {
+        // 1. Detect if PHP dropped the payload because it exceeded post_max_size
+        if (empty($_POST) && empty($_FILES) && $request->server('CONTENT_LENGTH') > 0) {
+            $maxPostSize = ini_get('post_max_size');
+
+            return response()->json([
+                'success' => false,
+                'message' => "The uploaded file exceeds the maximum server payload size ({$maxPostSize}).",
+                'errors' => [
+                    'items' => ["The uploaded video or images exceed the maximum allowed server limit ({$maxPostSize}). Please compress the file and try again."],
+                ],
+            ], 422);
+        }
+
+        // 2. Authorization
         if ($order->user_id !== $request->user()->id) {
             return response()->json([
                 'success' => false,
@@ -394,18 +409,24 @@ class CustomerOrderController extends Controller
             ], 403);
         }
 
+        // 3. Request Validation
         $validated = $request->validate([
             'items' => ['required', 'array', 'min:1'],
             'items.*.order_item_id' => ['required', 'exists:order_items,id'],
             'items.*.rating' => ['required', 'integer', 'min:1', 'max:5'],
             'items.*.comment' => ['nullable', 'string', 'max:1000'],
             'items.*.is_anonymous' => ['nullable', 'boolean'],
-            'items.*.video' => ['nullable', 'file', 'mimes:mp4,mov,avi', 'max:20480'],
+            'items.*.video' => ['nullable', 'file', 'mimes:mp4,mov,avi', 'max:102400'], // 100MB
             'items.*.images' => ['nullable', 'array', 'max:5'],
-            'items.*.images.*' => ['file', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+            'items.*.images.*' => ['file', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'], // 5MB per image
+        ], [], [
+            'items.*.video' => 'video file',
+            'items.*.images.*' => 'image file',
+            'items.*.rating' => 'rating stars',
+            'items.*.comment' => 'comment text',
         ]);
 
-        // Prevent duplicate reviews
+        // 4. Prevent duplicate reviews
         $orderItemIds = collect($validated['items'])->pluck('order_item_id');
 
         $alreadyRatedIds = Review::where('user_id', $request->user()->id)
@@ -423,13 +444,14 @@ class CustomerOrderController extends Controller
             ], 422);
         }
 
-        try {
-            DB::transaction(function () use ($validated, $order, $request) {
+        // Track newly uploaded paths so they can be cleaned up if the DB transaction fails
+        $uploadedPaths = [];
 
+        try {
+            DB::transaction(function () use ($validated, $order, $request, &$uploadedPaths) {
                 $productIds = [];
 
                 foreach ($validated['items'] as $index => $itemData) {
-
                     $item = OrderItem::where('id', $itemData['order_item_id'])
                         ->where('order_id', $order->id)
                         ->first();
@@ -440,13 +462,17 @@ class CustomerOrderController extends Controller
 
                     $productIds[] = $item->product_id;
 
+                    // Handle Video Upload
                     $videoPath = null;
-
                     if ($request->hasFile("items.{$index}.video")) {
-                        $videoPath = $request->file("items.{$index}.video")
-                            ->store('feedback_products/videos', 'public');
+                        $videoFile = $request->file("items.{$index}.video");
+                        if ($videoFile->isValid()) {
+                            $videoPath = $videoFile->store('feedback_products/videos', 'public');
+                            $uploadedPaths[] = $videoPath;
+                        }
                     }
 
+                    // Create/Update Review
                     $review = $item->review()->updateOrCreate(
                         [
                             'order_item_id' => $item->id,
@@ -462,22 +488,23 @@ class CustomerOrderController extends Controller
                         ]
                     );
 
+                    // Handle Image Uploads
                     if ($request->hasFile("items.{$index}.images")) {
                         foreach ($request->file("items.{$index}.images") as $imageFile) {
-                            $imagePath = $imageFile->store('feedback_products/images', 'public');
+                            if ($imageFile->isValid()) {
+                                $imagePath = $imageFile->store('feedback_products/images', 'public');
+                                $uploadedPaths[] = $imagePath;
 
-                            $review->images()->create([
-                                'image' => $imagePath,
-                            ]);
+                                $review->images()->create([
+                                    'image' => $imagePath,
+                                ]);
+                            }
                         }
                     }
                 }
 
-                /**
-                 * Update all affected product ratings.
-                 */
+                // Update product stats
                 foreach (array_unique($productIds) as $productId) {
-
                     $stats = Review::where('product_id', $productId)
                         ->selectRaw('COUNT(*) as total_reviews, AVG(rating) as average_rating')
                         ->first();
@@ -488,16 +515,20 @@ class CustomerOrderController extends Controller
                     ]);
                 }
 
-                /**
-                 * Update shop rating.
-                 */
+                // Update shop rating
                 if ($shop = Shop::find($order->shop_id)) {
-                    $shop->updateRating();
+                    if (method_exists($shop, 'updateRating')) {
+                        $shop->updateRating();
+                    }
                 }
             });
-        } catch (QueryException $e) {
+        } catch (\Throwable $e) {
+            // Delete any files saved during this attempt if the transaction failed
+            foreach ($uploadedPaths as $path) {
+                Storage::disk('public')->delete($path);
+            }
 
-            if ((string) $e->getCode() === '23000') {
+            if ($e instanceof QueryException && (string) $e->getCode() === '23000') {
                 return response()->json([
                     'success' => false,
                     'message' => 'You have already submitted a review for one of these items.',

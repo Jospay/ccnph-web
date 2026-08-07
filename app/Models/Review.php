@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 
 #[Fillable([
     'user_id',
@@ -29,7 +29,7 @@ class Review extends Model
         return [
             'user_id' => 'integer',
             'order_item_id' => 'integer',
-            'store_id' => 'integer',
+            'shop_id' => 'integer',
             'product_id' => 'integer',
             'is_anonymous' => 'boolean',
             'rating' => 'integer',
@@ -55,6 +55,11 @@ class Review extends Model
     public function shop(): BelongsTo
     {
         return $this->belongsTo(Shop::class);
+    }
+
+    public function store(): BelongsTo
+    {
+        return $this->belongsTo(Shop::class, 'shop_id');
     }
 
     public function product(): BelongsTo

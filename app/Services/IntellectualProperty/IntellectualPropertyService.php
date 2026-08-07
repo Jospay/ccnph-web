@@ -10,6 +10,8 @@ use App\Models\IntellectualPropertySetting;
 use App\Models\Service;
 use App\Models\Status;
 use App\Models\User;
+use App\Notifications\GeneralNotification;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -26,7 +28,7 @@ class IntellectualPropertyService
             $intellectualProperty->id
         )->first();
 
-        if (!$setting) {
+        if (! $setting) {
             return [];
         }
 
@@ -34,7 +36,7 @@ class IntellectualPropertyService
             'amount' => $setting->amount,
 
             'payment_options' => collect($setting->allowed_term_months)
-                ->map(fn($months) => [
+                ->map(fn ($months) => [
                     'term_months' => $months,
 
                     'label' => $months === 1
@@ -54,18 +56,18 @@ class IntellectualPropertyService
     public function listIntellectualProperty(
         $user,
         array $includes = []
-    ): \Illuminate\Database\Eloquent\Collection {
+    ): Collection {
         return $user->intellectualProperties()
             ->when(
-                !empty($includes),
-                fn($q) => $q->with($includes)
+                ! empty($includes),
+                fn ($q) => $q->with($includes)
             )
             ->orderBy('created_at', 'desc')
             ->get();
     }
 
     /**
-     * Create intellectual property.
+     * Create intellectual property and notify the user that it is pending approval.
      */
     public function create(
         array $data,
@@ -98,7 +100,7 @@ class IntellectualPropertyService
                 $data['claims'] ?? []
             );
 
-            if (!empty($data['documents'])) {
+            if (! empty($data['documents'])) {
                 $this->storeFiles(
                     $application,
                     $data['documents']
@@ -106,6 +108,20 @@ class IntellectualPropertyService
             }
 
             $this->startConversation($application, $user);
+
+            // Send general notification for submitted application waiting for approval
+            $user->notify(new GeneralNotification(
+                type: 'ip_submitted_waiting_approval',
+                title: 'Application Submitted',
+                body: "Your Intellectual Property application ({$application->title}) has been submitted and is currently waiting for approval.",
+                actionType: 'VIEW_PROPERTY',
+                route: "/(intellectual)/details?id={$application->id}",
+                extraData: [
+                    'property_id' => $application->id,
+                    'form_type' => $application->form_type,
+                    'status' => 'pending',
+                ]
+            ));
 
             return $application->load([
                 'claims',
@@ -151,10 +167,10 @@ class IntellectualPropertyService
                     array_flip([
                         'claims',
                         'documents',
-                        'delete_document_ids'
+                        'delete_document_ids',
                     ])
                 ),
-                fn($v) => $v !== null
+                fn ($v) => $v !== null
             );
 
             $application->update($fillable);
@@ -166,7 +182,7 @@ class IntellectualPropertyService
                 );
             }
 
-            if (!empty($data['delete_document_ids'])) {
+            if (! empty($data['delete_document_ids'])) {
 
                 $application->documents()
                     ->whereIn('id', $data['delete_document_ids'])
@@ -182,7 +198,7 @@ class IntellectualPropertyService
                     });
             }
 
-            if (!empty($data['documents'])) {
+            if (! empty($data['documents'])) {
                 $this->storeFiles(
                     $application,
                     $data['documents']
@@ -256,7 +272,6 @@ class IntellectualPropertyService
         foreach ($files as $file) {
 
             /** @var UploadedFile $file */
-
             $path = $file->store(
                 "ip_applications/{$application->id}/documents",
                 'public'

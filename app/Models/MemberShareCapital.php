@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Contracts\Payable;
+use App\Notifications\GeneralNotification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -75,7 +76,19 @@ class MemberShareCapital extends Model implements Payable
 
     public function onPaymentSuccess(Payment $payment): void
     {
-        // bubbled up from ShareCapitalSchedule — nothing extra needed here
+        if ($this->isFullyPaid()) {
+            $this->user->notify(new GeneralNotification(
+                type: 'share_capital_fully_paid',
+                title: 'Congratulations! Share Capital Completed',
+                body: 'Your share capital has been fully paid! You are now eligible to apply for loans.',
+                actionType: 'APPLY_LOAN',
+                route: '/(loan)/',
+                extraData: [
+                    'share_capital_id' => $this->id,
+                    'status' => 'fully_paid',
+                ]
+            ));
+        }
     }
 
     public function onPaymentFailed(Payment $payment): void

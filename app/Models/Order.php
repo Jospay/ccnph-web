@@ -5,11 +5,11 @@ namespace App\Models;
 use App\Enums\OrderStatus;
 use App\Observers\OrderObserver;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 
 #[Fillable([
     'user_id',
@@ -86,6 +86,11 @@ class Order extends Model
     public function shop(): BelongsTo
     {
         return $this->belongsTo(Shop::class);
+    }
+
+    public function store(): BelongsTo
+    {
+        return $this->belongsTo(Shop::class, 'shop_id');
     }
 
     public function checkout(): BelongsTo
