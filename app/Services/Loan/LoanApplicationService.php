@@ -5,8 +5,8 @@ namespace App\Services\Loan;
 use App\Exceptions\Loan\LoanLimitExceededException;
 use App\Models\Loan;
 use App\Models\Status;
-use App\Services\Loan\LoanService;
 use App\Models\User;
+use App\Notifications\GeneralNotification;
 use Illuminate\Support\Facades\DB;
 
 class LoanApplicationService
@@ -16,8 +16,7 @@ class LoanApplicationService
      */
     public function __construct(
         protected LoanService $loanService
-    ) {
-    }
+    ) {}
 
     /**
      * Summary of apply
@@ -25,9 +24,6 @@ class LoanApplicationService
      * Validates the requested amount against the user's loanable limit and computes the loan schedule.
      *
      * @throws LoanLimitExceededException if the requested amount exceeds the user's loanable limit.
-     * @param User $user
-     * @param array $data
-     * @return Loan
      */
     public function apply(User $user, array $data): Loan
     {
@@ -48,7 +44,7 @@ class LoanApplicationService
 
             $firstSchedule = $computed['schedule'][0] ?? null;
 
-            if (!$firstSchedule) {
+            if (! $firstSchedule) {
                 throw new \RuntimeException('Invalid loan schedule generated.');
             }
 
@@ -76,6 +72,20 @@ class LoanApplicationService
                     'due_date' => $item['due_date'],
                 ]);
             }
+
+            // Notify user that the loan application was submitted successfully
+            $user->notify(new GeneralNotification(
+                type: 'loan_application_submitted',
+                title: 'Loan Application Submitted',
+                body: 'Your loan application of ₱'.number_format($loan->amount, 2).' has been submitted. Please wait for approval.',
+                actionType: 'VIEW_LOAN',
+                route: "/(loan)/breakdown?id={$loan->id}&include=user,status,loanSchedules,loanPayments",
+                extraData: [
+                    'loan_id' => $loan->id,
+                    'amount' => $loan->amount,
+                    'status' => 'pending',
+                ]
+            ));
 
             return $loan;
         });
