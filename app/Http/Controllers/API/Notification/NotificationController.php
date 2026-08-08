@@ -13,9 +13,14 @@ class NotificationController extends Controller
      */
     public function index(Request $request)
     {
-        $notifications = $request->user()
+        $query = $request->user()
             ->notifications()
-            ->where('type', GeneralNotification::class)
+            ->where('type', GeneralNotification::class);
+
+        // Clone before mapping so we can still count unread separately
+        $unreadCount = (clone $query)->whereNull('read_at')->count();
+
+        $notifications = $query
             ->latest()
             ->get()
             ->map(function ($notification) {
@@ -37,6 +42,7 @@ class NotificationController extends Controller
         return response()->json([
             'success' => true,
             'data' => $notifications,
+            'unread_count' => $unreadCount,
         ]);
     }
 

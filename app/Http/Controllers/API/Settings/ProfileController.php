@@ -11,6 +11,7 @@ use App\Http\Requests\User\UpdateUserAddressRequest;
 use App\Http\Resources\Api\Store\UserAddressResource;
 use App\Http\Resources\Api\User\ApiProfileResource;
 use App\Models\UserAddress;
+use App\Models\UserAuthDevice;
 use App\Services\User\ProfileService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -279,6 +280,139 @@ class ProfileController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Address deleted successfully.',
+        ]);
+    }
+
+    /**
+     * Get registered authentication devices.
+     *
+     * @tags Settings > Profile > Security
+     */
+    public function authDevices(Request $request): JsonResponse
+    {
+        $devices = $request->user()
+            ->authDevices()
+            ->latest()
+            ->get([
+                'id',
+                'device_id',
+                'platform',
+                'device_name',
+                'biometric_enabled',
+                'last_used_at',
+                'created_at',
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $devices,
+        ]);
+    }
+
+    /**
+     * Register or enable biometric authentication for the current device.
+     *
+     * @tags Settings > Profile > Security
+     */
+    public function registerAuthDevice(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'device_id' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'platform' => [
+                'required',
+                'in:android,ios',
+            ],
+
+            'public_key' => [
+                'required',
+                'string',
+            ],
+
+            'device_name' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+        ]);
+
+        $user = $request->user();
+
+        $device = $user->authDevices()->updateOrCreate(
+            [
+                'device_id' => $validated['device_id'],
+            ],
+            [
+                'platform' => $validated['platform'],
+                'public_key' => $validated['public_key'],
+                'device_name' => $validated['device_name'] ?? null,
+                'biometric_enabled' => true,
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Quick and secure login enabled successfully.',
+            'data' => [
+                'id' => $device->id,
+                'platform' => $device->platform,
+                'device_name' => $device->device_name,
+                'biometric_enabled' => $device->biometric_enabled,
+            ],
+        ]);
+    }
+
+    /**
+     * Disable biometric authentication for a device.
+     *
+     * @tags Settings > Profile > Security
+     */
+    public function disableAuthDevice(
+        Request $request,
+        UserAuthDevice $authDevice
+    ): JsonResponse {
+        if ($authDevice->user_id !== $request->user()->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized Access.',
+            ], 403);
+        }
+
+        $authDevice->update([
+            'biometric_enabled' => false,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Quick and secure login has been disabled.',
+        ]);
+    }
+
+    /**
+     * Remove a registered authentication device.
+     *
+     * @tags Settings > Profile > Security
+     */
+    public function removeAuthDevice(
+        Request $request,
+        UserAuthDevice $authDevice
+    ): JsonResponse {
+        if ($authDevice->user_id !== $request->user()->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized Access.',
+            ], 403);
+        }
+
+        $authDevice->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Authentication device removed successfully.',
         ]);
     }
 }

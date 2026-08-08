@@ -9,6 +9,7 @@ use App\Models\Loan;
 use App\Models\LoanSetting;
 use App\Models\Status;
 use App\Models\UserType;
+use App\Notifications\GeneralNotification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -96,6 +97,19 @@ class LoanAssistanceController extends Controller
                     $loan,
                     "Loan disbursement for Loan ID: #{$loan->id}"
                 );
+
+                $loan->user?->notify(new GeneralNotification(
+                    type: 'loan_approved',
+                    title: 'Loan Approved!',
+                    body: 'Your loan application for ₱'.number_format($loan->amount, 2).' has been approved and disbursed to your wallet.',
+                    actionType: 'VIEW_LOAN',
+                    route: "/(loan)/breakdown?id={$loan->id}&include=user,status,loanSchedules,loanPayments",
+                    extraData: [
+                        'loan_id' => $loan->id,
+                        'amount' => $loan->amount,
+                        'status' => 'active',
+                    ]
+                ));
             });
         }
 
@@ -103,6 +117,19 @@ class LoanAssistanceController extends Controller
             $loan->update([
                 'status_id' => Status::REJECTED,
             ]);
+
+            $loan->user?->notify(new GeneralNotification(
+                type: 'loan_rejected',
+                title: 'Loan Application Declined',
+                body: 'Your loan application for ₱'.number_format($loan->amount, 2).' was not approved.',
+                actionType: 'VIEW_LOAN',
+                route: "/(loan)/breakdown?id={$loan->id}&include=user,status,loanSchedules,loanPayments",
+                extraData: [
+                    'loan_id' => $loan->id,
+                    'amount' => $loan->amount,
+                    'status' => 'rejected',
+                ]
+            ));
         }
 
         return back();

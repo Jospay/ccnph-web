@@ -235,4 +235,9 @@ class User extends Authenticatable
             ->where('status_id', Status::ACTIVE)
             ->exists();
     }
+
+    public function authDevices(): HasMany
+    {
+        return $this->hasMany(UserAuthDevice::class);
+    }
 }

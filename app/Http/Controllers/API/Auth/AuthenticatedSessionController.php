@@ -2,47 +2,22 @@
 
 namespace App\Http\Controllers\API\Auth;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Resources\Api\User\ApiProfileResource;
+use App\Models\User;
+use App\Models\UserAuthDevice;
 use App\Services\Auth\AuthenticationService;
-use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Illuminate\Validation\ValidationException;
 
 class AuthenticatedSessionController extends Controller
 {
     /**
-     * Login.
+     * Store a newly authenticated user session via phone + password.
      *
-     * Authenticate via phone + password and receive a Bearer token.
-     *
-     * @tags Auth
-     * @unauthenticated
-     *
-     * @response 200 {
-     *   "message": "Login successful.",
-     *   "token": "1|abc123...",
-     *   "token_type": "Bearer",
-     *   "user": {
-     *     "id": 1,
-     *     "name": "Juan dela Cruz",
-     *     "phone": "+639171234567"
-     *   }
-     * }
-     * @response 422 {
-     *   "message": "Invalid credentials.",
-     *   "errors": {
-     *     "phone": ["These credentials do not match our records."]
-     *   }
-     * }
-     * @response 403 {
-     *   "message": "Your account has been suspended."
-     * }
-     * @response 500 {
-     *   "message": "Something went wrong."
-     * }
+     * @tags Authentication
      */
     public function store(LoginRequest $request, AuthenticationService $authService): JsonResponse
     {
@@ -67,7 +42,7 @@ class AuthenticatedSessionController extends Controller
                 'message' => $e->getMessage(),
             ], (int) $e->getCode() ?: 500);
 
-        } catch (Exception) {
+        } catch (\Exception) {
             return response()->json([
                 'message' => 'Something went wrong.',
             ], 500);
@@ -75,27 +50,79 @@ class AuthenticatedSessionController extends Controller
     }
 
     /**
-     * Logout.
+     * Authenticate user via biometric device.
      *
-     * Revoke the current Bearer token and end the session.
-     *
-     * @tags Auth
-     *
-     * @response 200 {
-     *   "message": "Logged out successfully."
-     * }
-     * @response 401 {
-     *   "message": "Unauthenticated."
-     * }
+     * @tags Authentication
      */
-    public function destroy(Request $request, AuthenticationService $authService): JsonResponse
+    public function biometricLogin(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'device_id' => ['required', 'string', 'max:255'],
+                'public_key' => ['required', 'string'],
+            ]);
+
+            // Find the auth device
+            $authDevice = UserAuthDevice::where('device_id', $validated['device_id'])
+                ->where('public_key', $validated['public_key'])
+                ->where('biometric_enabled', true)
+                ->first();
+
+            if (! $authDevice) {
+                return response()->json([
+                    'message' => 'Device not registered or biometric authentication not enabled.',
+                ], 401);
+            }
+
+            // Get the user associated with the device
+            $user = $authDevice->user;
+
+            // Verify user is active and phone is verified
+            if (! $user || ! $user->phone_verified_at) {
+                return response()->json([
+                    'message' => 'User account is not verified.',
+                ], 403);
+            }
+
+            // Update last used timestamp
+            $authDevice->update(['last_used_at' => now()]);
+
+            // Create token
+            $token = $user->createToken('biometric-auth-token')->plainTextToken;
+
+            return response()->json([
+                'message' => 'Biometric login successful.',
+                'token' => $token,
+                'token_type' => 'Bearer',
+                'user' => new ApiProfileResource($user),
+            ]);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Validation failed.',
+                'errors' => $e->errors(),
+            ], 422);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Biometric login failed. Please try again.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Destroy an authenticated session.
+     *
+     * @tags Authentication
+     */
+    public function destroy(Request $request): JsonResponse
     {
         if ($request->user()) {
-            $authService->logout($request->user());
+            $request->user()->currentAccessToken()?->delete();
         }
 
         return response()->json([
-            'message' => 'Logged out successfully.',
+            'message' => 'Logout successful.',
         ]);
     }
 }
