@@ -37,6 +37,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('guest')->group(function () {
     // Auth
     Route::post('/login', [AuthenticatedSessionController::class, 'store']);
+    Route::post('/login/biometric', [AuthenticatedSessionController::class, 'biometricLogin']);
     Route::post('/register', [RegisteredUserController::class, 'store'])->middleware('throttle:10,1');
 
     // Verification
@@ -90,6 +91,12 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('address', [ProfileController::class, 'address']);
             Route::put('address/{userAddress}', [ProfileController::class, 'updateAddress']);
             Route::delete('address/{userAddress}', [ProfileController::class, 'deleteAddress']);
+
+            // Quick and Secure Login / Biometric
+            Route::get('auth-devices', [ProfileController::class, 'authDevices']);
+            Route::post('auth-devices', [ProfileController::class, 'registerAuthDevice']);
+            Route::patch('auth-devices/{authDevice}/disable', [ProfileController::class, 'disableAuthDevice']);
+            Route::delete('auth-devices/{authDevice}', [ProfileController::class, 'removeAuthDevice']);
         });
 
     // Wallet Routes
