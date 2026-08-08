@@ -44,7 +44,7 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $user,
+                'user' => $user?->only(['id', 'name', 'email']),
                 'userType' => $user?->userType?->name,
                 'is_seller' => (bool) ($user?->is_seller ?? false),
                 'managed_services' => $user ? $this->getManagedServices($user) : [],
