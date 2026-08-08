@@ -10,7 +10,7 @@ import { ref, computed, h } from 'vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import ConfirmDialog from '@/components/seller/ConfirmDialog.vue';
 import DataTable from '@/components/seller/DataTable.vue';
-import { getSellerOrdersColumns } from '@/components/features/seller/columns';
+import { getSellerOrdersColumns } from '@/features/seller/columns';
 import OrderItemsTable from '@/components/seller/order/OrderItemsTable.vue';
 import OrderDetailsDialog from '@/components/seller/order/OrderDetailsDialog.vue';
 import Pagination from '@/components/seller/Pagination.vue';

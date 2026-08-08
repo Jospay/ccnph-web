@@ -1,4 +1,4 @@
-import { OrderItem } from '../order';
+import { OrderItem } from './order';
 import { LaravelPaginationItem } from './product';
 import { User } from '../auth';
 

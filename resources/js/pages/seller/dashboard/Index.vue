@@ -48,12 +48,12 @@ const props = defineProps<{
   <div v-if="shop.is_active" class="flex flex-col gap-8">
     <ShopHeader :shop="shop" :edit-shop-href="seller.shop.edit.url(shop.slug)">
       <template #actions>
-        <!-- <Link
-                :href="seller.reviews.index()"
-                class="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#009933] px-6 py-3.5 font-bold text-white shadow-md transition-colors hover:bg-green-700 active:scale-95"
-              >
-                <StarIcon class="h-5 w-5" /> View Reviews
-              </Link> -->
+        <Link
+          :href="seller.reviews.index()"
+          class="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#009933] px-6 py-3.5 font-bold text-white shadow-md transition-colors hover:bg-green-700 active:scale-95"
+        >
+          <StarIcon class="h-5 w-5" /> View Reviews
+        </Link>
         <Link
           class="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#009933] px-6 py-3.5 font-bold text-white shadow-md transition-colors hover:bg-green-700 active:scale-95"
         >

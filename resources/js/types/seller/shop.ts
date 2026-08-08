@@ -9,4 +9,7 @@ export interface Shop {
   banner: string | null;
   logo_url: string | null;
   banner_url: string | null;
+  rating: number;
+  reviews_count: number;
+  sold_count: number;
 }
