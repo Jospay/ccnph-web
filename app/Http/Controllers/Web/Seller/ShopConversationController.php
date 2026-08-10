@@ -20,14 +20,17 @@ class ShopConversationController extends Controller
 
     public function index(Request $request): Response
     {
+        $user = $request->user()->loadMissing(['shop']);
+        
         $conversations = ShopConversation::query()
-            ->whereHas('shop', fn ($q) => $q->where('user_id', $request->user()->id))
+            ->whereHas('shop', fn ($q) => $q->where('user_id', $user->id))
             ->with(['pinnable', 'user', 'latestMessage'])
             ->latest('updated_at')
             ->paginate(20);
 
         return Inertia::render('seller/conversations/Index', [
             'conversations' => $conversations,
+            'shop' => $user->shop
         ]);
     }
 
