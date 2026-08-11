@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\SetPasswordRequest;
+use App\Notifications\GeneralNotification;
 use App\Services\Auth\RegistrationService;
 use Illuminate\Http\JsonResponse;
 use RuntimeException;
@@ -12,9 +13,7 @@ use Throwable;
 
 class RegisteredUserController extends Controller
 {
-    public function __construct(private RegistrationService $registrationService)
-    {
-    }
+    public function __construct(private RegistrationService $registrationService) {}
 
     /**
      * Register — Step 1.
@@ -22,6 +21,7 @@ class RegisteredUserController extends Controller
      * Accept name + phone, then send an OTP via Movider.
      *
      * @tags Auth
+     *
      * @unauthenticated
      *
      * @response 201 scenario="New registration" {
@@ -70,6 +70,7 @@ class RegisteredUserController extends Controller
      * verification token obtained from Step 2 (OTP verification).
      *
      * @tags Auth
+     *
      * @unauthenticated
      *
      * @response 201 {
@@ -94,6 +95,18 @@ class RegisteredUserController extends Controller
                 $request->validated('password'),
                 $request->validated('verification_token'),
             );
+
+            $result['user']->notify(new GeneralNotification(
+                type: 'registration_completed',
+                title: 'Registration Successful!',
+                body: 'Your account has been created. You can now complete your profile setup.',
+                actionType: 'VIEW_PROFILE',
+                route: '/profile',
+                extraData: [
+                    'user_id' => $result['user']->id,
+                    'status' => 'registered',
+                ]
+            ));
 
             return response()->json([
                 'message' => 'Registration complete.',
