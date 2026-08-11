@@ -16,7 +16,7 @@ class GeneralNotification extends Notification
      * @param  string  $title  The title displayed to the user
      * @param  string  $body  The main description message
      * @param  string  $actionType  Action key for mobile/web UI (e.g. 'MAKE_PAYMENT', 'VIEW_PROPERTY')
-     * @param  string|null  $route  Direct React Native/Expo router path (e.g. '(intellectual)/details?id=2')
+     * @param  string|null  $route  Direct React Native/Expo router path (e.g. '/(intellectual)/details?id=2')
      * @param  array  $extraData  Any extra dynamic parameters (e.g. ['property_id' => 3])
      */
     public function __construct(
