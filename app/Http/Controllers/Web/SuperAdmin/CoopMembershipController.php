@@ -3,16 +3,16 @@
 namespace App\Http\Controllers\Web\SuperAdmin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\User;
-use App\Models\UserType;
-use App\Models\Status;
-use App\Http\Resources\MemberUserResource;
 use App\Http\Resources\MemberUserDetailResource;
+use App\Http\Resources\MemberUserResource;
+use App\Models\Status;
+use App\Models\User;
+use App\Notifications\GeneralNotification;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use Inertia\Response;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class CoopMembershipController extends Controller
 {
@@ -32,7 +32,7 @@ class CoopMembershipController extends Controller
 
         // Resolve status safely
         $status = $validated['status'] ?? null;
-        if (!$status || !in_array($status, $allowedStatuses)) {
+        if (! $status || ! in_array($status, $allowedStatuses)) {
             $status = $type === 'basic' ? 'for_approval' : 'active';
         }
 
@@ -45,7 +45,7 @@ class CoopMembershipController extends Controller
 
         return Inertia::render('coop-membership/Index', [
             'member_users' => MemberUserResource::collection($memberUsers),
-            'filters' => $filters
+            'filters' => $filters,
         ]);
     }
 
@@ -58,8 +58,8 @@ class CoopMembershipController extends Controller
             'status:id,name',
             'userType:id,name',
         ])
-        ->whereHas('status', fn($q) => $q->where('name', $filters['status']))
-        ->whereHas('userType', fn($q) => $q->where('name', $filters['type']));
+            ->whereHas('status', fn ($q) => $q->where('name', $filters['status']))
+            ->whereHas('userType', fn ($q) => $q->where('name', $filters['type']));
 
         return $query;
     }
@@ -74,6 +74,25 @@ class CoopMembershipController extends Controller
         return MemberUserDetailResource::make($user);
     }
 
+    // public function updateStatus(User $user, Request $request)
+    // {
+    //     $action = $request->input('action');
+
+    //     if ($action === 'approve' && $user->status_id === Status::FOR_APPROVAL) {
+    //         $user->update([
+    //             'status_id' => Status::APPROVED,
+    //         ]);
+    //     }
+
+    //     if ($action === 'decline' && $user->status_id === Status::FOR_APPROVAL) {
+    //         $user->update([
+    //             'status_id' => Status::ACTIVE,
+    //         ]);
+    //     }
+
+    //     return back();
+    // }
+
     public function updateStatus(User $user, Request $request)
     {
         $action = $request->input('action');
@@ -82,13 +101,52 @@ class CoopMembershipController extends Controller
             $user->update([
                 'status_id' => Status::APPROVED,
             ]);
+
+            // Notification 1: Profile approved
+            $user->notify(new GeneralNotification(
+                type: 'profile_approved',
+                title: 'Profile Approved!',
+                body: 'Your profile has been approved.',
+                actionType: 'VIEW_PROFILE',
+                route: '/profile',
+                extraData: [
+                    'user_id' => $user->id,
+                    'status' => 'approved',
+                ]
+            ));
+
+            // Notification 2: Membership prompt
+            $user->notify(new GeneralNotification(
+                type: 'coop_membership_available',
+                title: 'You can now join the Cooperative!',
+                body: 'You are now eligible to join the cooperative membership.',
+                actionType: 'VIEW_MEMBERSHIP',
+                route: '/(coop)/',
+                extraData: [
+                    'user_id' => $user->id,
+                    'status' => 'eligible',
+                ]
+            ));
         }
 
         if ($action === 'decline' && $user->status_id === Status::FOR_APPROVAL) {
             $user->update([
-                'status_id' => Status::ACTIVE,
+                'status_id' => Status::REJECTED,
             ]);
-        }   
+
+            // Notification: Profile declined
+            $user->notify(new GeneralNotification(
+                type: 'profile_declined',
+                title: 'Profile Update Declined',
+                body: 'Your profile update was not approved. Please chat with our support team for more details.    ',
+                actionType: 'VIEW_PROFILE',
+                route: '/profile',
+                extraData: [
+                    'user_id' => $user->id,
+                    'status' => 'declined',
+                ]
+            ));
+        }
 
         return back();
     }
