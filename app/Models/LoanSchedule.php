@@ -52,4 +52,9 @@ class LoanSchedule extends Model implements Payable
     {
         //
     }
+
+    public function cooperativeServiceSlug(): ?string
+    {
+        return 'loan-assistance';
+    }
 }

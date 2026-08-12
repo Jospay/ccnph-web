@@ -49,4 +49,9 @@ class ShareCapitalSchedule extends Model implements Payable
     {
         // schedule stays unpaid, nothing to do
     }
+
+    public function cooperativeServiceSlug(): ?string
+    {
+        return 'share-capital';
+    }
 }

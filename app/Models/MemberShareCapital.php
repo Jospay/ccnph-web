@@ -95,4 +95,9 @@ class MemberShareCapital extends Model implements Payable
     {
         // nothing to do
     }
+
+    public function cooperativeServiceSlug(): ?string
+    {
+        return 'share-capital'; // Return the appropriate slug string or null
+    }
 }
