@@ -9,6 +9,7 @@ use App\Services\Shop\ShopConversationNotifier;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -28,13 +29,23 @@ class ShopConversationController extends Controller
             ->latest('updated_at')
             ->paginate(20);
 
+        $conversations->getCollection()->transform(function ($conversation) {
+            if ($conversation->user?->avatar) {
+                $conversation->user->avatar = Storage::url(
+                    $conversation->user->avatar
+                );
+            }
+
+            return $conversation;
+        });
+
         return Inertia::render('seller/conversations/Index', [
             'conversations' => $conversations,
             'shop' => $user->shop
         ]);
     }
 
-    public function show(ShopConversation $conversation, Request $request): Response
+    public function show(ShopConversation $conversation): Response
     {
         Gate::authorize('view', $conversation);
 
@@ -47,10 +58,17 @@ class ShopConversationController extends Controller
             'shop',
         ]);
 
+        if ($conversation->user?->avatar) {
+            $conversation->user->avatar = Storage::url(
+                $conversation->user->avatar
+            );
+        }
+
         $conversation->update(['shop_read_at' => now()]);
 
         return Inertia::render('seller/conversations/Show', [
             'conversation' => $conversation,
+            'shop' => $conversation->shop
         ]);
     }
 
