@@ -65,4 +65,9 @@ class Wallet extends Model implements Payable
     {
         // nothing to do
     }
+
+    public function cooperativeServiceSlug(): ?string
+    {
+        return 'wallet';
+    }
 }

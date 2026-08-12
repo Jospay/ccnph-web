@@ -12,6 +12,7 @@ use App\Http\Resources\Api\Store\UserAddressResource;
 use App\Http\Resources\Api\User\ApiProfileResource;
 use App\Models\UserAddress;
 use App\Models\UserAuthDevice;
+use App\Notifications\GeneralNotification;
 use App\Services\User\ProfileService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -127,9 +128,21 @@ class ProfileController extends Controller
     {
         $updatedUser = $this->profileService->updateProfile($request->user(), $request);
 
+        $updatedUser->notify(new GeneralNotification(
+            type: 'profile_submitted',
+            title: 'Profile Submitted',
+            body: 'Your account details have been completed. Please wait 2-3 days for approval.',
+            actionType: 'VIEW_PROFILE',
+            route: '/profile',
+            extraData: [
+                'user_id' => $updatedUser->id,
+                'status' => 'for_approval',
+            ]
+        ));
+
         return response()->json([
             'success' => true,
-            'message' => 'Your account details have been completed. Please wait 2-3 days for approval. Updates will be sent to your email.',
+            'message' => 'Your account details have been completed. Please wait 2-3 days for approval.',
             'data' => new ApiProfileResource($updatedUser),
         ]);
     }

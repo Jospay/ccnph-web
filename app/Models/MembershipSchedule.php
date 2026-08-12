@@ -38,7 +38,6 @@ class MembershipSchedule extends Model implements Payable
         return $this->morphMany(Payment::class, 'payable');
     }
 
-    // Payable contract — mark itself paid then bubble up
     public function onPaymentSuccess(Payment $payment): void
     {
         $this->update(['status_id' => Status::PAID]);
@@ -48,5 +47,10 @@ class MembershipSchedule extends Model implements Payable
     public function onPaymentFailed(Payment $payment): void
     {
         //
+    }
+
+    public function cooperativeServiceSlug(): ?string
+    {
+        return 'coop-membership';
     }
 }

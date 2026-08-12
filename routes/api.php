@@ -8,6 +8,7 @@ use App\Http\Controllers\API\BusinessTraining\TrainingController;
 use App\Http\Controllers\API\BusinessTraining\TypeController;
 use App\Http\Controllers\API\Conversation\ConversationController;
 use App\Http\Controllers\API\Conversation\MessageController;
+use App\Http\Controllers\API\Cooperative\CooperativeTransparencyController;
 use App\Http\Controllers\API\IntellectualProperty\IntellectualPropertyController;
 use App\Http\Controllers\API\Loan\LoanController;
 use App\Http\Controllers\API\Membership\MembershipController;
@@ -99,6 +100,15 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::delete('auth-devices/{authDevice}', [ProfileController::class, 'removeAuthDevice']);
         });
 
+    // Cooperative Transparency Routes
+    Route::prefix('cooperative')
+        ->middleware('role.api:'.UserType::MEMBER)
+        ->group(function () {
+            Route::get('years', [CooperativeTransparencyController::class, 'years']);
+            Route::get('services', [CooperativeTransparencyController::class, 'services']);
+            Route::get('summary', [CooperativeTransparencyController::class, 'summary']);
+        });
+
     // Wallet Routes
     Route::prefix('wallet')
         ->middleware('role.api:'.UserType::MEMBER)
@@ -161,7 +171,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Conversation Routes
     Route::prefix('conversations')
-        ->middleware('role.api:'.UserType::MEMBER)
+        ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER)
         ->group(function () {
             Route::get('/', [ConversationController::class, 'index']);
             Route::get('{conversation}', [ConversationController::class, 'show']);
