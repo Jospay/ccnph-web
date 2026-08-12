@@ -59,7 +59,7 @@ class MembershipApplicationService
             $user->notify(new GeneralNotification(
                 type: 'membership_application_submitted',
                 title: 'Membership Application Submitted',
-                body: 'Your membership application of ₱'.number_format($membership->amount, 2).' has been submitted. Please complete your payment to become a full member.',
+                body: 'Your membership application of ₱'.number_format($membership->amount / 100, 2).' has been submitted. Please complete your payment to become a full member.',
                 actionType: 'VIEW_MEMBERSHIP',
                 route: '/(coop)/',
                 extraData: [
