@@ -1,8 +1,10 @@
 <?php
 
 // app/Models/MemberMembership.php
+
 namespace App\Models;
 
+use App\Notifications\GeneralNotification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -55,6 +57,7 @@ class MemberMembership extends Model
     }
 
     // called by MembershipSchedule::onPaymentSuccess after each paid schedule
+    // called by MembershipSchedule::onPaymentSuccess after each paid schedule
     public function tryActivate(): void
     {
         $schedules = $this->schedules();
@@ -62,7 +65,7 @@ class MemberMembership extends Model
         $hasSchedules = $schedules->exists();
         $hasUnpaid = $schedules->where('status_id', '!=', Status::PAID)->exists();
 
-        if (!$hasSchedules || $hasUnpaid) {
+        if (! $hasSchedules || $hasUnpaid) {
             return;
         }
 
@@ -78,5 +81,18 @@ class MemberMembership extends Model
                 'user_type_id' => UserType::MEMBER,
             ]);
         });
+
+        $this->user?->notify(new GeneralNotification(
+            type: 'membership_activated',
+            title: 'Membership Activated!',
+            body: 'Congratulations! Your membership has been fully paid and is now active.',
+            actionType: 'VIEW_MEMBERSHIP',
+            route: '/(coop)/',
+            extraData: [
+                'membership_id' => $this->id,
+                'amount' => $this->amount,
+                'status' => 'active',
+            ]
+        ));
     }
 }

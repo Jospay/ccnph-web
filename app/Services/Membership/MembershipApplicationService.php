@@ -10,6 +10,8 @@ use App\Models\MembershipSchedule;
 use App\Models\MembershipSetting;
 use App\Models\Status;
 use App\Models\User;
+use App\Notifications\GeneralNotification;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\DB;
 
 class MembershipApplicationService
@@ -17,7 +19,7 @@ class MembershipApplicationService
     public function apply(User $user, int $termMonths): MemberMembership
     {
         $setting = MembershipSetting::current();
-        if (!in_array($termMonths, $setting->allowed_term_months)) {
+        if (! in_array($termMonths, $setting->allowed_term_months)) {
             throw new MembershipInvalidTermException($termMonths, $setting->allowed_term_months);
         }
 
@@ -51,7 +53,23 @@ class MembershipApplicationService
             ]);
 
             $this->generateSchedules($membership);
-            return $membership->load('schedules');
+            $membership->load('schedules');
+
+            // Notify user that the membership application was submitted successfully
+            $user->notify(new GeneralNotification(
+                type: 'membership_application_submitted',
+                title: 'Membership Application Submitted',
+                body: 'Your membership application of ₱'.number_format($membership->amount, 2).' has been submitted. Please complete your payment to become a full member.',
+                actionType: 'VIEW_MEMBERSHIP',
+                route: '/(coop)/',
+                extraData: [
+                    'membership_id' => $membership->id,
+                    'amount' => $membership->amount,
+                    'status' => 'approved',
+                ]
+            ));
+
+            return $membership;
         });
     }
 
@@ -64,7 +82,7 @@ class MembershipApplicationService
         $schedule->loadMissing('membership');
         $membership = $schedule->membership;
 
-        if (!$membership) {
+        if (! $membership) {
             throw new \Exception('Membership record not found for this schedule.', 404);
         }
 
@@ -83,7 +101,7 @@ class MembershipApplicationService
             ->where('status_id', Status::PENDING)
             ->update(['status_id' => Status::CANCELLED]);
 
-        $paymentService = app(\App\Services\Membership\MembershipPaymentService::class);
+        $paymentService = app(MembershipPaymentService::class);
 
         return $paymentService->initiate(
             schedule: $schedule,
@@ -97,8 +115,8 @@ class MembershipApplicationService
             ->whereIn('status_id', [Status::APPROVED, Status::ACTIVE])
             ->first();
 
-        if (!$membership) {
-            throw new \Illuminate\Http\Exceptions\HttpResponseException(
+        if (! $membership) {
+            throw new HttpResponseException(
                 response()->json([
                     'success' => false,
                     'message' => 'No active or pending membership found to cancel.',
@@ -107,7 +125,7 @@ class MembershipApplicationService
         }
 
         if ($membership->status_id === Status::ACTIVE) {
-            throw new \Illuminate\Http\Exceptions\HttpResponseException(
+            throw new HttpResponseException(
                 response()->json([
                     'success' => false,
                     'message' => 'Cannot cancel an active membership.',
@@ -149,7 +167,7 @@ class MembershipApplicationService
             ->whereIn('status_id', [Status::APPROVED, Status::ACTIVE])
             ->first();
 
-        if (!$existing) {
+        if (! $existing) {
             return;
         }
 
