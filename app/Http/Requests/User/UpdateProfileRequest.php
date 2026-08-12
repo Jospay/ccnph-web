@@ -37,8 +37,8 @@ class UpdateProfileRequest extends FormRequest
 
             'valid_id_type' => 'required|in:National ID,Passport,Driver License',
             'valid_id_number' => "required|string|max:20|unique:users,valid_id_number,{$userId}",
-            'front_valid_id_picture' => $this->hasFile('front_valid_id_picture') ? 'required|image|max:5120' : 'nullable',
-            'back_valid_id_picture' => $this->hasFile('back_valid_id_picture') ? 'required|image|max:5120' : 'nullable',
+            'front_valid_id_picture' => $this->hasFile('front_valid_id_picture') ? 'required|image|max:10240' : 'nullable',
+            'back_valid_id_picture' => $this->hasFile('back_valid_id_picture') ? 'required|image|max:10240' : 'nullable',
             'street' => 'required|string',
             'postal_code' => 'required|string|max:20',
         ];
