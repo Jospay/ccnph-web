@@ -49,4 +49,9 @@ class IntellectualPropertySchedule extends Model implements Payable
     {
         //
     }
+
+    public function cooperativeServiceSlug(): ?string
+    {
+        return 'intellectual-property-assistance'; // Return your slug string or null
+    }
 }
