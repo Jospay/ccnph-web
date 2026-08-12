@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Link, usePage, router } from '@inertiajs/vue3';
-import { ref, onMounted, onUnmounted, computed } from 'vue';
 import {
   SunIcon,
   MoonIcon,
@@ -11,13 +10,16 @@ import {
   HandshakeIcon,
   MenuIcon,
   XIcon,
+DownloadIcon,
 } from 'lucide-vue-next';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+
 import { logout, login } from '@/routes';
-import type { NavItem, NavProps } from '@/types/landing/index';
-import JoinUs from './JoinUs.vue';
 import { home } from '@/routes';
 import dashboard from '@/routes/dashboard';
 import seller from '@/routes/seller';
+import type { NavItem, NavProps } from '@/types/landing/index';
+import JoinUs from './JoinUs.vue';
 
 const props = defineProps<NavProps>();
 
@@ -109,12 +111,14 @@ onMounted(() => {
 
   // Check if we arrived from another page with a pending scroll target
   const pendingSection = sessionStorage.getItem('scrollToSection');
+
   if (pendingSection) {
     sessionStorage.removeItem('scrollToSection');
 
     // Use a slight timeout to ensure the DOM is fully rendered after page load
     setTimeout(() => {
       const element = document.getElementById(pendingSection);
+      
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
       }
@@ -408,7 +412,33 @@ onUnmounted(() => {
 
             <div class="no-scrollbar overflow-y-auto p-6 sm:p-8">
               <!-- Join Us Modal -->
-              <JoinUs v-if="activeModal === 'join'" />
+                            <div v-if="activeModal === 'join'" class="flex flex-col">
+                <JoinUs />
+
+                <!-- Download APK Section -->
+                <div
+                  class="mt-8 flex flex-col items-center border-t border-gray-200 pt-6 dark:border-white/10"
+                >
+                  <p
+                    class="mb-4 text-center text-sm text-gray-600 dark:text-gray-300"
+                  >
+                    Get our Android app directly.
+                  </p>
+                  <button
+                    class="flex w-full items-center justify-center gap-3 rounded-xl bg-green-600 px-6 py-3.5 text-sm font-semibold text-white shadow-md transition-opacity hover:opacity-90 sm:w-auto"
+                  >
+                    <DownloadIcon class="h-6 w-6" />
+                    <div
+                      class="flex flex-col items-start text-left leading-none"
+                    >
+                      <span class="text-[10px] font-medium opacity-80"
+                        >DOWNLOAD</span
+                      >
+                      <span class="text-base font-bold">APK File</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
 
               <!-- Shop App Download Modal -->
               <div
@@ -454,7 +484,7 @@ onUnmounted(() => {
                 <div
                   class="flex flex-col items-center justify-center gap-4 sm:flex-row"
                 >
-                  <button
+                  <!-- <button
                     class="flex w-full items-center justify-center gap-3 rounded-xl bg-gray-900 px-6 py-3.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 sm:w-auto dark:bg-white dark:text-gray-900"
                   >
                     <svg
@@ -497,6 +527,21 @@ onUnmounted(() => {
                         >GET IT ON</span
                       >
                       <span class="text-base font-bold">Google Play</span>
+                    </div>
+                  </button> -->
+
+                  <!-- Download APK Button -->
+                <button
+                    class="flex w-full items-center justify-center gap-3 rounded-xl bg-green-600 px-16 py-3.5 text-sm font-semibold text-white shadow-md transition-opacity hover:opacity-90 sm:w-auto"
+                  >
+                    <DownloadIcon class="h-6 w-6" />
+                    <div
+                      class="flex flex-col items-start text-left leading-none"
+                    >
+                      <span class="text-[10px] font-medium opacity-80"
+                        >DOWNLOAD</span
+                      >
+                      <span class="text-base font-bold">APK File</span>
                     </div>
                   </button>
                 </div>
