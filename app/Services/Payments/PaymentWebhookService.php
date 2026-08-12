@@ -2,15 +2,20 @@
 
 namespace App\Services\Payments;
 
-use App\Models\Payment;
 use App\Contracts\Payable;
+use App\Models\Payment;
 use App\Models\PaymentGatewayLog;
 use App\Models\Status;
+use App\Services\Cooperative\CooperativeRevenueAllocatorService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class PaymentWebhookService
 {
+    public function __construct(
+        private readonly CooperativeRevenueAllocatorService $revenueAllocator
+    ) {}
+
     /**
      * Create a new class instance.
      */
@@ -22,7 +27,7 @@ class PaymentWebhookService
         $status = $this->normalizeStatus($gatewayStatus);
         $payment = Payment::where('gateway_payment_intent_id', $gatewayPaymentIntentId)->first();
 
-        if (!$payment) {
+        if (! $payment) {
             Log::warning('Webhook received for unknown payment intent.', [
                 'intent_id' => $gatewayPaymentIntentId,
             ]);
@@ -35,6 +40,7 @@ class PaymentWebhookService
                     'status' => $status,
                 ],
             ]);
+
             return;
         }
 
@@ -47,13 +53,14 @@ class PaymentWebhookService
                 'event' => 'already_processed',
                 'payload' => [],
             ]);
+
             return;
         }
 
         $payable = $payment->payable;
 
         // check the contract
-        if (!$payable instanceof Payable) {
+        if (! $payable instanceof Payable) {
             Log::warning('Payable does not implement Payable contract.', [
                 'payment_id' => $payment->id,
                 'payable_type' => $payment->payable_type,
@@ -64,6 +71,7 @@ class PaymentWebhookService
                 'event' => 'invalid_payable',
                 'payload' => ['type' => $payment->payable_type],
             ]);
+
             return;
         }
 
@@ -76,6 +84,14 @@ class PaymentWebhookService
 
                 // delegates to Payable model
                 $payable->onPaymentSuccess($payment);
+
+                // record this transaction's share into the cooperative fund
+                if ($slug = $payable->cooperativeServiceSlug()) {
+                    $this->revenueAllocator->allocate(
+                        serviceSlug: $slug,
+                        amount: $payment->amount / 100, // ASSUMPTION: Payment::amount is stored in cents — confirm below
+                    );
+                }
 
                 PaymentGatewayLog::create([
                     'payment_id' => $payment->id,
