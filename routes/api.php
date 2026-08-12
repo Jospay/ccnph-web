@@ -171,7 +171,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Conversation Routes
     Route::prefix('conversations')
-        ->middleware('role.api:'.UserType::MEMBER)
+        ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER)
         ->group(function () {
             Route::get('/', [ConversationController::class, 'index']);
             Route::get('{conversation}', [ConversationController::class, 'show']);
