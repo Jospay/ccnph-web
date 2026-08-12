@@ -31,7 +31,7 @@ class UpdateProfileRequest extends FormRequest
             'birthdate' => 'required|date|before:today',
             'email' => "required|email|unique:users,email,{$userId}",
             'region' => 'required|string',
-            'province' => 'required|string',
+            'province' => 'nullable|string',
             'city' => 'required|string',
             'barangay' => 'required|string',
 
