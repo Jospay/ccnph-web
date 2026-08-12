@@ -1,21 +1,39 @@
 <script setup lang="ts">
 import { Head, router, usePage } from '@inertiajs/vue3';
+import {
+  ChevronRightIcon,
+  MessageCircleMoreIcon,
+  StarIcon,
+  AwardIcon,
+  BoxIcon,
+  PaperclipIcon,
+  SendIcon,
+  FileTextIcon,
+} from 'lucide-vue-next';
 import { useEcho } from '@laravel/echo-vue';
 import { ref, computed, nextTick, onMounted, watch } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  Message,
+  MessageAvatar,
+  MessageContent,
+  MessageFooter,
+  MessageGroup,
+  MessageHeader,
+} from '@/components/ui/message';
+import { Bubble, BubbleContent } from '@/components/ui/bubble';
+import Breadcrumbs from '@/components/Breadcrumbs.vue';
+import ShopHeader from '@/components/seller/shop/ShopHeader.vue';
 import sellerConversations from '@/routes/seller/conversations';
-import type { Auth } from '@/types';
+import seller from '@/routes/seller';
+import type { Auth, User, Shop } from '@/types';
 
 interface Attachment {
   id: number;
   path: string;
   original_name: string;
-}
-
-interface Person {
-  id: number;
-  name: string;
 }
 
 interface Pinnable {
@@ -29,7 +47,7 @@ interface Message {
   id: number;
   body: string | null;
   created_at: string;
-  sender: Person;
+  sender: User;
   attachments: Attachment[];
   context_type: string | null;
   context_id: number | null;
@@ -37,8 +55,8 @@ interface Message {
 
 interface ConversationData {
   id: number;
-  user: Person;
-  shop: { id: number; name: string; user: Person };
+  user: User;
+  shop: Shop;
   pinnable_type: string | null;
   pinnable: Pinnable | null;
   messages: Message[];
@@ -46,16 +64,8 @@ interface ConversationData {
 
 const props = defineProps<{
   conversation: ConversationData;
+  shop: Shop;
 }>();
-
-defineOptions({
-  layout: {
-    breadcrumbs: [
-      { title: 'Shop Conversations', href: sellerConversations.index() },
-      { title: 'Conversation' },
-    ],
-  },
-});
 
 const page = usePage<{ auth: Auth }>();
 const currentUserId = computed(() => page.props.auth.user?.id);
@@ -81,10 +91,61 @@ const pinnedLabel = computed(() => {
   return item.name ?? `${type} #${item.id}`;
 });
 
+// Group consecutive messages from the same sender so the UI can render
+// a single MessageGroup with one avatar/header per burst, shadcn-chat style.
+interface RenderGroup {
+  key: string;
+  sender: User;
+  own: boolean;
+  items: Message[];
+}
+
+const groupedMessages = computed<RenderGroup[]>(() => {
+  const groups: RenderGroup[] = [];
+
+  for (const message of messages.value) {
+    const own = message.sender.id === currentUserId.value;
+    const last = groups[groups.length - 1];
+
+    if (last && last.sender.id === message.sender.id) {
+      last.items.push(message);
+    } else {
+      groups.push({
+        key: `${message.sender.id}-${message.id}`,
+        sender: message.sender,
+        own,
+        items: [message],
+      });
+    }
+  }
+
+  return groups;
+});
+
+function initials(name: string) {
+  return name
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+function formatDateTime(date: string) {
+  return new Date(date).toLocaleString([], {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 function scrollToBottom() {
   nextTick(() => {
     scrollContainer.value?.scrollTo({
       top: scrollContainer.value.scrollHeight,
+      behavior: 'smooth',
     });
   });
 }
@@ -151,76 +212,155 @@ function sendMessage() {
   );
 }
 
-function isOwnMessage(message: Message): boolean {
-  return message.sender.id === currentUserId.value;
-}
+const breadcrumbs = [
+  {
+    title: 'Dashboard',
+    href: seller.dashboard.index(),
+  },
+  {
+    title: 'Conversations',
+    href: seller.conversations.index(),
+  },
+  {
+    title: `${props.conversation.id}`,
+    href: seller.conversations.show(props.conversation.id),
+  },
+];
 </script>
 
 <template>
   <Head title="Conversation" />
 
-  <div class="flex h-[calc(100vh-8rem)] flex-col gap-3 p-4">
+  <div class="mb-5 px-5">
+    <Breadcrumbs :breadcrumbs="breadcrumbs" />
+  </div>
+
+  <ShopHeader :shop="shop">
+    <template #details>
+      <div
+        class="flex items-center rounded-lg border border-zinc-200 bg-zinc-100 px-3 py-1.5 text-sm text-zinc-600 transition-colors dark:border-zinc-700/50 dark:bg-zinc-800/50 dark:text-zinc-300"
+      >
+        <StarIcon class="mr-1.5 h-4 w-4 fill-current text-amber-400" />
+        <span class="font-bold text-zinc-800 dark:text-zinc-100">
+          {{ shop.rating.toFixed(1) }}
+        </span>
+        <span class="ml-1 text-xs text-zinc-600 dark:text-zinc-400">
+          ({{ shop.reviews_count }} reviews)
+        </span>
+      </div>
+
+      <div
+        class="flex items-center rounded-lg border border-zinc-200 bg-zinc-100 px-3 py-1.5 text-sm text-zinc-600 transition-colors dark:border-zinc-700/50 dark:bg-zinc-800/50 dark:text-zinc-300"
+      >
+        <BoxIcon
+          class="mr-1.5 h-4 w-4 fill-white text-zinc-400 dark:fill-black"
+        />
+        <span class="font-bold text-zinc-800 dark:text-zinc-100">
+          {{ shop.sold_count }}
+        </span>
+        <span class="ml-1 text-xs text-zinc-600 dark:text-zinc-400">sold</span>
+      </div>
+    </template>
+    <template #actions>
+      <span
+        v-if="shop.is_official"
+        class="mx-auto flex w-max items-center rounded bg-[#009933] py-2 ps-2 pe-3.5 text-[10px] font-black tracking-wider text-white uppercase shadow-sm md:mx-0"
+      >
+        <AwardIcon class="mr-1.5 h-4 w-4 fill-amber-400" />
+        Official Shop
+      </span>
+    </template>
+  </ShopHeader>
+
+  <div class="flex h-[calc(80vh-8rem)] flex-col gap-3 p-4">
     <!-- Pinned context banner -->
     <div
       v-if="pinnedLabel"
       class="flex items-center gap-3 rounded-lg border bg-muted/40 p-3"
     >
-      <div class="size-10 shrink-0 rounded bg-muted" />
+      <div
+        class="flex size-10 shrink-0 items-center justify-center rounded bg-muted"
+      >
+        <MessageCircleMoreIcon class="size-5 text-muted-foreground" />
+      </div>
       <div>
+        <p class="text-xs text-muted-foreground">Regarding</p>
         <p class="text-sm font-medium">{{ pinnedLabel }}</p>
       </div>
     </div>
 
+    <!-- Messages -->
     <div
       ref="scrollContainer"
-      class="flex flex-1 flex-col gap-3 overflow-y-auto rounded-lg border p-4"
+      class="flex flex-1 flex-col gap-6 overflow-y-auto rounded-lg border bg-card p-4"
     >
-      <div
-        v-for="message in messages"
-        :key="message.id"
-        class="flex flex-col gap-1"
-        :class="isOwnMessage(message) ? 'items-end' : 'items-start'"
-      >
-        <span class="text-xs text-muted-foreground">{{
-          message.sender.name
-        }}</span>
-
-        <div
-          class="max-w-md rounded-lg px-3 py-2 text-sm"
-          :class="
-            isOwnMessage(message)
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-muted'
-          "
+      <MessageGroup v-for="group in groupedMessages" :key="group.key">
+        <Message
+          v-for="(message, index) in group.items"
+          :key="message.id"
+          :align="group.own ? 'end' : 'start'"
         >
-          <p v-if="message.body">{{ message.body }}</p>
+          <MessageAvatar v-if="index === group.items.length - 1">
+            <Avatar>
+              <AvatarImage
+                v-if="group.sender.avatar"
+                :src="group.sender.avatar"
+                :alt="group.sender.name"
+              />
+              <AvatarFallback>{{ initials(group.sender.name) }}</AvatarFallback>
+            </Avatar>
+          </MessageAvatar>
+          <MessageAvatar v-else class="invisible" />
 
-          <div
-            v-if="message.attachments.length > 0"
-            class="mt-1 flex flex-col gap-1"
-          >
-            
-              <a v-for="attachment in message.attachments"
-              :key="attachment.id"
-              :href="`/storage/${attachment.path}`"
-              target="_blank"
-              class="text-xs underline"
-            >
-              {{ attachment.original_name }}
-            </a>
-          </div>
-        </div>
+          <MessageContent>
+            <MessageHeader v-if="index === 0">
+              <span class="text-sm font-medium">{{ group.sender.name }}</span>
+            </MessageHeader>
 
-        <span class="text-xs text-muted-foreground">
-          {{ new Date(message.created_at).toLocaleTimeString() }}
-        </span>
+            <Bubble :variant="group.own ? 'default' : 'secondary'">
+              <BubbleContent>
+                <p v-if="message.body" class="text-sm whitespace-pre-wrap">
+                  {{ message.body }}
+                </p>
+
+                <div
+                  v-if="message.attachments.length > 0"
+                  class="mt-2 flex flex-col gap-1.5"
+                  :class="{ 'pt-2': message.body }"
+                >
+                  <a
+                    v-for="attachment in message.attachments"
+                    :key="attachment.id"
+                    :href="`/storage/${attachment.path}`"
+                    target="_blank"
+                    class="flex items-center gap-1.5 rounded-md bg-black/5 px-2 py-1.5 text-xs underline underline-offset-2 dark:bg-white/10"
+                  >
+                    <FileTextIcon class="size-3.5 shrink-0" />
+                    <span class="truncate">{{ attachment.original_name }}</span>
+                  </a>
+                </div>
+              </BubbleContent>
+            </Bubble>
+
+            <MessageFooter>
+              <span class="text-xs text-muted-foreground">
+                {{ formatDateTime(message.created_at) }}
+              </span>
+            </MessageFooter>
+          </MessageContent>
+        </Message>
+      </MessageGroup>
+
+      <div
+        v-if="messages.length === 0"
+        class="flex flex-1 flex-col items-center justify-center gap-2 text-muted-foreground"
+      >
+        <MessageCircleMoreIcon class="size-8" />
+        <p class="text-sm">No messages yet. Say hello.</p>
       </div>
-
-      <p v-if="messages.length === 0" class="text-center text-muted-foreground">
-        No messages yet.
-      </p>
     </div>
 
+    <!-- Composer -->
     <form class="flex flex-col gap-2" @submit.prevent="sendMessage">
       <Textarea
         v-model="body"
@@ -230,19 +370,28 @@ function isOwnMessage(message: Message): boolean {
       />
 
       <div class="flex items-center justify-between gap-2">
-        <input
-          type="file"
-          multiple
-          accept=".jpg,.jpeg,.png,.pdf"
-          class="text-sm"
-          @change="handleFileChange"
-        />
-        <Button type="submit">Send</Button>
-      </div>
+        <label
+          class="flex cursor-pointer items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <PaperclipIcon class="size-4" />
+          <span v-if="files.length > 0"
+            >{{ files.length }} file(s) selected</span
+          >
+          <span v-else>Attach files</span>
+          <input
+            type="file"
+            multiple
+            accept=".jpg,.jpeg,.png,.pdf"
+            class="hidden"
+            @change="handleFileChange"
+          />
+        </label>
 
-      <p v-if="files.length > 0" class="text-xs text-muted-foreground">
-        {{ files.length }} file(s) selected
-      </p>
+        <Button type="submit">
+          <SendIcon class="mr-1.5 size-4" />
+          Send
+        </Button>
+      </div>
     </form>
   </div>
 </template>

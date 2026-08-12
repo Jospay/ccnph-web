@@ -1,22 +1,18 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import {
-  AlertCircleIcon,
-  MessageSquareOffIcon,
+  ChevronRightIcon,
+  MessageCircleMoreIcon,
   StarIcon,
   AwardIcon,
   BoxIcon,
 } from 'lucide-vue-next';
-import sellerConversations from '@/routes/seller/conversations';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
+import { Card, CardContent } from '@/components/ui/card';
+import sellerConversations from '@/routes/seller/conversations';
 import ShopHeader from '@/components/seller/shop/ShopHeader.vue';
 import seller from '@/routes/seller';
-import type { Shop } from '@/types';
-
-interface Person {
-  id: number;
-  name: string;
-}
+import type { Shop, User } from '@/types';
 
 interface Pinnable {
   id: number;
@@ -34,7 +30,7 @@ interface LastMessage {
 
 interface ConversationListItem {
   id: number;
-  user: Person;
+  user: User;
   pinnable_type: string | null;
   pinnable: Pinnable | null;
   latest_message: LastMessage | null;
@@ -152,43 +148,105 @@ const breadcrumbs = [
       </template>
     </ShopHeader>
 
-    <div class="flex flex-col divide-y rounded-lg border">
-      <p
-        v-if="props.conversations.data.length === 0"
-        class="p-6 text-center text-muted-foreground"
-      >
-        No conversations yet.
-      </p>
-
+    <div
+      v-if="props.conversations.data.length > 0"
+      class="overflow-hidden rounded-xl border bg-card shadow-sm"
+    >
       <Link
         v-for="conversation in props.conversations.data"
         :key="conversation.id"
         :href="sellerConversations.show(conversation.id)"
-        class="flex items-center gap-3 p-4 transition hover:bg-muted/50"
+        class="group relative flex min-h-[76px] items-center gap-3 border-b px-4 py-3.5 transition-colors outline-none last:border-b-0 hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset"
       >
-        <div class="size-10 shrink-0 rounded bg-muted" />
+        <!-- Avatar -->
+        <div
+          class="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#009933] text-sm font-bold text-white ring-1 ring-black/5 dark:ring-white/10"
+        >
+          <img
+            v-if="conversation.user.avatar"
+            :src="conversation.user.avatar"
+            :alt="conversation.user.name"
+            class="h-full w-full object-cover"
+          />
 
-        <div class="flex flex-1 flex-col gap-0.5 overflow-hidden">
-          <div class="flex items-center justify-between gap-2">
-            <span class="truncate text-sm font-medium">{{
-              conversation.user.name
-            }}</span>
-            <span class="shrink-0 text-xs text-muted-foreground">
-              {{ lastMessageTime(conversation) }}
-            </span>
-          </div>
-          <span class="truncate text-xs text-muted-foreground">
-            {{ lastMessagePreview(conversation) }}
+          <span v-else>
+            {{ conversation.user.name.charAt(0).toUpperCase() }}
           </span>
-          <span
-            v-if="pinnedLabel(conversation)"
-            class="truncate text-xs text-muted-foreground italic"
-          >
-            Re: {{ pinnedLabel(conversation) }}
-          </span>
+
+          <!-- Online indicator todo -->
+          <!--
+            <span
+              class="absolute right-0 bottom-0 h-3 w-3 rounded-full border-2 border-card bg-emerald-500"
+            />
+          -->
         </div>
+
+        <!-- Conversation content -->
+        <div class="min-w-0 flex-1">
+          <!-- Name + time -->
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex min-w-0 items-center gap-2">
+              <span
+                class="truncate text-sm font-semibold text-foreground transition-colors group-hover:text-[#009933]"
+              >
+                {{ conversation.user.name }}
+              </span>
+
+              <!-- Context badge -->
+              <span
+                v-if="pinnedLabel(conversation)"
+                class="hidden shrink-0 items-center rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground sm:inline-flex"
+              >
+                {{ pinnedLabel(conversation) }}
+              </span>
+            </div>
+
+            <time
+              v-if="lastMessageTime(conversation)"
+              class="shrink-0 text-[11px] text-muted-foreground"
+            >
+              {{ lastMessageTime(conversation) }}
+            </time>
+          </div>
+
+          <!-- Last message -->
+          <p
+            class="mt-1 truncate text-sm text-muted-foreground group-hover:text-foreground/70"
+          >
+            {{ lastMessagePreview(conversation) }}
+          </p>
+
+          <!-- Mobile context -->
+          <p
+            v-if="pinnedLabel(conversation)"
+            class="mt-1 truncate text-[11px] text-muted-foreground sm:hidden"
+          >
+            {{ pinnedLabel(conversation) }}
+          </p>
+        </div>
+
+        <!-- Chevron -->
+        <ChevronRightIcon class="h-5 w-5 text-muted-foreground" />
       </Link>
     </div>
+
+    <!-- Empty state -->
+    <Card v-else class="rounded-xl shadow-sm">
+      <CardContent class="flex flex-col items-center gap-3 py-16 text-center">
+        <div
+          class="flex h-14 w-14 items-center justify-center rounded-full bg-muted"
+        >
+          <MessageCircleMoreIcon class="h-7 w-7 text-muted-foreground/60" />
+        </div>
+
+        <div>
+          <p class="font-semibold">No conversations yet</p>
+          <p class="mt-1 text-sm text-muted-foreground">
+            Messages from your customers will show up here.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
 
     <div
       v-if="props.conversations.links.length > 3"
