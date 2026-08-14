@@ -425,7 +425,8 @@ onUnmounted(() => {
                     Get our Android app directly.
                   </p>
                   <a
-                    href="https://drive.usercontent.google.com/download?id=116Nb-6V08fSRmsBRVDsHUrZpogLbycBu&export=download&authuser=0"
+                    download="FISMPC.apk"
+                    href="https://fismulticoop.org/FISMPC.apk"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="flex w-full items-center justify-center gap-3 rounded-xl bg-green-600 px-6 py-3.5 text-sm font-semibold text-white shadow-md transition-opacity hover:opacity-90 sm:w-auto"
@@ -535,7 +536,8 @@ onUnmounted(() => {
 
                   <!-- Download APK Button -->
                 <a
-                    href="https://drive.usercontent.google.com/download?id=116Nb-6V08fSRmsBRVDsHUrZpogLbycBu&export=download&authuser=0"
+                    download="FISMPC.apk"
+                    href="https://fismulticoop.org/FISMPC.apk"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="flex w-full items-center justify-center gap-3 rounded-xl bg-green-600 px-16 py-3.5 text-sm font-semibold text-white shadow-md transition-opacity hover:opacity-90 sm:w-auto"
