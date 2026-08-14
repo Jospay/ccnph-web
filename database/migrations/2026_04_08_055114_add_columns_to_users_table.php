@@ -33,7 +33,7 @@ return new class extends Migration {
                 'SSS ID',
                 'UMID',
                 'Postal ID',
-                'Voter\'s ID',
+                'Voter ID',
                 'TIN ID',
                 'PAG-IBIG ID',
                 'PRC ID',
