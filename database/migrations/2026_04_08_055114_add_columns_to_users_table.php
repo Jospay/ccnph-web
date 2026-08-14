@@ -25,7 +25,24 @@ return new class extends Migration {
             $table->string('street')->nullable()->after('barangay');
             $table->string('postal_code', 20)->nullable()->after('street');
             $table->string('avatar')->nullable()->after('postal_code');
-            $table->enum('valid_id_type', ['National ID', 'Passport', 'Driver License'])->nullable()->after('avatar');
+            $table->enum('valid_id_type', [
+                'National ID',
+                'Passport',
+                "Driver License",
+                'UMID',
+                'SSS ID',
+                'PhilHealth ID',
+                'Pag-IBIG Loyalty Card',
+                'Postal ID',
+                'PRC ID',
+                'Voter ID',
+                'Senior Citizen ID',
+                'PWD ID',
+                'School ID',
+                'Company ID',
+                'Barangay ID',
+                'National Police Clearance',
+            ])->nullable()->after('avatar');
             $table->string('valid_id_number', 20)->unique()->nullable()->after('valid_id_type');
             $table->string('front_valid_id_picture')->nullable()->after('valid_id_number');
             $table->string('back_valid_id_picture')->nullable()->after('front_valid_id_picture');
