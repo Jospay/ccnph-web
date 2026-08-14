@@ -85,7 +85,7 @@ class UpdateProfileRequest extends FormRequest
                     'Pag-IBIG Loyalty Card',
                     'Postal ID',
                     'PRC ID',
-                    "Voter's ID",
+                    "Voter ID",
                     'Senior Citizen ID',
                     'PWD ID',
                     'School ID',
