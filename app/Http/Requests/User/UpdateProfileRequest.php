@@ -78,7 +78,7 @@ class UpdateProfileRequest extends FormRequest
                 Rule::in([
                     'National ID',
                     'Passport',
-                    "Driver's License",
+                    "Driver License",
                     'UMID',
                     'SSS ID',
                     'PhilHealth ID',

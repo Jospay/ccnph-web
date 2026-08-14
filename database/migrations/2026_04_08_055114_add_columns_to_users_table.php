@@ -28,18 +28,20 @@ return new class extends Migration {
             $table->enum('valid_id_type', [
                 'National ID',
                 'Passport',
-                'Driver License',
-                'PhilHealth ID',
-                'SSS ID',
+                "Driver License",
                 'UMID',
+                'SSS ID',
+                'PhilHealth ID',
+                'Pag-IBIG Loyalty Card',
                 'Postal ID',
-                'Voter ID',
-                'TIN ID',
-                'PAG-IBIG ID',
                 'PRC ID',
+                'Voter ID',
                 'Senior Citizen ID',
                 'PWD ID',
-                'OFW ID'
+                'School ID',
+                'Company ID',
+                'Barangay ID',
+                'National Police Clearance',
             ])->nullable()->after('avatar');
             $table->string('valid_id_number', 20)->unique()->nullable()->after('valid_id_type');
             $table->string('front_valid_id_picture')->nullable()->after('valid_id_number');
