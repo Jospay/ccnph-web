@@ -12,6 +12,11 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use App\Models\Status;
+use App\Models\User;
+use App\Models\UserType;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 
@@ -42,6 +47,37 @@ class FortifyServiceProvider extends ServiceProvider
     {
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::createUsersUsing(CreateNewUser::class);
+
+        Fortify::authenticateUsing(function (Request $request) {
+            $user = User::where(Fortify::username(), $request->{Fortify::username()})->first();
+
+            if (! $user || ! Hash::check($request->password, $user->password)) {
+                return null;
+            }
+
+            if ($user->status_id !== Status::ACTIVE) {
+                throw ValidationException::withMessages([
+                    Fortify::username() => 'Your account is disabled, please contact support.',
+                ]);
+            }
+
+            $allowedTypes = [UserType::SUPER_ADMIN, UserType::ADMIN, UserType::MEMBER];
+
+            if (! in_array($user->user_type_id, $allowedTypes, true)) {
+                throw ValidationException::withMessages([
+                    Fortify::username() => 'Only administrators are allowed to login.',
+                ]);
+            }
+
+            // MEMBER must also be a seller; SUPER_ADMIN/ADMIN skip this check
+            if ($user->user_type_id === UserType::MEMBER && ! $user->is_seller) {
+                throw ValidationException::withMessages([
+                    Fortify::username() => 'Your account is not registered as a seller.',
+                ]);
+            }
+
+            return $user;
+        });
     }
 
     /**

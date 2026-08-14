@@ -410,9 +410,9 @@ onUnmounted(() => {
               </svg>
             </button>
 
-            <div class="no-scrollbar overflow-y-auto p-6 sm:p-8">
+<div class="no-scrollbar overflow-y-auto p-6 sm:p-8">
               <!-- Join Us Modal -->
-                            <div v-if="activeModal === 'join'" class="flex flex-col">
+              <div v-if="activeModal === 'join'" class="flex flex-col">
                 <JoinUs />
 
                 <!-- Download APK Section -->
@@ -424,7 +424,10 @@ onUnmounted(() => {
                   >
                     Get our Android app directly.
                   </p>
-                  <button
+                  <a
+                    href="https://drive.usercontent.google.com/download?id=116Nb-6V08fSRmsBRVDsHUrZpogLbycBu&export=download&authuser=0"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     class="flex w-full items-center justify-center gap-3 rounded-xl bg-green-600 px-6 py-3.5 text-sm font-semibold text-white shadow-md transition-opacity hover:opacity-90 sm:w-auto"
                   >
                     <DownloadIcon class="h-6 w-6" />
@@ -436,7 +439,7 @@ onUnmounted(() => {
                       >
                       <span class="text-base font-bold">APK File</span>
                     </div>
-                  </button>
+                  </a>
                 </div>
               </div>
 
@@ -531,7 +534,10 @@ onUnmounted(() => {
                   </button> -->
 
                   <!-- Download APK Button -->
-                <button
+                <a
+                    href="https://drive.usercontent.google.com/download?id=116Nb-6V08fSRmsBRVDsHUrZpogLbycBu&export=download&authuser=0"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     class="flex w-full items-center justify-center gap-3 rounded-xl bg-green-600 px-16 py-3.5 text-sm font-semibold text-white shadow-md transition-opacity hover:opacity-90 sm:w-auto"
                   >
                     <DownloadIcon class="h-6 w-6" />
@@ -543,7 +549,7 @@ onUnmounted(() => {
                       >
                       <span class="text-base font-bold">APK File</span>
                     </div>
-                  </button>
+                  </a>
                 </div>
 
                 <button
