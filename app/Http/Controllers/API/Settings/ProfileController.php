@@ -128,18 +128,6 @@ class ProfileController extends Controller
     {
         $updatedUser = $this->profileService->updateProfile($request->user(), $request);
 
-        $updatedUser->notify(new GeneralNotification(
-            type: 'profile_submitted',
-            title: 'Profile Submitted',
-            body: 'Your account details have been completed. Please wait 2-3 days for approval.',
-            actionType: 'VIEW_PROFILE',
-            route: '/profile',
-            extraData: [
-                'user_id' => $updatedUser->id,
-                'status' => 'for_approval',
-            ]
-        ));
-
         return response()->json([
             'success' => true,
             'message' => 'Your account details have been completed. Please wait 2-3 days for approval.',
