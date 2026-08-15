@@ -26,7 +26,7 @@ class MemberUserResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'email' => $this->email,
+            'email' => $this->email ?? '-',
             'phone' => $this->phone ?? '-',
             'address' => implode(', ', $addressParts) ?: '-',
             'status_name' => $this->status->name ?? '-',
