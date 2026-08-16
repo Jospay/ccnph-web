@@ -15,7 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('allocation_id')->constrained()->cascadeOnDelete();
             $table->foreignId('service_id')->constrained()->cascadeOnDelete();
-            $table->decimal('percentage', 5, 4); 
+            $table->unsignedTinyInteger('priority')->default(1); 
+            $table->enum('type', ['Percentage', 'PHP']);
+            $table->decimal('value', 15, 4);
 
             $table->unique(['allocation_id', 'service_id']);
             $table->timestamps();
