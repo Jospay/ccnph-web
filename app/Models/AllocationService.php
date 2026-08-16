@@ -11,7 +11,9 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 #[Fillable([
     'allocation_id',
     'service_id',
-    'percentage',
+    'priority',
+    'type',
+    'value',
 ])]
 class AllocationService extends Model
 {
@@ -22,7 +24,8 @@ class AllocationService extends Model
         return [
             'allocation_id' => 'integer',
             'service_id' => 'integer',
-            'percentage' => 'decimal:4',
+            'priority' => 'integer',
+            'value' => 'decimal:4',
         ];
     }
 
