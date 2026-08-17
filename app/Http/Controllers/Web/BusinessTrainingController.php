@@ -64,7 +64,7 @@ class BusinessTrainingController extends Controller
 
         // Handle File Upload
         if ($request->hasFile('icon')) {
-            $path = $request->file('icon')->store('business-training-icons', 'public');
+            $path = $request->file('icon')->store('business-training/icons', 'public');
             // Save the path to the database
             $validated['icon'] = $path;
         }
@@ -83,7 +83,7 @@ class BusinessTrainingController extends Controller
         $validated['slug'] = Str::slug($validated['name']);
 
         if ($request->hasFile('icon')) {
-            $path = $request->file('icon')->store('business-training-icons', 'public');
+            $path = $request->file('icon')->store('business-training/icons', 'public');
             $validated['icon'] = $path;
         }
 
@@ -113,7 +113,7 @@ class BusinessTrainingController extends Controller
                 BusinessTraining::create([
                     'business_training_category_id' => $category->id,
                     'module' => $index + 1,
-                    'content' => $this->buildModuleContent($index + 1, $moduleData),
+                    'content' => $this->buildModuleContent($index + 1, $moduleData, $category->name),
                 ]);
             }
         });
@@ -147,7 +147,7 @@ class BusinessTrainingController extends Controller
 
                 if ($training) {
                     $training->update([
-                        'content' => $this->buildModuleContent($moduleNumber, $moduleData),
+                        'content' => $this->buildModuleContent($moduleNumber, $moduleData, $category->name),
                     ]);
                 }
             }
@@ -174,7 +174,7 @@ class BusinessTrainingController extends Controller
         return back();
     }
 
-    private function buildModuleContent(int $module, array $data): array
+    private function buildModuleContent(int $module, array $data, string $categoryName): array
     {
         return match ($module) {
 
@@ -191,7 +191,7 @@ class BusinessTrainingController extends Controller
                 ],
                 [
                     'title' => 'Required mindset',
-                    'description' => 'To succeed in a food cart business, you need',
+                    'description' => 'To succeed in a ' . Str::lower($categoryName) . ', you need',
                     'required_mindset' => array_slice($data['required_mindset'] ?? [], 0, 10),
                 ],
             ],
