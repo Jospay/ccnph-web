@@ -11,17 +11,7 @@ class BusinessTrainingSeeder extends Seeder
     public function run(): void
     {
         $data = [
-            [
-                'name' => 'Food & Beverage',
-                'icon' => null,
-                'categories' => [
-                    [
-                        'name' => 'Food Cart (Street Food)',
-                        'description' => 'This training will guide you on how to start, manage, and grow a Food Cart Business. It includes planning, budgeting, operations, and marketing strategies to help you succeed.',
-                        'modules' => $this->getFoodCartModules()
-                    ]
-                ]
-            ]
+            require database_path('data/business-training/food-beverage.php'),
         ];
 
         foreach ($data as $typeData) {
