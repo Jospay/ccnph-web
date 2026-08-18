@@ -12,7 +12,6 @@ use App\Http\Resources\Api\Store\UserAddressResource;
 use App\Http\Resources\Api\User\ApiProfileResource;
 use App\Models\UserAddress;
 use App\Models\UserAuthDevice;
-use App\Notifications\GeneralNotification;
 use App\Services\User\ProfileService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -213,6 +212,41 @@ class ProfileController extends Controller
             'message' => 'Avatar updated.',
             'data' => [
                 'avatar' => $url,
+            ],
+        ]);
+    }
+
+    /**
+     * Delete avatar.
+     *
+     * Removes the authenticated user's profile avatar and
+     * sets the avatar field to null.
+     *
+     * @tags Settings > Profile
+     *
+     * @response 200 {
+     *   "success": true,
+     *   "message": "Profile picture removed successfully.",
+     *   "data": {
+     *     "avatar": null
+     *   }
+     * }
+     */
+    public function deleteAvatar(
+        Request $request
+    ): JsonResponse {
+        $this->profileService
+            ->deleteAvatar(
+                $request->user()
+            );
+
+        return response()->json([
+            'success' => true,
+
+            'message' => 'Profile picture removed successfully.',
+
+            'data' => [
+                'avatar' => null,
             ],
         ]);
     }

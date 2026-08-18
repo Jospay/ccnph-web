@@ -87,6 +87,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::put('update', [ProfileController::class, 'update']);
             Route::patch('change-password', [ProfileController::class, 'changePassword']);
             Route::post('avatar', [ProfileController::class, 'updateAvatar']);
+            Route::delete('avatar', [ProfileController::class, 'deleteAvatar']);
 
             Route::get('addresses', [ProfileController::class, 'getAddresses']);
             Route::post('address', [ProfileController::class, 'address']);
