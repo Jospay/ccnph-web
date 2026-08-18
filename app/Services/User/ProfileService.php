@@ -103,6 +103,41 @@ class ProfileService
         return asset('storage/'.$path);
     }
 
+    public function deleteAvatar(User $user): void
+    {
+        if ($user->avatar) {
+            $avatarPath = $user->avatar;
+            if (
+                ! str_starts_with(
+                    $avatarPath,
+                    'http://'
+                ) &&
+                ! str_starts_with(
+                    $avatarPath,
+                    'https://'
+                )
+            ) {
+                $cleanPath =
+                    ltrim(
+                        $avatarPath,
+                        '/'
+                    );
+
+                if (
+                    Storage::disk('public')
+                        ->exists($cleanPath)
+                ) {
+                    Storage::disk('public')
+                        ->delete($cleanPath);
+                }
+            }
+        }
+
+        $user->update([
+            'avatar' => null,
+        ]);
+    }
+
     public function addAddress(User $user, array $data): UserAddress
     {
         return DB::transaction(function () use ($user, $data) {
