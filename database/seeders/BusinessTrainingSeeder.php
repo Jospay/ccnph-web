@@ -12,6 +12,10 @@ class BusinessTrainingSeeder extends Seeder
     {
         $data = [
             require database_path('data/business-training/food-beverage.php'),
+            require database_path('data/business-training/retail-store.php'),
+            require database_path('data/business-training/services-business.php'),
+            require database_path('data/business-training/agriculture-business.php'),
+            require database_path('data/business-training/digital-business.php'),
         ];
 
         foreach ($data as $typeData) {

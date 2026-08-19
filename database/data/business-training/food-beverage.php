@@ -74,7 +74,8 @@ return [
                         [
                             'item' => 'Food Cart / Stall', 
                             'min_cost' => 8000, 
-                            'max_cost' => 20000],
+                            'max_cost' => 20000
+                        ],
                         [
                             'item' => 'Initial Ingredients', 
                             'min_cost' => 3000, 
@@ -381,7 +382,7 @@ return [
                     'title' => 'Sample Budget Breakdown (Philippines)',
                     'budget' => [
                         [
-                            'item' => 'Renovation/Dining Set-up', 
+                            'item' => 'Renovation / Dining Set-up', 
                             'min_cost' => 15000, 
                             'max_cost' => 30000
                         ],
@@ -396,7 +397,7 @@ return [
                             'max_cost' => 8000
                         ],
                         [
-                            'item' => 'Business Permits/Licenses', 
+                            'item' => 'Business Permits / Licenses', 
                             'min_cost' => 2000, 
                             'max_cost' => 5000
                         ],
@@ -426,7 +427,7 @@ return [
                     ],
                     [
                         'title' => 'Combo strategies', 
-                        'description' => 'Offer "Rice + 1 Ulam + Soup" bundles or free water/iced tea to add value.'
+                        'description' => 'Offer "Rice + 1 Ulam + Soup" bundles or free water / iced tea to add value.'
                     ],
                     [
                         'title' => 'Community engagement', 
