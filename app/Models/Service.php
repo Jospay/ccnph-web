@@ -15,7 +15,7 @@ class Service extends Model
         return 'slug';
     }
 
-    // relationship to users, many to many
+    // Relationship to users, many to many
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class)
@@ -37,7 +37,7 @@ class Service extends Model
     public function allocations(): BelongsToMany
     {
         return $this->belongsToMany(Allocation::class, 'allocation_services')
-            ->withPivot('percentage')
+            ->withPivot(['value', 'priority', 'type']) // Updated to match AllocationService columns
             ->withTimestamps();
     }
 }

@@ -2,15 +2,15 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use App\Models\Service;
-use App\Models\UserType;
-use App\Models\Status;
-use App\Models\Shop;
 use App\Models\Product;
-use Illuminate\Support\Str;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Service;
+use App\Models\Shop;
+use App\Models\Status;
+use App\Models\User;
+use App\Models\UserType;
 use Illuminate\Database\Seeder;
+// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -31,38 +31,39 @@ class DatabaseSeeder extends Seeder
             MembershipSettingSeeder::class,
             ShareCapitalSettingSeeder::class,
             CategorySeeder::class,
-            AttributeSeeder::class
+            TermsAndConditionSeeder::class,
+            AttributeSeeder::class,
         ]);
 
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
-            'user_type_id' => UserType::SUPER_ADMIN
+            'user_type_id' => UserType::SUPER_ADMIN,
         ]);
 
         User::factory()->create([
             'name' => 'Member One',
             'email' => 'member1@example.com',
-            'user_type_id' => UserType::MEMBER
+            'user_type_id' => UserType::MEMBER,
         ]);
 
         User::factory()->create([
             'name' => 'Member Two',
             'email' => 'member2@example.com',
-            'user_type_id' => UserType::MEMBER
+            'user_type_id' => UserType::MEMBER,
         ]);
 
         User::factory()->create([
             'name' => 'Member Three',
             'email' => 'member3@example.com',
-            'user_type_id' => UserType::MEMBER
+            'user_type_id' => UserType::MEMBER,
         ]);
 
         $seller = User::factory()->create([
             'name' => 'Member Seller',
             'email' => 'seller1@example.com',
             'user_type_id' => UserType::MEMBER,
-            'is_seller' => true
+            'is_seller' => true,
         ]);
 
         if ($seller) {
@@ -76,7 +77,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             ShareCapitalSeeder::class,
             DiminishingLoanSeeder::class,
-            IntellectualPropertySeeder::class
+            IntellectualPropertySeeder::class,
         ]);
 
         User::factory()->count(5)->create([
@@ -87,8 +88,8 @@ class DatabaseSeeder extends Seeder
         $services = Service::where('is_super_admin_only', false)->get();
         foreach ($services as $service) {
             $admin = User::factory()->create([
-                'name' => $service->name . " Admin",
-                'email' => Str::slug($service->name) . "@example.com",
+                'name' => $service->name.' Admin',
+                'email' => Str::slug($service->name).'@example.com',
                 'user_type_id' => UserType::ADMIN,
             ]);
             $admin->services()->attach($service->id);

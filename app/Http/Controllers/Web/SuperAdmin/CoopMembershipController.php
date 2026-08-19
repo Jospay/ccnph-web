@@ -102,19 +102,6 @@ class CoopMembershipController extends Controller
                 'status_id' => Status::APPROVED,
             ]);
 
-            // Notification 1: Profile approved
-            $user->notify(new GeneralNotification(
-                type: 'profile_approved',
-                title: 'Profile Approved!',
-                body: 'Your profile has been approved.',
-                actionType: 'VIEW_PROFILE',
-                route: '/profile',
-                extraData: [
-                    'user_id' => $user->id,
-                    'status' => 'approved',
-                ]
-            ));
-
             // Notification 2: Membership prompt
             $user->notify(new GeneralNotification(
                 type: 'coop_membership_available',
@@ -125,6 +112,19 @@ class CoopMembershipController extends Controller
                 extraData: [
                     'user_id' => $user->id,
                     'status' => 'eligible',
+                ]
+            ));
+
+            // Notification 1: Profile approved
+            $user->notify(new GeneralNotification(
+                type: 'profile_approved',
+                title: 'Profile Approved!',
+                body: 'Your profile has been approved.',
+                actionType: 'VIEW_PROFILE',
+                route: '/profile',
+                extraData: [
+                    'user_id' => $user->id,
+                    'status' => 'approved',
                 ]
             ));
         }
