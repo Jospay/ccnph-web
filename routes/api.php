@@ -29,6 +29,7 @@ use App\Http\Controllers\API\Store\ShopHomeController;
 use App\Http\Controllers\API\Store\ShopProductController;
 use App\Http\Controllers\API\Store\ShopStoreController;
 use App\Http\Controllers\API\SupportChat\SupportChatController;
+use App\Http\Controllers\API\TermsAndConditionController;
 use App\Http\Controllers\API\Verification\PhoneVerificationController;
 use App\Http\Controllers\API\Wallet\WalletController;
 use App\Models\UserType;
@@ -45,6 +46,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/verify-phone/acknowledge', [PhoneVerificationController::class, 'verify'])->middleware('throttle:5,1');
     Route::post('/verify-phone/resend', [PhoneVerificationController::class, 'resend'])->middleware('throttle:3,1');
     Route::post('/register/set-password', [RegisteredUserController::class, 'setPassword'])->middleware('throttle:5,1');
+    Route::get('/terms-and-conditions', [TermsAndConditionController::class, 'show']);
 
     Route::prefix('password')->group(function () {
         Route::post('/forgot', [PasswordResetController::class, 'sendOtp']);
