@@ -227,6 +227,7 @@ const handleDelete = () => {
         :description="activeCategory?.description"
         :loading="isLoading"
         :show-default="false"
+        width="sm:max-w-2xl"
       >
         <!-- BOTTOM -->
         <template #bottom>
