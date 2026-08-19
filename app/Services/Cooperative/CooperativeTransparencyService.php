@@ -61,23 +61,20 @@ class CooperativeTransparencyService
                 'allocations.slug as allocation_slug',
                 'allocations.description as allocation_description',
                 'allocation_services.id as allocation_service_id',
-                'allocation_services.percentage as configured_percentage',
+                'allocation_services.value as configured_percentage', // FIXED: changed percentage -> value
                 DB::raw('SUM(revenue_breakdowns.amount) as total_amount'),
                 DB::raw('COUNT(revenue_breakdowns.id) as transaction_count'),
             ])
             ->groupBy(
                 'services.id', 'services.name', 'services.slug', 'services.description', 'services.icon',
                 'allocations.id', 'allocations.name', 'allocations.slug', 'allocations.description',
-                'allocation_services.id', 'allocation_services.percentage'
+                'allocation_services.id', 'allocation_services.value' // FIXED: changed percentage -> value
             )
             ->get();
 
         $totalFund = (float) $rows->sum('total_amount');
 
-        // --- Per service, with each allocation's own amount + percentage ---
-        // (percentage here is scoped correctly: this allocation's share of
-        // THIS service's total — safe to show since every service is its
-        // own consistent whole.)
+        // --- Per service breakdown ---
         $services = $rows->groupBy('service_id')->map(function ($group) {
             $first = $group->first();
             $serviceTotal = (float) $group->sum('total_amount');
@@ -110,11 +107,7 @@ class CooperativeTransparencyService
             ];
         })->sortByDesc('total')->values();
 
-        // --- Grand allocation summary across whatever services are in scope ---
-        // No percentage here: not every service uses every allocation, so a
-        // "% of total fund" figure would misrepresent allocations that only
-        // apply to a subset of services. Amount only — these still add up
-        // to total_fund.
+        // --- Grand allocation summary ---
         $allocationsSummary = $rows->groupBy('allocation_id')->map(function ($group) {
             $first = $group->first();
             $amount = (float) $group->sum('total_amount');
