@@ -61,14 +61,15 @@ class CooperativeTransparencyService
                 'allocations.slug as allocation_slug',
                 'allocations.description as allocation_description',
                 'allocation_services.id as allocation_service_id',
-                'allocation_services.value as configured_percentage', // FIXED: changed percentage -> value
+                'allocation_services.type as allocation_type', // Selected allocation type (FIXED/PHP vs PERCENTAGE)
+                'allocation_services.value as raw_configured_value',
                 DB::raw('SUM(revenue_breakdowns.amount) as total_amount'),
                 DB::raw('COUNT(revenue_breakdowns.id) as transaction_count'),
             ])
             ->groupBy(
                 'services.id', 'services.name', 'services.slug', 'services.description', 'services.icon',
                 'allocations.id', 'allocations.name', 'allocations.slug', 'allocations.description',
-                'allocation_services.id', 'allocation_services.value' // FIXED: changed percentage -> value
+                'allocation_services.id', 'allocation_services.type', 'allocation_services.value'
             )
             ->get();
 
@@ -81,13 +82,22 @@ class CooperativeTransparencyService
 
             $allocations = $group->map(function ($row) use ($serviceTotal) {
                 $amount = (float) $row->total_amount;
+                $rawVal = (float) $row->raw_configured_value;
+                $type = strtoupper((string) ($row->allocation_type ?? 'PERCENTAGE'));
+
+                $isFixed = in_array($type, ['PHP', 'FIXED']);
+
+                // If decimal percent (e.g. 0.10) multiply by 100. If fixed peso (e.g. 15.00), leave exact.
+                $configuredValue = $isFixed ? round($rawVal, 2) : round($rawVal <= 1 ? $rawVal * 100 : $rawVal, 2);
 
                 return [
                     'id' => $row->allocation_id,
                     'name' => $row->allocation_name,
                     'slug' => $row->allocation_slug,
                     'description' => $row->allocation_description,
-                    'configured_percentage' => round((float) $row->configured_percentage * 100, 2),
+                    'type' => $type, // Expose 'FIXED' / 'PHP' or 'PERCENTAGE'
+                    'configured_value' => $configuredValue,
+                    'configured_percentage' => $configuredValue, // Kept for backward compatibility
                     'amount' => round($amount, 2),
                     'actual_percentage' => $serviceTotal > 0
                         ? round(($amount / $serviceTotal) * 100, 2)
