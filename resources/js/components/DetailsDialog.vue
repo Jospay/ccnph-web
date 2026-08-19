@@ -16,6 +16,7 @@ defineProps<{
   loading?: boolean;
   items?: DetailItem[];
   showDefault?: boolean;
+  width?: string;
 }>();
 
 const emit = defineEmits(['update:open']);
@@ -24,7 +25,10 @@ const emit = defineEmits(['update:open']);
 <template>
   <Dialog :open="open" @update:open="emit('update:open', $event)">
     <DialogContent
-      class="flex max-h-[85vh] flex-col p-3 pe-2 dark:bg-secondary"
+      :class="[
+        'flex max-h-[85vh] flex-col p-3 pe-2 dark:bg-secondary',
+        width || 'sm:max-w-lg',
+      ]"
     >
       <DialogHeader class="p-3 pb-0">
         <DialogTitle>{{ title || 'Details' }}</DialogTitle>
