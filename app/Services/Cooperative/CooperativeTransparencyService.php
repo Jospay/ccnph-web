@@ -80,24 +80,27 @@ class CooperativeTransparencyService
             $first = $group->first();
             $serviceTotal = (float) $group->sum('total_amount');
 
+            // --- inside allocations mapping inside summary() ---
             $allocations = $group->map(function ($row) use ($serviceTotal) {
                 $amount = (float) $row->total_amount;
                 $rawVal = (float) $row->raw_configured_value;
-                $type = strtoupper((string) ($row->allocation_type ?? 'PERCENTAGE'));
 
-                $isFixed = in_array($type, ['PHP', 'FIXED']);
+                // Normalize type strict to 'PHP' or 'PERCENTAGE'
+                $rawType = strtoupper((string) ($row->allocation_type ?? 'PERCENTAGE'));
+                $type = in_array($rawType, ['PHP', 'FIXED']) ? 'PHP' : 'PERCENTAGE';
 
-                // If decimal percent (e.g. 0.10) multiply by 100. If fixed peso (e.g. 15.00), leave exact.
-                $configuredValue = $isFixed ? round($rawVal, 2) : round($rawVal <= 1 ? $rawVal * 100 : $rawVal, 2);
+                $configuredValue = ($type === 'PHP')
+                    ? round($rawVal, 2)
+                    : round($rawVal <= 1 && $rawVal > 0 ? $rawVal * 100 : $rawVal, 2);
 
                 return [
                     'id' => $row->allocation_id,
                     'name' => $row->allocation_name,
                     'slug' => $row->allocation_slug,
                     'description' => $row->allocation_description,
-                    'type' => $type, // Expose 'FIXED' / 'PHP' or 'PERCENTAGE'
+                    'type' => $type,
                     'configured_value' => $configuredValue,
-                    'configured_percentage' => $configuredValue, // Kept for backward compatibility
+                    'configured_percentage' => $configuredValue,
                     'amount' => round($amount, 2),
                     'actual_percentage' => $serviceTotal > 0
                         ? round(($amount / $serviceTotal) * 100, 2)
