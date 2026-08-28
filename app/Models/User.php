@@ -19,6 +19,10 @@ use Laravel\Sanctum\HasApiTokens;
 
 #[Fillable([
     'name',
+    'first_name',
+    'middle_name',
+    'last_name',
+    'cooperative_id',
     'email',
     'password',
     'user_type_id',
@@ -239,5 +243,10 @@ class User extends Authenticatable
     public function authDevices(): HasMany
     {
         return $this->hasMany(UserAuthDevice::class);
+    }
+
+    public function cooperative(): BelongsTo
+    {
+        return $this->belongsTo(Cooperative::class);
     }
 }

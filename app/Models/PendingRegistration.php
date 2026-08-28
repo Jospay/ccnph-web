@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 
 #[Fillable([
     'name',
+    'first_name',
+    'middle_name',
+    'last_name',
+    'cooperative_id',
     'phone',
     'verification_request_id',
     'verification_token',
@@ -27,6 +31,7 @@ class PendingRegistration extends Model
         return [
             'otp_sent_at' => 'datetime',
             'phone_verified' => 'boolean',
+            'cooperative_id' => 'integer',
         ];
     }
 }

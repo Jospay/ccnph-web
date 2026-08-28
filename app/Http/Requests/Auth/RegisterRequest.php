@@ -2,11 +2,9 @@
 
 namespace App\Http\Requests\Auth;
 
-use App\Models\PendingRegistration;
 use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules;
 
 class RegisterRequest extends FormRequest
 {
@@ -27,7 +25,26 @@ class RegisterRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'phone' => ['required', 'string', 'max:20', 'unique:' . User::class],
+            'first_name' => ['required', 'string', 'max:100'],
+            'middle_name' => ['nullable', 'string', 'max:100'],
+            'last_name' => ['required', 'string', 'max:100'],
+            'phone' => ['required', 'string', 'max:20', 'unique:' . User::class . ',phone'],
+            'cooperative_id' => ['required', 'integer', 'exists:cooperatives,id'],
+        ];
+    }
+
+    /**
+     * Get custom error messages.
+     */
+    public function messages(): array
+    {
+        return [
+            'first_name.required' => 'First name is required.',
+            'last_name.required' => 'Last name is required.',
+            'phone.required' => 'Mobile number is required.',
+            'phone.unique' => 'This mobile number is already registered.',
+            'cooperative_id.required' => 'Please select a cooperative.',
+            'cooperative_id.exists' => 'The selected cooperative does not exist.',
         ];
     }
 }

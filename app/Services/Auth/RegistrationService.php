@@ -22,8 +22,9 @@ class RegistrationService
      *
      * @throws Throwable
      */
-    public function initiateRegistration(string $name, string $phone): array
+    public function initiateRegistration(array $data): array
     {
+        $phone = $data['phone'];
         $normalizedPhone = str_starts_with($phone, '63') ? '0' . substr($phone, 2) : $phone;
         $existingUser = User::where('phone', $normalizedPhone)->exists();
 
@@ -47,11 +48,15 @@ class RegistrationService
             }
         }
 
-        DB::transaction(function () use ($name, $phone) {
+        DB::transaction(function () use ($data, $phone) {
             $pending = PendingRegistration::updateOrCreate(
                 ['phone' => $phone],
                 [
-                    'name' => $name,
+                    'name' => $data['name'],
+                    'first_name' => $data['first_name'],
+                    'middle_name' => $data['middle_name'] ?? null,
+                    'last_name' => $data['last_name'],
+                    'cooperative_id' => $data['cooperative_id'],
                     'phone_verified' => false,
                     'verification_token' => null,
                     'verification_request_id' => null,
@@ -141,6 +146,10 @@ class RegistrationService
 
             $user = User::create([
                 'name' => $pending->name,
+                'first_name' => $pending->first_name,
+                'middle_name' => $pending->middle_name,
+                'last_name' => $pending->last_name,
+                'cooperative_id' => $pending->cooperative_id,
                 'phone' => $formattedPhone,
                 'phone_verified_at' => now(),
             ]);

@@ -18,7 +18,7 @@ class RegisteredUserController extends Controller
     /**
      * Register — Step 1.
      *
-     * Accept name + phone, then send an OTP via Movider.
+     * Accept name, first_name, middle_name, last_name, cooperative_id + phone, then send an OTP via Movider.
      *
      * @tags Auth
      *
@@ -44,8 +44,7 @@ class RegisteredUserController extends Controller
     {
         try {
             $result = $this->registrationService->initiateRegistration(
-                $request->validated('name'),
-                $request->validated('phone'),
+                $request->validated()
             );
 
             return response()->json($result, $result['status'] === 'pending' ? 200 : 201);
@@ -80,7 +79,11 @@ class RegisteredUserController extends Controller
      *   "user": {
      *     "id": 1,
      *     "name": "Juan dela Cruz",
-     *     "phone": "+639171234567"
+     *     "first_name": "Juan",
+     *     "middle_name": null,
+     *     "last_name": "dela Cruz",
+     *     "cooperative_id": 1,
+     *     "phone": "09171234567"
      *   }
      * }
      * @response 403 { "message": "Invalid or expired verification token." }
