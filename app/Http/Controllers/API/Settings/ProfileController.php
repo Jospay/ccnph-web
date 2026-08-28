@@ -15,6 +15,7 @@ use App\Models\UserAuthDevice;
 use App\Services\User\ProfileService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ProfileController extends Controller
 {
@@ -449,5 +450,30 @@ class ProfileController extends Controller
             'success' => true,
             'message' => 'Authentication device removed successfully.',
         ]);
+    }
+
+    public function cooperative(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if (! $user->cooperative_id) {
+            return response()->json(null);
+        }
+
+        $cooperative = DB::table('cooperatives')
+            ->select('id', 'name', 'primary_color', 'secondary_color', 'logo')
+            ->where('id', $user->cooperative_id)
+            ->first();
+
+        if ($cooperative && $cooperative->logo) {
+            $path = ltrim($cooperative->logo, '/');
+            // Prevent double prepending if path already starts with storage/
+            if (! str_starts_with($path, 'storage/')) {
+                $path = 'storage/' . $path;
+            }
+            $cooperative->logo = asset($path);
+        }
+
+        return response()->json($cooperative);
     }
 }

@@ -8,6 +8,7 @@ use App\Http\Controllers\API\BusinessTraining\TrainingController;
 use App\Http\Controllers\API\BusinessTraining\TypeController;
 use App\Http\Controllers\API\Conversation\ConversationController;
 use App\Http\Controllers\API\Conversation\MessageController;
+use App\Http\Controllers\API\Cooperative\CooperativeController;
 use App\Http\Controllers\API\Cooperative\CooperativeTransparencyController;
 use App\Http\Controllers\API\IntellectualProperty\IntellectualPropertyController;
 use App\Http\Controllers\API\Loan\LoanController;
@@ -41,7 +42,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthenticatedSessionController::class, 'store']);
     Route::post('/login/biometric', [AuthenticatedSessionController::class, 'biometricLogin']);
     Route::post('/register', [RegisteredUserController::class, 'store'])->middleware('throttle:10,1');
-
+    Route::get('/cooperatives', [CooperativeController::class, 'index']);
     // Verification
     Route::post('/verify-phone/acknowledge', [PhoneVerificationController::class, 'verify'])->middleware('throttle:5,1');
     Route::post('/verify-phone/resend', [PhoneVerificationController::class, 'resend'])->middleware('throttle:3,1');
@@ -90,6 +91,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::patch('change-password', [ProfileController::class, 'changePassword']);
             Route::post('avatar', [ProfileController::class, 'updateAvatar']);
             Route::delete('avatar', [ProfileController::class, 'deleteAvatar']);
+            Route::get('cooperative', [ProfileController::class, 'cooperative']);
 
             Route::get('addresses', [ProfileController::class, 'getAddresses']);
             Route::post('address', [ProfileController::class, 'address']);

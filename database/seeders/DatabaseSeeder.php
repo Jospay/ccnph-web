@@ -31,6 +31,7 @@ class DatabaseSeeder extends Seeder
             MembershipSettingSeeder::class,
             ShareCapitalSettingSeeder::class,
             CategorySeeder::class,
+            CooperativeSeeder::class,
             TermsAndConditionSeeder::class,
             AttributeSeeder::class,
         ]);
