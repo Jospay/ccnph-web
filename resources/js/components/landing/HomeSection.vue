@@ -4,26 +4,22 @@ import type { HeroProps } from '@/types/landing/index';
 
 const props = defineProps<HeroProps>();
 
-// FIXED: Added safety checks for the image path to prevent broken URLs
 const bgImage = computed(() => {
     const path = props.sectionData?.image_path;
 
     if (!path) {
-        return '/assets/bg1.jpg';
+        return 'assets/Sample/HOME.webp'; // 
     }
 
     return (path.startsWith('http') || path.startsWith('/')) ? path : `/storage/${path}`;
 });
 
-const defaultTitle = 'FILIPINO INVENTORS SOCIETY MULTI-PURPOSE COOPERATIVE';
-const defaultShortTitle = 'FISMPC';
-const defaultContent = `Welcome to the Filipino Inventors Society Multi-Purpose Cooperative (FISMPC)! We are a dynamic community of visionary inventors, innovators, scientists, and entrepreneurs working together to transform Filipino ingenuity into engines of inclusive national development. Since our founding in 2011, FISMPC has become a recognized platform for innovation commercialization, bridging the gap between creative ideas and real-world solutions. 
-
-Our members have developed technologies in fields like agriculture, renewable energy, education, and digital transformation. Through a decade of service and advocacy, FISMPC stands as a symbol of Filipino resilience and creativity, proving that innovation, when nurtured through cooperation, can make the Philippines great again.`;
+const defaultTitle = 'Empowering Communities through Cooperation, Innovation, and Sustainability.';
+const defaultContent = 'Join the Cooperative Movement Driving Economic Growth and Social Impact Across the Philippines.';
 </script>
 
 <template>
-    <div id="home" class="relative w-full overflow-hidden rounded-b-[10%] lg:rounded-b-[15%] flex items-center justify-center min-h-[85vh] lg:min-h-screen pt-32 md:pt-40 pb-16 md:pb-24">
+    <div id="home" class="relative w-full overflow-hidden flex items-center min-h-[85vh] lg:min-h-screen pt-32 md:pt-40 pb-16 md:pb-24">
         
         <div class="absolute inset-0 z-0">
             <img 
@@ -31,21 +27,28 @@ Our members have developed technologies in fields like agriculture, renewable en
                 alt="Hero Background" 
                 class="w-full h-full object-cover"
             >
-            <div class="absolute inset-0 bg-black/40 dark:bg-black/60"></div>
         </div>
 
-        <div class="relative z-10 flex flex-col items-center px-4 sm:px-8 md:px-12 text-center w-full max-w-6xl mx-auto">
+        <div class="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-8 md:px-12 flex justify-start lg:justify-end">
             
-            <h1 class="text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold drop-shadow-2xl mb-4 sm:mb-6 leading-tight max-w-5xl">
-                {{ sectionData?.title || defaultTitle }}
-                <span class="text-[#FFCC00] block mt-1 sm:mt-4 text-2xl sm:text-3xl lg:text-4xl">
-                    ({{ sectionData?.short_title || defaultShortTitle }})
-                </span>
-            </h1>
+            <div class="w-full lg:w-[60%] flex flex-col items-start text-left">
+                
+                <h1 
+                    class="text-white text-4xl sm:text-5xl md:text-6xl drop-shadow-xl mb-4 sm:mb-6 leading-tight"
+                    style="font-family: 'Dancing Script', 'Brush Script MT', cursive; font-weight: 700;"
+                >
+                    {{ sectionData?.title || defaultTitle }}
+                </h1>
 
-            <p class="text-white text-sm sm:text-base md:text-lg lg:text-xl drop-shadow-lg font-medium opacity-95 leading-relaxed whitespace-pre-wrap max-w-4xl mx-auto">
-                {{ sectionData?.content || defaultContent }}
-            </p>
+                <p class="text-white text-base sm:text-lg md:text-xl drop-shadow-lg font-medium opacity-95 leading-relaxed max-w-xl mb-8">
+                    {{ sectionData?.content || defaultContent }}
+                </p>
+                
+                <button class="bg-[#4d45b5] hover:bg-[#3f389c] text-white font-bold py-3 px-8 rounded-full shadow-lg transition-colors duration-300 text-sm sm:text-base tracking-wide">
+                    JOIN US
+                </button>
+                
+            </div>
             
         </div>
     </div>
