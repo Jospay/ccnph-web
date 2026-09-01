@@ -7,7 +7,7 @@ import ContactSection from '@/components/landing/ContactSection.vue';
 import Footer from '@/components/landing/Footer.vue';
 import GallerySection from '@/components/landing/GallerySection.vue';
 import HomeSection from '@/components/landing/HomeSection.vue';
-import NavBar from '@/components/landing/NavBar.vue';
+import Navbar from '@/components/landing/Navbar.vue';
 import NewsUpdates from '@/components/landing/NewsUpdates.vue';
 import ProgramServices from '@/components/landing/ProgramServices.vue';
 import StrategicPlans from '@/components/landing/StrategicPlans.vue';
@@ -24,7 +24,7 @@ withDefaults(
 </script>
 
 <template>
-    <NavBar :can-register="canRegister" />
+    <Navbar :can-register="canRegister" />
     <main>
     <HomeSection :data="$page.props.home" />
     <AboutSection :data="$page.props.about" />
