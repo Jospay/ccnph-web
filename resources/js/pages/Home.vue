@@ -2,7 +2,8 @@
 // defineOptions({ layout: null as any });
 // import { Head, Link } from '@inertiajs/vue3';
 // import { dashboard, login, register } from '@/routes';
-import AboutSection from '@/components/landing/AboutSection.vue';
+import About from '@/components/landing/About.vue';
+// import AboutSection from '@/components/landing/AboutSection.vue';
 import ContactSection from '@/components/landing/ContactSection.vue';
 import Footer from '@/components/landing/Footer.vue';
 import GallerySection from '@/components/landing/GallerySection.vue';
@@ -27,7 +28,8 @@ withDefaults(
     <Navbar :can-register="canRegister" />
     <main>
     <HomeSection :data="$page.props.home" />
-    <AboutSection :data="$page.props.about" />
+    <!-- <AboutSection :data="$page.props.about" /> -->
+    <About />
     <ProgramServices />
     <StrategicPlans />
     <TestimonialsSection />
