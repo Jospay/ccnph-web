@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// Defined the specific paths you provided for the image gallery
 const galleryImages = [
     'assets/Sample/PIC 1.webp',
     'assets/Sample/PIC 2.webp',
@@ -11,9 +10,8 @@ const galleryImages = [
 <template>
     <section id="about" class="w-full flex flex-col items-center">
         
-        <!-- Top Dark Section (Home 2.webp) -->
         <div 
-            class="relative w-full px-4 sm:px-8 py-16 md:py-24 flex flex-col items-center justify-center text-center"
+            class="relative w-full px-4 sm:px-6 py-12 flex flex-col items-center justify-center text-center"
             style="background-image: url('assets/Sample/HOME 2.webp'); background-size: cover; background-position: center; background-repeat: no-repeat;"
         >
             <div class="relative z-10 max-w-5xl mx-auto">
