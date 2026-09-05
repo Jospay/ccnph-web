@@ -3,17 +3,19 @@
 // import { Head, Link } from '@inertiajs/vue3';
 // import { dashboard, login, register } from '@/routes';
 import About from '@/components/landing/About.vue';
+import CcnphEcosystem from '@/components/landing/CcnphEcosystem.vue';
+import ConnectWithUs from '@/components/landing/ConnectWithUs.vue';
 // import AboutSection from '@/components/landing/AboutSection.vue';
-import ContactSection from '@/components/landing/ContactSection.vue';
+// import ContactSection from '@/components/landing/ContactSection.vue';
 import Footer from '@/components/landing/Footer.vue';
-import GallerySection from '@/components/landing/GallerySection.vue';
+// import GallerySection from '@/components/landing/GallerySection.vue';
 import HomeSection from '@/components/landing/HomeSection.vue';
 import MissionVision from '@/components/landing/MissionVision.vue';
 import Navbar from '@/components/landing/Navbar.vue';
-import NewsUpdates from '@/components/landing/NewsUpdates.vue';
+// import NewsUpdates from '@/components/landing/NewsUpdates.vue';
 // import ProgramServices from '@/components/landing/ProgramServices.vue';
-import StrategicPlans from '@/components/landing/StrategicPlans.vue';
-import TestimonialsSection from '@/components/landing/TestimonialsSection.vue';
+// import StrategicPlans from '@/components/landing/StrategicPlans.vue';
+// import TestimonialsSection from '@/components/landing/TestimonialsSection.vue';
 
 withDefaults(
     defineProps<{
@@ -33,11 +35,13 @@ withDefaults(
     <About />
     <MissionVision />
     <!-- <ProgramServices /> -->
-    <StrategicPlans />
-    <TestimonialsSection />
+    <CcnphEcosystem />
+    <ConnectWithUs />
+    <!-- <StrategicPlans /> -->
+    <!-- <TestimonialsSection />
     <NewsUpdates />
     <GallerySection />
-    <ContactSection />
+    <ContactSection /> -->
     <Footer />
     </main>
 </template>
