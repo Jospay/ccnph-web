@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Link } from '@inertiajs/vue3' 
 import { ref, onMounted, onUnmounted } from 'vue'
 
 const isScrolled = ref(false)
@@ -33,7 +34,8 @@ onUnmounted(() => {
         isScrolled ? 'h-[90px]' : 'h-[116px]'
       ]"
     >
-      <a
+      <!-- Logo Link -->
+      <Link
         href="/"
         aria-label="Cooperatives Cooperation Network Philippines"
         class="transition-transform duration-500"
@@ -42,13 +44,13 @@ onUnmounted(() => {
         <img
           :src="
             isScrolled
-              ? 'assets/Sample/NavLogo.webp'
-              : 'assets/Sample/NavLogo2.webp'
+              ? '/assets/Sample/NavLogo.webp'
+              : '/assets/Sample/NavLogo2.webp'
           "
           alt="Cooperatives Cooperation Network Philippines"
           class="w-[330px]"
         />
-      </a>
+      </Link>
 
       <!-- Navigation -->
       <ul
@@ -56,23 +58,25 @@ onUnmounted(() => {
         :class="isScrolled ? 'text-black' : 'text-white'"
       >
         <li>
-          <a href="/" class="nav-link">Home</a>
+          <!-- <Link href="/" class="nav-link">Home</Link> -->
+          <a href="#home" class="nav-link">Home</a>
         </li>
 
         <li>
-          <a href="/about" class="nav-link">About Us</a>
+          <!-- <Link href="/about" class="nav-link">About Us</Link> -->
+           <a href="#about" class="nav-link">About Us</a>
         </li>
 
         <li>
-          <a href="/cooperatives" class="nav-link">Cooperatives</a>
+          <Link href="/cooperatives" class="nav-link">Cooperatives</Link>
         </li>
 
         <li>
-          <a href="/membership" class="nav-link">Membership</a>
+          <Link href="/membership" class="nav-link">Membership</Link>
         </li>
 
         <li>
-          <a href="/news-media" class="nav-link">News &amp; Media</a>
+          <Link href="/news-media" class="nav-link">News &amp; Media</Link>
         </li>
 
         <li>
