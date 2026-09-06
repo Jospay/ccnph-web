@@ -117,7 +117,7 @@ onUnmounted(() => {
 }
 
 .nav-link:hover {
-  color: #3438a8;
+  color: #f36b1f;
 }
 
 .nav-link::after {
@@ -127,7 +127,7 @@ onUnmounted(() => {
   bottom: -6px;
   width: 100%;
   height: 2px;
-  background: #3438a8;
+  background: #f36b1f;
   transform: scaleX(0);
   transform-origin: right;
   transition: transform 300ms ease;
