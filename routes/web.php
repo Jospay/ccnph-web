@@ -28,6 +28,11 @@ Route::inertia('/', 'Home', [
     'canRegister' => Features::enabled(Features::registration()),
 ])->name('home');
 
+Route::inertia('/about', 'landing/About')->name('about');
+Route::inertia('/cooperatives', 'landing/Cooperatives')->name('cooperatives');
+Route::inertia('/membership', 'landing/Membership')->name('membership');
+Route::inertia('/news-media', 'landing/NewsMedia')->name('news-media');
+
 Route::get('/join-us', function () {
     return Inertia::render('landing/JoinUs');
 })->name('join-us');
