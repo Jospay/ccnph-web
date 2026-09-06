@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ConnectWithUs from '@/components/landing/ConnectWithUs.vue';
 import Footer from '@/components/landing/Footer.vue';
 import Navbar from '@/components/landing/Navbar.vue';
 </script>
@@ -8,14 +9,14 @@ import Navbar from '@/components/landing/Navbar.vue';
     
     <Navbar />
 
-    <main class="flex-grow pt-24 pb-16 px-6 md:px-16 lg:px-24 max-w-7xl mx-auto w-full">
-      <h1 class="text-4xl font-bold text-white mb-8">
-        Our Cooperativesasdsadsa
-      </h1>
+      <main 
+        class="min-h-screen w-full bg-cover bg-center bg-no-repeat bg-fixed py-16 px-6 md:px-16 lg:px-32 flex flex-col font-sans text-gray-300"
+        style="background-image: url('/assets/Sample/HOME 3.webp');"
+      >
       
       
     </main>
-
+    <ConnectWithUs />
     <Footer />
   </div>
 </template>
