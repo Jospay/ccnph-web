@@ -58,13 +58,13 @@ onUnmounted(() => {
         :class="isScrolled ? 'text-black' : 'text-white'"
       >
         <li>
-          <!-- <Link href="/" class="nav-link">Home</Link> -->
-          <a href="#home" class="nav-link">Home</a>
+          <!-- Updated to point to the root page's home section -->
+          <Link href="/#home" class="nav-link">Home</Link>
         </li>
 
         <li>
-          <!-- <Link href="/about" class="nav-link">About Us</Link> -->
-           <a href="#about" class="nav-link">About Us</a>
+          <!-- Updated to point to the root page's about section -->
+          <Link href="/#about" class="nav-link">About Us</Link>
         </li>
 
         <li>
