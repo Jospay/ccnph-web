@@ -2,7 +2,6 @@
 import { Head, useForm, Link } from '@inertiajs/vue3';
 import { ArrowLeftIcon } from 'lucide-vue-next';
 import { ref } from 'vue';
-import NavBar from '@/components/landing/NavBar.vue';
 import seller from '@/routes/seller';
 import type { Shop } from '@/types';
 
