@@ -74,7 +74,7 @@ onUnmounted(() => {
         </li>
 
         <li>
-          <Link href="/news-media" class="nav-link">News &amp; Media</Link>
+          <Link href="/news" class="nav-link">News &amp; Media</Link>
         </li>
 
         <li>

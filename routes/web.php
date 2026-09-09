@@ -3,6 +3,7 @@
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Web\BusinessTrainingController;
 use App\Http\Controllers\Web\Conversation\ConversationController;
+use App\Http\Controllers\NewsController;
 use App\Http\Controllers\Web\Conversation\MessageController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\IntellectualPropertyController;
@@ -31,7 +32,16 @@ Route::inertia('/', 'Home', [
 Route::inertia('/about', 'landing/About')->name('about');
 Route::inertia('/cooperatives', 'landing/Cooperatives')->name('cooperatives');
 Route::inertia('/membership', 'landing/Membership')->name('membership');
-Route::inertia('/news-media', 'landing/NewsMedia')->name('news-media');
+// Route::inertia('/news-media', 'landing/NewsMedia')->name('news-media');
+
+
+Route::get('/news', [NewsController::class,'index'])
+    ->name('news');
+
+
+Route::get('/news/details/{id}', [NewsController::class,'show'])
+    ->name('news.details');
+
 
 Route::get('/join-us', function () {
     return Inertia::render('landing/JoinUs');
