@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\AdController;
 use App\Http\Controllers\API\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\API\Auth\PasswordResetController;
 use App\Http\Controllers\API\Auth\RegisteredUserController;
@@ -81,6 +82,9 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('categories/{category}/trainings/{module}', [TrainingController::class, 'show'])
                 ->whereNumber('module');
         });
+
+    Route::get('/ads', [AdController::class, 'index'])
+    ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER);
 
     // Profile Routes
     Route::prefix('profile')
