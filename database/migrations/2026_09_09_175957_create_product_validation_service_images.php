@@ -13,9 +13,19 @@ return new class extends Migration
     {
         Schema::create('product_validation_service_images', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_validation_service_id')->constrained()->cascadeOnDelete();
+
+            $table->foreignId('product_validation_service_id');
+
             $table->string('image');
+
             $table->timestamps();
+
+            $table->foreign(
+                'product_validation_service_id',
+                'pvsi_service_id_foreign'
+            )->references('id')
+             ->on('product_validation_services')
+             ->cascadeOnDelete();
         });
     }
 
