@@ -3,8 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Enums\AskExpertRequestCategory;
-use App\Enums\AskExpertRequestStatus;
 
 return new class extends Migration
 {
@@ -13,14 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ask_expert_requests', function (Blueprint $table) {
+        Schema::create('rd_collaborations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->string('category'); // check enums value
-            $table->string('status')->default(AskExpertRequestStatus::OPEN->value);
-            $table->string('subject');
-            $table->text('description');
-            $table->timestamp('closed_at')->nullable();
+            $table->string('type'); // check enums value
+            $table->string('project_title');
+            $table->string('project_description');
+            $table->string('support_type'); // check enums value
+            $table->string('status'); // check enums value
+            $table->string('target_market');
+            $table->string('expected_outcome');
             $table->timestamps();
         });
     }
@@ -30,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('ask_expert_requests');
+        Schema::dropIfExists('rd_collaborations');
     }
 };
