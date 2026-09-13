@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('product_validation_service_images', function (Blueprint $table) {
+        Schema::create('ask_expert_request_messages', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_validation_service_id')->constrained()->cascadeOnDelete();
-            $table->string('image');
+            $table->foreignId('ask_expert_request_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->text('message');
             $table->timestamps();
         });
     }
@@ -24,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('product_validation_service_images');
+        Schema::dropIfExists('ask_expert_request_messages');
     }
 };
