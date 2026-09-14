@@ -4,19 +4,19 @@ namespace App\Enums;
 
 enum ProductValidationServiceCategory: string
 {
-    case SAAS = 'saas';
-    case ECOMMERCE = 'ecommerce';
-    case MOBILE_APP = 'mobile_app';
-    case PHYSICAL_PRODUCT = 'physical_product';
+    case FOOD = 'food';
+    case RETAIL = 'retail';
+    case AGRICULTURE = 'agriculture';
+    case DIGITAL = 'digital';
     case OTHER = 'other';
 
     public function label(): string
     {
         return match ($this) {
-            self::SAAS => 'SaaS',
-            self::ECOMMERCE => 'Ecommerce',
-            self::MOBILE_APP => 'Mobile App',
-            self::PHYSICAL_PRODUCT => 'Physical Product',
+            self::FOOD => 'Food',
+            self::RETAIL => 'Retail',
+            self::AGRICULTURE => 'Agriculture',
+            self::DIGITAL => 'Digital',
             self::OTHER => 'Other',
         };
     }

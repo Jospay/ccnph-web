@@ -17,7 +17,7 @@ return new class extends Migration
         Schema::create('product_validation_services', function (Blueprint $table) {
             $table->id();
             $table->string('product_name');
-            $table->string('product_category')->default(ProductValidationServiceCategory::SAAS->value);
+            $table->string('product_category'); // check enums value
             $table->text('product_description');
             $table->string('validation_goal')->default(ProductValidationServiceGoal::PRODUCT_MARKET_FIT->value);
             $table->string('target_market');
