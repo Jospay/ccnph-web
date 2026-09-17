@@ -1,20 +1,20 @@
 <script lang="ts" setup>
 import { router, Link } from '@inertiajs/vue3';
+import ConnectWithUs from '@/components/landing/ConnectWithUs.vue';
+import Footer from '@/components/landing/Footer.vue';
+import Navbar from '@/components/landing/Navbar.vue';
 import { ref, computed } from 'vue';
 import { home } from "@/routes"; 
 import type { NewsItem } from '@/types/news';
 
-// 2. Use it in defineProps just like before
 const props = defineProps<{
     news: NewsItem[];
     categories: string[];
     pagination?: Record<string, unknown>;
 }>();
 
-// Type the model value
 const selectedCategory = defineModel<string>();
 
-// Latest News & Carousel State
 const latestNews = computed<NewsItem[]>(() => {
     return props.news.slice(0, 5);
 });
@@ -57,71 +57,72 @@ const formatDate = (date: string | null | undefined): string => {
         return '';
     }    
 
-    return new Date(date.replace(' ', 'T')).toLocaleString();
+    return new Date(date.replace(' ', 'T')).toLocaleString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
 };
 </script>
 
 <template>
-    <main class="bg-slate-950 text-slate-100 min-h-screen font-sans relative">
+    <Navbar />
+
+    <main class="bg-white text-gray-900 min-h-screen font-sans selection:bg-gray-200 selection:text-black">
         
-        <div class="absolute top-6 left-6 lg:left-20 z-50">
-            <Link
-               :href="home()" 
-                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-slate-200 hover:text-white text-sm font-medium transition-all group"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 transform group-hover:-translate-x-1 transition-transform">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-                </svg>
-                Back
-            </Link>
+        <div class="w-full bg-[#011823] pt-32 pb-8 md:pt-40 md:pb-10 flex items-center justify-center gap-4 md:gap-12 px-6">
+            <img 
+                src="/assets/Sample/DESIGN 2.webp" 
+                alt="Decorative Line Left" 
+                class="hidden md:block h-8 md:h-16 w-32 md:w-80 object-contain object-right -scale-x-100 shrink-0" 
+            />
+            
+            <div class="w-full md:w-auto flex flex-col items-center justify-center gap-2 md:gap-3 px-4">
+                <span class="text-xs md:text-2xl text-gray-200 font-bold uppercase text-center">
+                    News & Media
+                </span>
+                <h1 class="text-sm md:text-lg text-gray-400 font-extrabold tracking-tight text-center leading-tight">
+                    Latest News & Updates
+                </h1>
+            </div>
+
+            <img 
+                src="/assets/Sample/DESIGN 2.webp" 
+                alt="Decorative Line Right" 
+                class="hidden md:block h-8 md:h-16 w-32 md:w-80 object-contain object-left shrink-0" 
+            />
         </div>
 
-        <section class="relative px-6 lg:px-20 pt-32 pb-20 bg-gradient-to-br from-emerald-950 via-slate-950 to-cyan-950 flex flex-col items-center min-h-screen">
-            <div class="max-w-7xl mx-auto w-full flex flex-col">
+        <section class="px-4 sm:px-6 lg:px-12 py-10 md:py-16 flex flex-col items-center min-h-screen">
+            <div class="max-w-6xl mx-auto w-full flex flex-col">
                 
-                <div class="text-center max-w-4xl mx-auto mb-16">
-                    <h1 class="text-4xl lg:text-5xl text-white font-black mb-4 leading-tight">
-                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">
-                            News & Media
-                        </span>
-                    </h1>
-                    <p class="text-base lg:text-lg text-slate-400 font-medium tracking-wide">
-                        Stay updated with our latest announcements, technological breakthroughs, and insights.
-                    </p>
-                </div>
-
-                <div class="w-full space-y-16">
+                <div class="w-full space-y-12 md:space-y-16">
                     
-                    <div v-if="latestNews.length" class="max-w-7xl w-full mx-auto">
-                        <h2 class="text-2xl font-bold text-white mb-6">Latest Headlines</h2>
-                        
-                        <div class="relative w-full rounded-2xl border border-white/10 bg-slate-900 overflow-hidden shadow-2xl group">
+                    <div v-if="latestNews.length" class="w-full">
+                        <div class="relative w-full rounded-2xl bg-gray-100 overflow-hidden group">
                             
                             <div 
                                 v-for="(item, index) in latestNews" 
                                 :key="item.id"
                                 v-show="index === activeIndex"
-                                class="relative w-full h-[400px] sm:h-[500px]"
+                                class="relative w-full h-[350px] sm:h-[400px] md:h-[500px]"
                             >
                                 <Link :href="`/news/details/${item.id}`" class="block w-full h-full">
                                     <img
                                         :src="imageUrl(item.PostImage)"
-                                        class="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity duration-500"
+                                        class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 hover:scale-105"
                                     />
                                     
-                                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent"></div>
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
 
-                                    <div class="absolute bottom-0 left-0 right-0 p-6 sm:p-10">
-                                        <span class="inline-block px-3 py-1 mb-4 text-xs font-semibold tracking-wider text-emerald-900 uppercase bg-emerald-400 rounded-full">
+                                    <div class="absolute bottom-0 left-0 right-0 p-6 sm:p-8 md:p-12">
+                                        <span class="inline-block px-3 py-1 mb-3 sm:mb-4 text-[10px] sm:text-xs font-bold tracking-widest text-white uppercase bg-black/50 backdrop-blur-md rounded-full border border-white/20">
                                             {{ item.CategoryName }}
                                         </span>
-                                        <h3 class="text-2xl sm:text-4xl font-bold text-white mb-2 leading-tight drop-shadow-md">
+                                        <h3 class="text-xl sm:text-3xl md:text-4xl font-bold text-white mb-2 sm:mb-3 leading-tight max-w-3xl">
                                             {{ item.PostTitle }}
                                         </h3>
-                                        <p class="text-sm text-slate-300 flex items-center gap-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                                            </svg>
+                                        <p class="text-xs sm:text-sm text-gray-300 font-medium">
                                             {{ formatDate(item.PostingDate) }}
                                         </p>
                                     </div>
@@ -130,45 +131,45 @@ const formatDate = (date: string | null | undefined): string => {
 
                             <button 
                                 @click.stop="prevSlide"
-                                class="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/10 hover:bg-emerald-500/80 border border-white/20 text-white backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100"
+                                class="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-2 sm:p-2.5 rounded-full bg-white/20 hover:bg-white border border-white/40 hover:border-white text-white hover:text-black backdrop-blur-md transition-all opacity-100 md:opacity-0 group-hover:opacity-100 shadow-sm"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 sm:w-5 sm:h-5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
                                 </svg>
                             </button>
 
                             <button 
                                 @click.stop="nextSlide"
-                                class="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/10 hover:bg-emerald-500/80 border border-white/20 text-white backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100"
+                                class="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-2 sm:p-2.5 rounded-full bg-white/20 hover:bg-white border border-white/40 hover:border-white text-white hover:text-black backdrop-blur-md transition-all opacity-100 md:opacity-0 group-hover:opacity-100 shadow-sm"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4 sm:w-5 sm:h-5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
                                 </svg>
                             </button>
 
-                            <div class="absolute bottom-4 right-6 flex gap-2">
+                            <div class="absolute bottom-4 sm:bottom-6 right-4 sm:right-8 flex gap-1.5 sm:gap-2">
                                 <button 
                                     v-for="(_, index) in latestNews" 
                                     :key="index"
                                     @click="activeIndex = index"
-                                    :class="activeIndex === index ? 'bg-emerald-400 w-6' : 'bg-white/40 hover:bg-white/80 w-2'"
-                                    class="h-2 rounded-full transition-all duration-300"
+                                    :class="activeIndex === index ? 'bg-white w-5 sm:w-6' : 'bg-white/40 hover:bg-white/80 w-1.5 sm:w-2'"
+                                    class="h-1.5 sm:h-2 rounded-full transition-all duration-300"
                                 ></button>
                             </div>
                         </div>
                     </div>
 
                     <div class="w-full">
-                        <div class="flex flex-wrap gap-3 border-b border-white/10 pb-6">
+                        <div class="flex flex-wrap gap-2 border-b border-gray-100 pb-4 overflow-x-auto scrollbar-hide">
                             <button
                                 v-for="cat in categories"
                                 :key="cat"
                                 @click="filterCategory(cat)"
                                 :class="[
-                                    'px-5 py-2.5 rounded-xl border text-sm font-semibold transition-all duration-300',
+                                    'whitespace-nowrap px-4 py-2 sm:px-5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 border',
                                     selectedCategory === cat
-                                        ? 'bg-cyan-500 border-cyan-400 text-slate-950 shadow-[0_0_15px_rgba(6,182,212,0.4)]'
-                                        : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 hover:border-white/20'
+                                        ? 'bg-gray-900 border-gray-900 text-white shadow-md'
+                                        : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900'
                                 ]"
                             >
                                 {{ cat }}
@@ -177,7 +178,7 @@ const formatDate = (date: string | null | undefined): string => {
                     </div>
 
                     <div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 w-full">
                             <div 
                                 v-for="item in news" 
                                 :key="item.id" 
@@ -185,49 +186,46 @@ const formatDate = (date: string | null | undefined): string => {
                             >
                                 <Link
                                     :href="`/news/details/${item.id}`"
-                                    class="flex flex-col w-full rounded-xl border border-white/10 bg-white/5 overflow-hidden hover:border-cyan-500/40 hover:bg-cyan-500/[0.02] hover:-translate-y-1 transition-all duration-300 group shadow-lg"
+                                    class="flex flex-col w-full bg-white group"
                                 >
-                                    <div class="relative h-56 w-full overflow-hidden">
+                                    <div class="relative aspect-[3/2] w-full overflow-hidden rounded-xl bg-gray-100 mb-3 sm:mb-4">
                                         <img
                                             :src="imageUrl(item.PostImage)"
                                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                         />
-                                        <div class="absolute top-4 left-4">
-                                            <span class="px-3 py-1 text-xs font-semibold text-cyan-900 bg-cyan-400 rounded-md shadow-sm">
+                                        <div class="absolute top-3 left-3">
+                                            <span class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-900 bg-white/90 backdrop-blur-sm rounded shadow-sm">
                                                 {{ item.CategoryName }}
                                             </span>
                                         </div>
                                     </div>
 
-                                    <div class="p-6 flex flex-col flex-grow gap-3">
-                                        <h5 class="text-lg font-bold text-slate-100 group-hover:text-cyan-300 transition-colors line-clamp-3">
+                                    <div class="flex flex-col flex-grow">
+                                        <p class="text-[10px] sm:text-xs text-gray-500 mb-1.5 sm:mb-2 font-medium">
+                                            {{ formatDate(item.PostingDate) }}
+                                        </p>
+                                        <h5 class="text-lg sm:text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2 leading-snug">
                                             {{ item.PostTitle }}
                                         </h5>
-                                        
-                                        <div class="mt-auto pt-4 border-t border-white/5 flex items-center justify-between text-sm text-slate-400">
-                                            <span class="flex items-center gap-1.5">
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                                                </svg>
-                                                {{ formatDate(item.PostingDate) }}
-                                            </span>
-                                        </div>
                                     </div>
                                 </Link>
                             </div>
                         </div>
 
-                        <div v-if="!news.length" class="w-full py-20 text-center rounded-xl border border-white/10 bg-white/5">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 mx-auto text-slate-500 mb-4">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2.25m0 4.5h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                        <div v-if="!news.length" class="w-full py-16 sm:py-24 flex flex-col items-center justify-center text-center bg-gray-50 rounded-2xl border border-gray-100 px-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 sm:w-10 sm:h-10 text-gray-400 mb-3 sm:mb-4">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m5.231 13.481L15 17.25m-4.5-15H5.625c-.621 0-1.125.504-1.125 1.125v16.5c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Zm3.75 11.625a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
                             </svg>
-                            <h3 class="text-xl font-semibold text-white mb-2">No news found</h3>
-                            <p class="text-slate-400">There are currently no articles in this category.</p>
+                            <h3 class="text-base sm:text-lg font-bold text-gray-900 mb-1">No articles found</h3>
+                            <p class="text-xs sm:text-sm text-gray-500">There are currently no news items in this category.</p>
                         </div>
                     </div>
 
                 </div>
             </div>
         </section>
+        
     </main>
+    <ConnectWithUs />
+    <Footer />
 </template>
