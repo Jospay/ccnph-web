@@ -88,7 +88,10 @@ function scrollToBottom() {
 }
 
 function selectTicket(conversationId: number | null) {
-  if (!conversationId) return;
+  if (!conversationId) {
+return;
+}
+
   router.get(
     '/admin/support-chat',
     { conversation_id: conversationId },
@@ -102,6 +105,7 @@ watch(
   (newVal) => {
     messages.value = newVal ? [...newVal.messages] : [];
     scrollToBottom();
+
     if (newVal) {
       markAsRead(newVal.id);
     }
@@ -127,7 +131,9 @@ watch(
   (conversationId, oldId) => {
     if (conversationId) {
       useEcho(`conversation.${conversationId}`, '.message.sent', (e: any) => {
-        if (e.sender_id === currentUserId.value) return;
+        if (e.sender_id === currentUserId.value) {
+return;
+}
 
         messages.value.push({
           id: e.id,
@@ -150,8 +156,13 @@ function handleFileChange(event: Event) {
 }
 
 function sendMessage() {
-  if (!props.selectedConversation) return;
-  if (!body.value.trim() && files.value.length === 0) return;
+  if (!props.selectedConversation) {
+return;
+}
+
+  if (!body.value.trim() && files.value.length === 0) {
+return;
+}
 
   const formData = new FormData();
   formData.append('body', body.value);
@@ -177,7 +188,10 @@ function isOwnMessage(message: Message): boolean {
 }
 
 function formatTime(isoString: string | null) {
-  if (!isoString) return '';
+  if (!isoString) {
+return '';
+}
+
   return new Date(isoString).toLocaleTimeString([], {
     hour: '2-digit',
     minute: '2-digit',
