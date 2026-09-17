@@ -10,14 +10,14 @@ import { ref, computed, h } from 'vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import ConfirmDialog from '@/components/seller/ConfirmDialog.vue';
 import DataTable from '@/components/seller/DataTable.vue';
-import { getSellerOrdersColumns } from '@/features/seller/columns';
-import OrderItemsTable from '@/components/seller/order/OrderItemsTable.vue';
 import OrderDetailsDialog from '@/components/seller/order/OrderDetailsDialog.vue';
+import OrderItemsTable from '@/components/seller/order/OrderItemsTable.vue';
 import Pagination from '@/components/seller/Pagination.vue';
 import ShopHeader from '@/components/seller/shop/ShopHeader.vue';
 import Tab from '@/components/seller/Tab.vue';
 import type { TabItem } from '@/components/seller/Tab.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { getSellerOrdersColumns } from '@/features/seller/columns';
 import seller from '@/routes/seller';
 import type {
   Shop,

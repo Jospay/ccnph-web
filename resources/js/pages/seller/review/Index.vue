@@ -9,8 +9,8 @@ import {
 } from 'lucide-vue-next';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import Pagination from '@/components/seller/Pagination.vue';
-import ShopHeader from '@/components/seller/shop/ShopHeader.vue';
 import ReviewCard from '@/components/seller/review/ReviewCard.vue';
+import ShopHeader from '@/components/seller/shop/ShopHeader.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
 import seller from '@/routes/seller';
