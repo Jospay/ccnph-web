@@ -8,10 +8,10 @@ import {
   BoxIcon,
 } from 'lucide-vue-next';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
-import { Card, CardContent } from '@/components/ui/card';
-import sellerConversations from '@/routes/seller/conversations';
 import ShopHeader from '@/components/seller/shop/ShopHeader.vue';
+import { Card, CardContent } from '@/components/ui/card';
 import seller from '@/routes/seller';
+import sellerConversations from '@/routes/seller/conversations';
 import type { Shop, User } from '@/types';
 
 interface Pinnable {

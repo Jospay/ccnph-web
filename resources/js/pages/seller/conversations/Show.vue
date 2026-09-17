@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, router, usePage } from '@inertiajs/vue3';
+import { useEcho } from '@laravel/echo-vue';
 import {
   ChevronRightIcon,
   MessageCircleMoreIcon,
@@ -10,11 +11,12 @@ import {
   SendIcon,
   FileTextIcon,
 } from 'lucide-vue-next';
-import { useEcho } from '@laravel/echo-vue';
 import { ref, computed, nextTick, onMounted, watch } from 'vue';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import Breadcrumbs from '@/components/Breadcrumbs.vue';
+import ShopHeader from '@/components/seller/shop/ShopHeader.vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Bubble, BubbleContent } from '@/components/ui/bubble';
+import { Button } from '@/components/ui/button';
 import {
   Message,
   MessageAvatar,
@@ -23,11 +25,9 @@ import {
   MessageGroup,
   MessageHeader,
 } from '@/components/ui/message';
-import { Bubble, BubbleContent } from '@/components/ui/bubble';
-import Breadcrumbs from '@/components/Breadcrumbs.vue';
-import ShopHeader from '@/components/seller/shop/ShopHeader.vue';
-import sellerConversations from '@/routes/seller/conversations';
+import { Textarea } from '@/components/ui/textarea';
 import seller from '@/routes/seller';
+import sellerConversations from '@/routes/seller/conversations';
 import type { Auth, User, Shop } from '@/types';
 
 interface Attachment {
