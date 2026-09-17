@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import { router, Link } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
 import ConnectWithUs from '@/components/landing/ConnectWithUs.vue';
 import Footer from '@/components/landing/Footer.vue';
 import Navbar from '@/components/landing/Navbar.vue';
-import { ref, computed } from 'vue';
 import { home } from "@/routes"; 
 import type { NewsItem } from '@/types/news';
 

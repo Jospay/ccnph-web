@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import { Link } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import ConnectWithUs from '@/components/landing/ConnectWithUs.vue';
 import Footer from '@/components/landing/Footer.vue';
 import Navbar from '@/components/landing/Navbar.vue';
-import { computed } from 'vue';
 import type { NewsItem } from '@/types/news';
 
 const props = withDefaults(defineProps<{
