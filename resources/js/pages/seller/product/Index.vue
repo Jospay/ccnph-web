@@ -5,14 +5,14 @@ import { ref, computed, h } from 'vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import DataTable from '@/components/seller/DataTable.vue';
 import Pagination from '@/components/seller/Pagination.vue';
-import ProductVariantsTable from '@/components/seller/product/ProductVariantsTable.vue';
 import ProductDetailsDilaog from '@/components/seller/product/ProductDetailsDilaog.vue';
+import ProductVariantsTable from '@/components/seller/product/ProductVariantsTable.vue';
 import ShopHeader from '@/components/seller/shop/ShopHeader.vue';
 import Tab from '@/components/seller/Tab.vue';
+import type { TabItem } from '@/components/seller/Tab.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { getSellerProductsColumns } from '@/features/seller/columns';
 import seller from '@/routes/seller';
-import type { TabItem } from '@/components/seller/Tab.vue';
 import type {
   Shop,
   PaginatedSellerProducts,

@@ -1,6 +1,6 @@
-import { OrderItem } from './order';
-import { LaravelPaginationItem } from './product';
-import { User } from '../auth';
+import type { User } from '../auth';
+import type { OrderItem } from './order';
+import type { LaravelPaginationItem } from './product';
 
 export interface Review {
   id: number;

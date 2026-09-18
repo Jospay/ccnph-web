@@ -1,6 +1,6 @@
-import type { Shop } from './shop';
-import type { Review } from './review';
 import type { User } from '../auth';
+import type { Review } from './review';
+import type { Shop } from './shop';
 
 export interface Product {
   id: string;

@@ -12,7 +12,6 @@ import {
 import OrdersSummaryCard from '@/components/seller/dashboard/OrdersSummaryCard.vue';
 import ProductsSummaryCard from '@/components/seller/dashboard/ProductsSummaryCard.vue';
 import SalesSummaryCard from '@/components/seller/dashboard/SalesSummaryCard.vue';
-import NavBar from '@/components/landing/NavBar.vue';
 import ShopHeader from '@/components/seller/shop/ShopHeader.vue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import seller from '@/routes/seller';
@@ -22,6 +21,7 @@ import type {
   OrdersSummary,
   SalesSummary,
 } from '@/types';
+import NavBar from '@/components/landing/NavBar.vue';
 
 const props = defineProps<{
   shop: Shop;

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import {
   CheckCircle2Icon,
@@ -7,11 +6,12 @@ import {
   StarIcon,
   StoreIcon,
 } from 'lucide-vue-next';
+import { ref } from 'vue';
 import InputError from '@/components/InputError.vue';
-import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import seller from '@/routes/seller';
 import type { SellerReviewIndex } from '@/types';
@@ -21,7 +21,10 @@ const props = defineProps<{
 }>();
 
 function formatDate(date: string | null) {
-  if (!date) return '';
+  if (!date) {
+return '';
+}
+
   return new Date(date).toLocaleString('en-PH', {
     dateStyle: 'medium',
     timeStyle: 'short',
