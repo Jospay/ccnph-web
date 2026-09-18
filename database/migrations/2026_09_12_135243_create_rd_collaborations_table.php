@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('project_title');
             $table->string('project_description');
             $table->string('support_type'); // check enums value
-            $table->string('status'); // check enums value
+            $table->string('business_stage'); // check enums value
             $table->string('target_market');
             $table->string('expected_outcome');
             $table->timestamps();
