@@ -1,6 +1,20 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
-import { ref, onMounted, onUnmounted } from 'vue';
+import { Link, usePage } from '@inertiajs/vue3';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { logout, login } from '@/routes';
+import { UserIcon, LogOutIcon } from 'lucide-vue-next';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
+const page = usePage();
+const user = computed(() => page.props.auth.user);
 
 const isScrolled = ref(false);
 
@@ -76,28 +90,61 @@ onUnmounted(() => {
         </li>
 
         <li>
-          <button
-            type="button"
-            aria-label="User account"
-            class="flex h-10 w-10 items-center justify-center rounded-md border-2 transition-all duration-500"
-            :class="
-              isScrolled
-                ? 'border-[#3438a8] text-[#3438a8]'
-                : 'border-white text-white'
-            "
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-              class="h-5 w-5"
-              aria-hidden="true"
+          <template v-if="!user">
+            <Link
+              :href="login()"
+              class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-md border-2 transition-all duration-500"
+              :class="
+                isScrolled
+                  ? 'border-[#3438a8] text-[#3438a8]'
+                  : 'border-white text-white'
+              "
             >
-              <path
-                d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5Z"
-              />
-            </svg>
-          </button>
+              <UserIcon class="h-4.5 w-4.5 fill-current" />
+            </Link>
+          </template>
+
+          <template v-else>
+            <DropdownMenu>
+              <DropdownMenuTrigger as-child>
+                <button
+                  class="ml-1 flex cursor-pointer items-center justify-center rounded-full border-2 border-transparent p-0.5 transition-colors hover:border-[#009933] focus:ring-2 focus:ring-[#009933] focus:ring-offset-1 focus:outline-none dark:focus:ring-offset-neutral-900"
+                >
+                  <div
+                    class="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-neutral-200 bg-green-100 dark:border-neutral-700"
+                  >
+                    <img
+                      v-if="user.avatar"
+                      :src="`/storage/${user.avatar}`"
+                      class="h-full w-full object-cover"
+                    />
+                    <span v-else class="text-sm font-black text-[#009933]">{{
+                      user.name.charAt(0)
+                    }}</span>
+                  </div>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent class="w-56" align="start">
+                <DropdownMenuLabel class="text-slate-500"
+                  >My Account</DropdownMenuLabel
+                >
+                <DropdownMenuGroup>
+                  <DropdownMenuItem> Profile </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <Link
+                    :href="logout()"
+                    method="post"
+                    as="button"
+                    class="flex w-full cursor-pointer items-center gap-1 text-left text-sm font-bold text-red-600"
+                  >
+                    <LogOutIcon class="h-4 w-4" /> Log out
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </template>
         </li>
       </ul>
     </div>
