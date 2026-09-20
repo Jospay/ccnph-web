@@ -2,7 +2,7 @@
 import { Link, usePage } from '@inertiajs/vue3';
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { logout, login } from '@/routes';
-import { UserIcon, LogOutIcon } from 'lucide-vue-next';
+import { UserIcon, LogOutIcon, LayoutDashboardIcon } from 'lucide-vue-next';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,9 +12,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import seller from '@/routes/seller';
+import dashboard from '@/routes/dashboard';
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
+
+const dashboardRoute = computed(() => {
+  const userType = page.props.auth.userType;
+  const isSeller = page.props.auth.is_seller;
+
+  if (userType === 'member' && isSeller) {
+    return seller.dashboard.index();
+  }
+
+  return dashboard.index();
+});
 
 const isScrolled = ref(false);
 
@@ -108,28 +121,35 @@ onUnmounted(() => {
             <DropdownMenu>
               <DropdownMenuTrigger as-child>
                 <button
-                  class="ml-1 flex cursor-pointer items-center justify-center rounded-full border-2 border-transparent p-0.5 transition-colors hover:border-[#009933] focus:ring-2 focus:ring-[#009933] focus:ring-offset-1 focus:outline-none dark:focus:ring-offset-neutral-900"
+                  class="ml-1 flex cursor-pointer items-center justify-center rounded-full border-2 border-transparent p-0.5 transition-colors hover:border-[#2563eb] focus:ring-2 focus:ring-[#2563eb] focus:ring-offset-1 focus:outline-none dark:focus:ring-offset-neutral-900"
                 >
                   <div
-                    class="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-neutral-200 bg-green-100 dark:border-neutral-700"
+                    class="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-neutral-200 bg-blue-100 dark:border-neutral-700"
                   >
                     <img
                       v-if="user.avatar"
                       :src="`/storage/${user.avatar}`"
                       class="h-full w-full object-cover"
                     />
-                    <span v-else class="text-sm font-black text-[#009933]">{{
+                    <span v-else class="text-sm font-black text-[#2563eb]">{{
                       user.name.charAt(0)
                     }}</span>
                   </div>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent class="w-56" align="start">
+              <DropdownMenuContent class="w-56" align="end">
                 <DropdownMenuLabel class="text-slate-500"
                   >My Account</DropdownMenuLabel
                 >
                 <DropdownMenuGroup>
-                  <DropdownMenuItem> Profile </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link
+                      :href="dashboardRoute"
+                      class="flex w-full cursor-pointer items-center gap-1 text-left text-sm font-semibold text-blue-500"
+                    >
+                      <LayoutDashboardIcon class="h-5 w-5" /> Dashboard
+                    </Link>
+                  </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
@@ -137,7 +157,7 @@ onUnmounted(() => {
                     :href="logout()"
                     method="post"
                     as="button"
-                    class="flex w-full cursor-pointer items-center gap-1 text-left text-sm font-bold text-red-600"
+                    class="flex w-full cursor-pointer items-center gap-1 text-left text-sm font-semibold text-red-500"
                   >
                     <LogOutIcon class="h-4 w-4" /> Log out
                   </Link>
