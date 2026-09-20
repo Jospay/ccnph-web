@@ -13,5 +13,5 @@ defineProps<Props>();
 </script>
 
 <template>
-  <img src="/assets/fismpc_logo.png" :class="className" alt="Logo" />
+  <img src="/assets/Sample/nav.png" :class="className" alt="Logo" />
 </template>
