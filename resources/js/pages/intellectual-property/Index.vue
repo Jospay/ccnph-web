@@ -54,8 +54,6 @@ const props = defineProps<{
   };
 }>();
 
-console.log('props.intellectual_properties', props.intellectual_properties);
-
 // state for select filters
 const selectedStatus = ref(props.filters.status || 'pending');
 const selectedCreation = ref(props.filters.creation || null);
