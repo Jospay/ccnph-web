@@ -25,4 +25,14 @@ class Cooperative extends Model
     {
         return $this->hasMany(User::class);
     }
+
+    public function shops(): HasMany
+    {
+        return $this->hasMany(Shop::class);
+    }
+
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class);
+    }
 }
