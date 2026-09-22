@@ -13,6 +13,7 @@ use InvalidArgumentException;
 
 #[Fillable([
     'user_id',
+    'cooperative_id',
     'name',
     'slug',
     'is_active',
@@ -132,5 +133,10 @@ class Shop extends Model
     public function followers(): HasMany
     {
         return $this->hasMany(ShopFollower::class);
+    }
+
+    public function cooperative(): BelongsTo
+    {
+        return $this->belongsTo(Cooperative::class);
     }
 }
