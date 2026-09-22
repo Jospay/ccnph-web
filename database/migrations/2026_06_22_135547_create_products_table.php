@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->foreignId('shop_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('cooperative_id')->nullable()->constrained()->nullOnDelete();
             $table->string('name');
             $table->string('slug')->unique();
             $table->boolean('is_active')->default(true);

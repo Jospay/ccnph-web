@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
     'shop_id',
+    'cooperative_id',
     'name',
     'slug',
     'is_active',
@@ -94,5 +95,10 @@ class Product extends Model
     public function collections(): HasMany
     {
         return $this->hasMany(ProductCollection::class);
+    }
+
+    public function cooperative(): BelongsTo
+    {
+        return $this->belongsTo(Cooperative::class);
     }
 }
