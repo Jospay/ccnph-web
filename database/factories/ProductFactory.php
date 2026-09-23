@@ -27,6 +27,8 @@ class ProductFactory extends Factory
 
         return [
             'shop_id' => $shop->id,
+            'cooperative_id' => $shop->cooperative_id,
+            'cooperative_scope' => $shop->cooperative_scope,
             'name' => $name,
             'slug' => Str::slug($name),
             'is_active' => true,

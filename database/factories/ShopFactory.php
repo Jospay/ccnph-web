@@ -2,12 +2,15 @@
 
 namespace Database\Factories;
 
+use App\Enums\CooperativeScope;
+use App\Models\Cooperative;
 use App\Models\Shop;
-use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Str;
 use App\Models\User;
 use App\Models\UserType;
 use App\Models\Status;
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
+use Exception;
 
 /**
  * @extends Factory<Shop>
@@ -40,8 +43,17 @@ class ShopFactory extends Factory
             ]);
         }
 
+        // Get an existing cooperative.
+        $cooperative = Cooperative::query()->inRandomOrder()->first();
+
+        if (!$cooperative) {
+            throw new Exception('No cooperative found');
+        }
+
         return [
             'user_id' => $seller->id,
+            'cooperative_id' => $cooperative->id,
+            'cooperative_scope' => CooperativeScope::LOCAL->value,
             'name' => $name,
             'slug' => Str::slug($name),
             'description' => fake()->paragraph(),
