@@ -3,7 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Enums\CooperativeScope;
 
 return new class extends Migration
 {
@@ -15,8 +14,7 @@ return new class extends Migration
         Schema::create('shops', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->unique()->cascadeOnDelete();
-            $table->foreignId('cooperative_id')->nullable()->constrained()->nullOnDelete();
-            $table->string('cooperative_scope'); // check enums for value
+            $table->foreignId('cooperative_id')->constrained()->nullOnDelete();
             $table->string('name')->unique();
             $table->string('slug')->unique();
             $table->boolean('is_active')->default(true); 
