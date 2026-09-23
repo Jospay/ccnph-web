@@ -53,7 +53,6 @@ class ShopFactory extends Factory
         return [
             'user_id' => $seller->id,
             'cooperative_id' => $cooperative->id,
-            'cooperative_scope' => CooperativeScope::LOCAL->value,
             'name' => $name,
             'slug' => Str::slug($name),
             'description' => fake()->paragraph(),

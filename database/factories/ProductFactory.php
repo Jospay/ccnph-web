@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\CooperativeScope;
 use App\Models\Product;
 use App\Models\Shop;
 use App\Models\Category;
@@ -28,7 +29,7 @@ class ProductFactory extends Factory
         return [
             'shop_id' => $shop->id,
             'cooperative_id' => $shop->cooperative_id,
-            'cooperative_scope' => $shop->cooperative_scope,
+            'cooperative_scope' => CooperativeScope::LOCAL->value,
             'name' => $name,
             'slug' => Str::slug($name),
             'is_active' => true,
