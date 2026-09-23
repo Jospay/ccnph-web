@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CooperativeScope;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,6 +15,7 @@ use InvalidArgumentException;
 #[Fillable([
     'user_id',
     'cooperative_id',
+    'cooperative_scope',
     'name',
     'slug',
     'is_active',
@@ -45,6 +47,7 @@ class Shop extends Model
     protected function casts(): array
     {
         return [
+            'coopertive_scope' => CooperativeScope::class,
             'is_active' => 'boolean',
             'is_official' => 'boolean',
             'rating' => 'float',
