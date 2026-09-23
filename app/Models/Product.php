@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CooperativeScope;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 #[Fillable([
     'shop_id',
     'cooperative_id',
+    'cooperative_scope',
     'name',
     'slug',
     'is_active',
@@ -40,6 +42,7 @@ class Product extends Model
     protected function casts(): array
     {
         return [
+            'cooperative_scope' => CooperativeScope::class,
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
             'views' => 'integer',
