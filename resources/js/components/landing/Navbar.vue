@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
-import { ref, onMounted, onUnmounted, computed } from 'vue';
-import { logout, login } from '@/routes';
 import { UserIcon, LogOutIcon, LayoutDashboardIcon } from 'lucide-vue-next';
+import { ref, onMounted, onUnmounted, computed } from 'vue';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,8 +11,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import seller from '@/routes/seller';
+import { logout, login } from '@/routes';
 import dashboard from '@/routes/dashboard';
+import seller from '@/routes/seller';
 
 const page = usePage();
 const user = computed(() => page.props.auth.user);
