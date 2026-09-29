@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->unique()->constrained()->cascadeOnDelete();
             $table->decimal('balance', 15, 2)->default(0.00);
             $table->boolean('show')->default(true);
+            $table->string('signature', 64)->nullable();
             $table->timestamps();
         });
     }

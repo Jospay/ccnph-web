@@ -34,6 +34,8 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             CooperativeSeeder::class,
             TermsAndConditionSeeder::class,
+            TransactionChannelSeeder::class,
+            TransactionFeeSeeder::class,
             AttributeSeeder::class,
         ]);
 

@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use InvalidArgumentException;
@@ -22,7 +23,6 @@ use Laravel\Sanctum\HasApiTokens;
     'first_name',
     'middle_name',
     'last_name',
-    'cooperative_id',
     'email',
     'password',
     'user_type_id',
@@ -43,6 +43,11 @@ use Laravel\Sanctum\HasApiTokens;
     'valid_id_number',
     'front_valid_id_picture',
     'back_valid_id_picture',
+    'deletion_requested_at',
+    'scheduled_deletion_at',
+    'deletion_verification_request_id',
+    'deletion_otp_sent_at',
+    'deletion_token',
 ])]
 
 #[Hidden([
@@ -53,13 +58,15 @@ use Laravel\Sanctum\HasApiTokens;
     'valid_id_number',
     'front_valid_id_picture',
     'back_valid_id_picture',
+    'deletion_token',
+    'deletion_verification_request_id',
 ])]
 class User extends Authenticatable
 {
     use HasApiTokens;
 
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable;
+    use HasFactory, Notifiable, SoftDeletes, TwoFactorAuthenticatable;
 
     /**
      * Get the attributes that should be cast.
@@ -78,6 +85,11 @@ class User extends Authenticatable
 
             'is_active' => 'boolean',
             'password' => 'hashed',
+            'deleted_at' => 'datetime',
+
+            'deletion_requested_at' => 'datetime',
+            'scheduled_deletion_at' => 'datetime',
+            'deletion_otp_sent_at' => 'datetime',
         ];
     }
 
@@ -90,38 +102,32 @@ class User extends Authenticatable
         });
     }
 
-    // relationship to user type, one to many
     public function userType(): BelongsTo
     {
         return $this->belongsTo(UserType::class);
     }
 
-    // relationship to services, many to many
     public function services(): BelongsToMany
     {
         return $this->belongsToMany(Service::class)
             ->withTimestamps();
     }
 
-    // relationship to loans, one to many
     public function loans(): HasMany
     {
         return $this->hasMany(Loan::class);
     }
 
-    // relationship to loan settings, one to many
     public function loanSettings(): HasMany
     {
         return $this->hasMany(LoanSetting::class);
     }
 
-    // relationship to status, one to many
     public function status(): BelongsTo
     {
         return $this->belongsTo(Status::class);
     }
 
-    // relationship to wallet, one to many
     public function wallet(): HasOne
     {
         return $this->hasOne(Wallet::class);
@@ -162,7 +168,6 @@ class User extends Authenticatable
         return $this->hasMany(Review::class);
     }
 
-    // relationship to intellectual properties, one to many
     public function intellectualProperties(): HasMany
     {
         return $this->hasMany(IntellectualProperty::class);
@@ -173,44 +178,21 @@ class User extends Authenticatable
         return $this->hasOne(MemberShareCapital::class);
     }
 
-    // checker for service management
     public function managesService(int $serviceId): bool
     {
-        // Super Admins bypass
         if ($this->user_type_id === UserType::SUPER_ADMIN && $this->status_id === Status::ACTIVE) {
             return true;
         }
 
-        // Must be an Admin and currently Active
         if ($this->user_type_id !== UserType::ADMIN || $this->status_id !== Status::ACTIVE) {
             return false;
         }
 
-        // Must be assigned to the service AND the service must be active
         return $this->services()
             ->where('services.id', $serviceId)
             ->where('services.is_active', true)
             ->exists();
     }
-
-    // instance method to get active loan setting
-    // public function getActiveLoanSetting()
-    // {
-    //     return $this->loanSettings()
-    //         ->orWhereNull('user_id')
-    //         ->orderByRaw('user_id DESC')
-    //         ->first();
-    // }
-
-    // public function getActiveLoanSetting()
-    // {
-    //     return LoanSetting::where(function ($query) {
-    //         $query->where('user_id', $this->id)
-    //             ->orWhereNull('user_id');
-    //     })
-    //         ->orderByRaw('user_id IS NULL')
-    //         ->first();
-    // }
 
     public function getActiveLoanSetting(): LoanSetting|int
     {
@@ -243,10 +225,5 @@ class User extends Authenticatable
     public function authDevices(): HasMany
     {
         return $this->hasMany(UserAuthDevice::class);
-    }
-
-    public function cooperative(): BelongsTo
-    {
-        return $this->belongsTo(Cooperative::class);
     }
 }

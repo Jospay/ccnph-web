@@ -24,13 +24,15 @@ class RechargeWalletRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'amount' => ['required', 'integer', 'min:10000'],
+            // 'amount' => ['required', 'integer', 'min:10000'],
+            'amount' => ['required', 'integer', 'min:100'],
             'payment_method_id' => ['required', 'exists:payment_methods,id'],
             'gateway_payment_method_id' => [
-                'required_if:payment_method_id,' . PaymentMethod::CARD,
+                'required_if:payment_method_id,'.PaymentMethod::CARD,
                 'nullable',
                 'string',
             ],
+            'sender_account_name' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

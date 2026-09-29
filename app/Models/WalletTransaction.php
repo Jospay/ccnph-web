@@ -12,13 +12,20 @@ class WalletTransaction extends Model
         'wallet_id',
         'reference_type',
         'reference_id',
+        'reference_number',
         'type',
         'amount',
+        'transfer_fee',
+        'from_name',
+        'to_account_name',
+        'to_account_number',
+        'to_provider',
         'description',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
+        'transfer_fee' => 'decimal:2',
     ];
 
     public function wallet(): BelongsTo

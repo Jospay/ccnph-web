@@ -13,9 +13,7 @@ use Illuminate\Http\Request;
 
 class WalletController extends Controller
 {
-    public function __construct(protected WalletService $walletService)
-    {
-    }
+    public function __construct(protected WalletService $walletService) {}
 
     /**
      * Get Wallet Overview.
@@ -35,8 +33,10 @@ class WalletController extends Controller
     public function update(Request $request): JsonResponse
     {
         $user = $request->user();
+
         $wallet = $this->walletService->getUserWallet($user);
-        $wallet->show = !$wallet->show;
+
+        $wallet->show = ! $wallet->show;
         $wallet->save();
 
         return (new ApiWalletResource($wallet))->response();
@@ -54,36 +54,82 @@ class WalletController extends Controller
         $wallet = $this->walletService->getUserWallet($request->user());
         $transactions = $this->walletService->getWalletTransactions($wallet);
 
-        return ApiWalletTransactionResource::collection($transactions)
-            ->response();
+        return ApiWalletTransactionResource::collection($transactions)->response();
     }
 
     public function presets(): JsonResponse
     {
         $presets = collect(WalletService::PRESET_AMOUNTS)
-            ->map(fn($amount) => [
+            ->map(fn ($amount) => [
                 'amount' => $amount,
                 'amount_display' => number_format($amount / 100, 2),
             ]);
 
-        return response()->json(['data' => $presets]);
+        return response()->json([
+            'data' => $presets,
+        ]);
     }
 
     public function recharge(RechargeWalletRequest $request): JsonResponse
     {
-        try {
-            $result = $this->walletService->recharge($request->user(), $request->validated());
+        $user = $request->user();
 
-            $wallet = $this->walletService->getUserWallet($request->user()->fresh());
+        $wallet = $this->walletService->getUserWallet($user);
+
+        if (
+            method_exists($wallet, 'isTampered')
+                ? $wallet->isTampered()
+                : ($wallet->is_tampered ?? false)
+        ) {
+            return response()->json([
+                'success' => false,
+                'is_tampered' => true,
+                'message' => 'Your wallet balance integrity check failed. Transactions are restricted.',
+            ], 422);
+        }
+
+        try {
+            $result = $this->walletService->recharge(
+                $user,
+                $request->validated()
+            );
+
+            $wallet = $this->walletService->getUserWallet(
+                $user->fresh()
+            );
 
             return response()->json([
                 'success' => true,
                 'message' => 'Recharge initiated successfully.',
                 'data' => new ApiWalletResource($wallet),
+
+                // IMPORTANT:
+                // Return the Payment model so the frontend
+                // can retrieve gateway_payment_intent_id.
+                'payment' => $result['payment'],
+
                 'next_action' => $result['next_action'],
             ]);
         } catch (DomainException $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
         }
+    }
+
+    public function config(): JsonResponse
+    {
+        $fee = $this->walletService->getFeeConfig();
+
+        return response()->json([
+            'data' => [
+                'min_recharge' => $this->walletService->getMinRecharge(),
+                'fee' => [
+                    'type' => $fee?->type ?? 'PHP',
+                    'fee' => (float) ($fee?->transfer_fee ?? 0),
+                ],
+            ],
+        ]);
     }
 }

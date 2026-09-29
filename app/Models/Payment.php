@@ -17,11 +17,14 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
     'status_id',
     'payment_date',
     'amount',
+    'fee',
     'cancelled_amount',
     'gateway',
     'gateway_payment_intent_id',
     'gateway_payment_id',
     'gateway_response',
+    'sender_name',
+    'sender_account_number',
 ])]
 class Payment extends Model
 {
@@ -38,6 +41,7 @@ class Payment extends Model
             'payment_method_id' => 'integer',
             'amount' => 'integer',
             'cancelled_amount' => 'integer',
+            'fee' => 'integer',
             'payment_date' => 'date',
             'gateway_response' => 'array',
         ];

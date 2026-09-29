@@ -14,6 +14,9 @@ return new class extends Migration
         Schema::table('payments', function (Blueprint $table) {
             $table->foreignId('checkout_id')->nullable()->unique()->after('payment_method_id')->constrained()->cascadeOnDelete();
             $table->unsignedBigInteger('cancelled_amount')->default(0)->after('amount');
+            $table->unsignedBigInteger('fee')->default(0)->after('cancelled_amount');
+            $table->string('sender_name')->nullable()->after('gateway_response');
+            $table->string('sender_account_number')->nullable()->after('sender_name');
         });
     }
 
@@ -25,6 +28,8 @@ return new class extends Migration
         Schema::table('payments', function (Blueprint $table) {
             $table->dropConstrainedForeignId('checkout_id');
             $table->dropColumn('cancelled_amount');
+            $table->dropColumn('fee');
+            $table->dropColumn(['sender_name', 'sender_account_number']);
         });
     }
 };

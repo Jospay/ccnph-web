@@ -13,10 +13,23 @@ return new class extends Migration
     {
         Schema::create('wallet_transactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('wallet_id')->constrained()->cascadeOnDelete();
-            $table->nullableMorphs('reference'); 
+            $table->foreignId('wallet_id')->nullable()->constrained()->cascadeOnDelete();
+
+            $table->nullableMorphs('reference');
+            $table->string('reference_number')->nullable()->unique();
+            $table->enum('type', ['deposit', 'withdrawal', 'credit', 'debit', 'membership_payment']);
+
+            // Transfer amount and fee (total deducted = amount + transfer_fee)
             $table->decimal('amount', 15, 2);
-            $table->enum('type', ['deposit', 'withdrawal']);
+            $table->decimal('transfer_fee', 15, 2)->default(0);
+
+            // From / To details (used by transfers)
+            $table->string('from_name')->nullable();
+            $table->string('from_account_number')->nullable();
+            $table->string('to_account_name')->nullable();
+            $table->string('to_account_number', 50)->nullable();
+            $table->string('to_provider')->nullable();
+
             $table->string('description')->nullable();
             $table->timestamps();
         });

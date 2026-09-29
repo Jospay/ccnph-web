@@ -14,7 +14,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 )]
 class PaymentGatewayLog extends Model
 {
-
     protected $casts = [
         'payload' => 'array',
     ];

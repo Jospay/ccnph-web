@@ -10,14 +10,23 @@ class Status extends Model
     public $timestamps = false;
 
     public const ACTIVE = 1;
+
     public const APPROVED = 2;
+
     public const REJECTED = 3;
+
     public const CANCELLED = 4;
+
     public const PENDING = 5;
+
     public const FINISHED = 6;
+
     public const PAID = 7;
+
     public const UNPAID = 8;
+
     public const OVERDUE = 9;
+
     public const FOR_APPROVAL = 10;
 
     public const SUCCESS = 11;
@@ -29,6 +38,7 @@ class Status extends Model
     public const WAITING_FOR_PAYMENT = 14;
 
     public const REGISTERED = 15;
+
     public const EXPIRED = 16;
 
     // protected $fillable = [];
