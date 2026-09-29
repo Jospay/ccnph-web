@@ -23,8 +23,7 @@ class MembershipController extends Controller
         private readonly MembershipService $membershipService,
         private readonly MembershipApplicationService $applicationService, // This is your service
         private readonly MembershipPaymentService $paymentService,
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): ApiMembershipResource|JsonResponse
     {
@@ -33,19 +32,19 @@ class MembershipController extends Controller
                 Status::PENDING,
                 Status::ACTIVE,
                 Status::APPROVED,
-                Status::PAID
+                Status::PAID,
             ])
             ->with([
                 'status',
-                'schedules' => fn($q) => $q->orderBy('installment_no'),
+                'schedules' => fn ($q) => $q->orderBy('installment_no'),
                 'schedules.status',
-                'schedules.payments' => fn($q) => $q->latest(),
+                'schedules.payments' => fn ($q) => $q->latest(),
                 'schedules.payments.status',
                 'schedules.payments.paymentMethod',
             ])
             ->first();
 
-        if (!$membership) {
+        if (! $membership) {
             return response()->json([
                 'success' => false,
                 'message' => 'No active, pending, or approved membership found.',
@@ -108,8 +107,8 @@ class MembershipController extends Controller
                 'success' => true,
                 'message' => 'Payment initiated.',
                 'data' => [
-                'schedule' => new ApiMembershipScheduleResource($schedule),
-                'payment' => $result['payment'],],
+                    'schedule' => new ApiMembershipScheduleResource($schedule),
+                    'payment' => $result['payment'], ],
                 'next_action' => $result['next_action'] ?? null,
             ]);
 
@@ -128,6 +127,20 @@ class MembershipController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Membership cancelled.',
+        ]);
+    }
+
+    public function config(): JsonResponse
+    {
+        $fee = $this->membershipService->getFeeConfig();
+
+        return response()->json([
+            'data' => [
+                'fee' => [
+                    'type' => $fee?->type ?? 'PHP',
+                    'fee' => (float) ($fee?->transfer_fee ?? 0),
+                ],
+            ],
         ]);
     }
 }

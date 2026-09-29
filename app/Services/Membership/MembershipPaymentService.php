@@ -6,16 +6,17 @@ use App\Exceptions\Membership\MembershipGatewayException;
 use App\Exceptions\Membership\MembershipPendingPaymentExistsException;
 use App\Exceptions\Membership\MembershipScheduleAlreadyPaidException;
 use App\Models\MembershipSchedule;
-use App\Models\Payment;
 use App\Models\PaymentMethod;
 use App\Models\Status;
+use App\Models\TransactionFee;
 use App\Services\Payments\PaymentGatewayFactory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Throwable;
 
 class MembershipPaymentService
 {
+    public const FEE_MODULE = 'Membership';
+
     public function initiate(MembershipSchedule $schedule, int $paymentMethodId): array
     {
         return DB::transaction(function () use ($schedule, $paymentMethodId) {
@@ -38,7 +39,15 @@ class MembershipPaymentService
 
             $gatewayMethodId = $this->resolveGatewayMethodId($service, $method, []);
 
-            $intentResponse = $service->createPaymentIntent($schedule->amount / 100);
+            // schedule->amount is in cents — net amount owed for this installment
+            $amountPesos = round($schedule->amount / 100, 2);
+
+            $fee = TransactionFee::forModule(self::FEE_MODULE)?->calculate($amountPesos) ?? 0.00;
+            $feeCents = (int) round($fee * 100);
+            $totalChargeCents = (int) round($schedule->amount + $feeCents);
+
+            // Charge amount + fee via gateway
+            $intentResponse = $service->createPaymentIntent($totalChargeCents / 100);
 
             $intentId = data_get($intentResponse, 'data.id')
                 ?? throw MembershipGatewayException::failedToCreatePaymentIntent(
@@ -52,6 +61,7 @@ class MembershipPaymentService
                 'status_id' => Status::PENDING,
                 'payment_date' => now(),
                 'amount' => $schedule->amount,
+                'fee' => $feeCents,
                 'gateway' => $gateway,
                 'gateway_payment_intent_id' => $intentId,
                 'gateway_response' => $attached,
@@ -68,27 +78,22 @@ class MembershipPaymentService
 
     private function validateSchedule(MembershipSchedule $schedule): void
     {
-        // Block cancelled schedules
         if ($schedule->status_id === Status::CANCELLED) {
             throw new \RuntimeException('Cannot pay a cancelled schedule.');
         }
 
-        // Block if parent membership is cancelled
         if ($schedule->membership->status_id === Status::CANCELLED) {
             throw new \RuntimeException('Cannot pay a schedule for a cancelled membership.');
         }
 
-        // Block if parent membership is not yet approved/active
-        if (!in_array($schedule->membership->status_id, [Status::ACTIVE, Status::APPROVED])) {
+        if (! in_array($schedule->membership->status_id, [Status::ACTIVE, Status::APPROVED])) {
             throw new \RuntimeException('Membership is not in a payable state.');
         }
 
-        // Block already paid schedule
         if ($schedule->status_id === Status::PAID) {
             throw new MembershipScheduleAlreadyPaidException($schedule);
         }
 
-        // Block in-flight payment
         if ($schedule->payments()->where('status_id', Status::PENDING)->exists()) {
             throw new MembershipPendingPaymentExistsException($schedule);
         }

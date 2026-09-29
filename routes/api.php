@@ -178,6 +178,7 @@ Route::middleware('auth:sanctum')->group(function () {
         ->group(function () {
             Route::get('/', [MembershipController::class, 'index']);
             Route::get('settings', [MembershipController::class, 'settings']);
+            Route::get('config', [MembershipController::class, 'config']);
             Route::post('apply', [MembershipController::class, 'apply']);
             Route::post('schedules/{schedule}/pay', [MembershipController::class, 'pay']);
             Route::delete('cancel', [MembershipController::class, 'cancel']);

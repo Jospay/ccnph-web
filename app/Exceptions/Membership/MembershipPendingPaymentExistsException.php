@@ -4,6 +4,7 @@ namespace App\Exceptions\Membership;
 
 use App\Models\MembershipSchedule;
 use Exception;
+use Illuminate\Http\JsonResponse;
 
 class MembershipPendingPaymentExistsException extends Exception
 {
@@ -13,7 +14,7 @@ class MembershipPendingPaymentExistsException extends Exception
         parent::__construct('A payment is already pending. Please wait 1 minute before requesting a new link.');
     }
 
-    public function render(): \Illuminate\Http\JsonResponse
+    public function render(): JsonResponse
     {
         return response()->json([
             'success' => false,

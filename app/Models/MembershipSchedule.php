@@ -41,6 +41,7 @@ class MembershipSchedule extends Model implements Payable
     public function onPaymentSuccess(Payment $payment): void
     {
         $this->update(['status_id' => Status::PAID]);
+
         $this->membership->tryActivate();
     }
 

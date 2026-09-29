@@ -29,22 +29,21 @@ class ApiMembershipResource extends JsonApiResource
             'status' => $this->status?->name ?? 'Unknown',
             'paid_schedules' => $this->whenLoaded(
                 'schedules',
-                fn() => $this->schedules->where('status_id', Status::PAID)->count()
+                fn () => $this->schedules->where('status_id', Status::PAID)->count()
             ),
             'unpaid_schedules' => $this->whenLoaded(
                 'schedules',
-                fn() => $this->schedules->whereIn('status_id', [
+                fn () => $this->schedules->whereIn('status_id', [
                     Status::UNPAID,
                     Status::OVERDUE,
                 ])->count()
             ),
             'total_schedules' => $this->whenLoaded(
                 'schedules',
-                fn() => $this->schedules->count()
+                fn () => $this->schedules->count()
             ),
         ];
     }
-
 
     /**
      * The resource's relationships.
