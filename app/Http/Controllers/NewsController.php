@@ -97,8 +97,8 @@ class NewsController extends Controller
                 'c.CategoryName'
             )
             ->where('p.Is_Active', 1)
-            ->where('p.id', '!=', $id) 
-            
+            ->where('p.id', '!=', $id)
+
             ->orderBy('p.PostingDate', 'DESC')
             ->limit(5)
             ->get();

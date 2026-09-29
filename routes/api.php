@@ -3,6 +3,7 @@
 use App\Http\Controllers\API\AdController;
 use App\Http\Controllers\API\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\API\Auth\PasswordResetController;
+use App\Http\Controllers\API\Auth\ReactivationController;
 use App\Http\Controllers\API\Auth\RegisteredUserController;
 use App\Http\Controllers\API\BusinessTraining\CategoryController;
 use App\Http\Controllers\API\BusinessTraining\TrainingController;
@@ -51,6 +52,10 @@ Route::middleware('guest')->group(function () {
     Route::post('/verify-phone/resend', [PhoneVerificationController::class, 'resend'])->middleware('throttle:3,1');
     Route::post('/register/set-password', [RegisteredUserController::class, 'setPassword'])->middleware('throttle:5,1');
     Route::get('/terms-and-conditions', [TermsAndConditionController::class, 'show']);
+
+    Route::post('/account/reactivate/send', [ReactivationController::class, 'send'])->middleware('throttle:5,1');
+    Route::post('/account/reactivate/verify', [ReactivationController::class, 'verify'])->middleware('throttle:5,1');
+    Route::post('/account/reactivate/resend', [ReactivationController::class, 'resend'])->middleware('throttle:3,1');
 
     Route::prefix('password')->group(function () {
         Route::post('/forgot', [PasswordResetController::class, 'sendOtp']);
