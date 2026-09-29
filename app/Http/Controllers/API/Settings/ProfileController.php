@@ -16,6 +16,7 @@ use App\Services\User\ProfileService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class ProfileController extends Controller
 {
@@ -374,9 +375,21 @@ class ProfileController extends Controller
                 'string',
                 'max:255',
             ],
+
+            'password' => [
+                'required',
+                'string',
+            ],
         ]);
 
         $user = $request->user();
+
+        if (! Hash::check($validated['password'], $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The password you entered is incorrect.',
+            ], 422);
+        }
 
         $device = $user->authDevices()->updateOrCreate(
             [
@@ -444,6 +457,20 @@ class ProfileController extends Controller
             ], 403);
         }
 
+        $validated = $request->validate([
+            'password' => [
+                'required',
+                'string',
+            ],
+        ]);
+
+        if (! Hash::check($validated['password'], $request->user()->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The password you entered is incorrect.',
+            ], 422);
+        }
+
         $authDevice->delete();
 
         return response()->json([
@@ -467,9 +494,8 @@ class ProfileController extends Controller
 
         if ($cooperative && $cooperative->logo) {
             $path = ltrim($cooperative->logo, '/');
-            // Prevent double prepending if path already starts with storage/
             if (! str_starts_with($path, 'storage/')) {
-                $path = 'storage/' . $path;
+                $path = 'storage/'.$path;
             }
             $cooperative->logo = asset($path);
         }

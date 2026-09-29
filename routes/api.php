@@ -20,6 +20,7 @@ use App\Http\Controllers\API\Notification\NotificationController;
 use App\Http\Controllers\API\Payment\PaymentMethodController;
 use App\Http\Controllers\API\Payment\PaymentWebhookController;
 use App\Http\Controllers\API\PaymentController;
+use App\Http\Controllers\API\Settings\AccountDeletionController;
 use App\Http\Controllers\API\Settings\ProfileController;
 use App\Http\Controllers\API\ShareCapital\ShareCapitalController;
 use App\Http\Controllers\API\Shop\ShopConversationController;
@@ -110,11 +111,15 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::put('address/{userAddress}', [ProfileController::class, 'updateAddress']);
             Route::delete('address/{userAddress}', [ProfileController::class, 'deleteAddress']);
 
-            // Quick and Secure Login / Biometric
             Route::get('auth-devices', [ProfileController::class, 'authDevices']);
             Route::post('auth-devices', [ProfileController::class, 'registerAuthDevice']);
             Route::patch('auth-devices/{authDevice}/disable', [ProfileController::class, 'disableAuthDevice']);
             Route::delete('auth-devices/{authDevice}', [ProfileController::class, 'removeAuthDevice']);
+
+            Route::post('request-deletion', [AccountDeletionController::class, 'requestDeletion']);
+            Route::post('verify-deletion', [AccountDeletionController::class, 'verifyDeletion'])->middleware('throttle:5,1');
+            Route::post('resend-deletion-otp', [AccountDeletionController::class, 'resendDeletionOtp'])->middleware('throttle:3,1');
+            Route::post('complete-deletion', [AccountDeletionController::class, 'completeDeletion']);
         });
 
     // Cooperative Transparency Routes
