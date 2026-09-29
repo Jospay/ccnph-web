@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -13,8 +14,7 @@ return new class extends Migration {
         Schema::table('users', function (Blueprint $table) {
             $table->foreignId('user_type_id')->after('id')->default(4)->constrained('user_types')->onDelete('restrict');
             $table->foreignId('status_id')->after('user_type_id')->default(1)->constrained('statuses')->onDelete('restrict');
-            $table->foreignId('cooperative_id')->after('status_id')->nullable()->constrained('cooperatives')->onDelete('restrict');
-            $table->boolean('is_seller')->default(false)->after('cooperative_id');
+            $table->boolean('is_seller')->default(false)->after('status_id');
             $table->string('phone', 20)->unique()->nullable()->after('email_verified_at');
             $table->timestamp('phone_verified_at')->nullable()->after('phone');
             $table->enum('gender', ['Male', 'Female', 'Other', 'Prefer not to say'])->nullable()->after('phone_verified_at');
@@ -29,7 +29,7 @@ return new class extends Migration {
             $table->enum('valid_id_type', [
                 'National ID',
                 'Passport',
-                "Driver License",
+                'Driver License',
                 'UMID',
                 'SSS ID',
                 'PhilHealth ID',
@@ -47,6 +47,7 @@ return new class extends Migration {
             $table->string('valid_id_number', 20)->unique()->nullable()->after('valid_id_type');
             $table->string('front_valid_id_picture')->nullable()->after('valid_id_number');
             $table->string('back_valid_id_picture')->nullable()->after('front_valid_id_picture');
+            $table->softDeletes()->after('updated_at');
         });
     }
 
@@ -60,7 +61,6 @@ return new class extends Migration {
             $table->dropColumn([
                 'user_type_id',
                 'status_id',
-                'cooperative_id',
                 'phone',
                 'phone_verified_at',
                 'gender',
@@ -76,6 +76,7 @@ return new class extends Migration {
                 'front_valid_id_picture',
                 'back_valid_id_picture',
             ]);
+            $table->dropSoftDeletes();
         });
     }
 };
