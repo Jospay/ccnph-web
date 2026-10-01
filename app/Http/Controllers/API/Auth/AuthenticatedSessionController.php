@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\API\Auth;
 
+use App\Exceptions\AccountPendingReactivationException;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Resources\Api\Cooperative\ApiCooperativeBrandingResource;
 use App\Http\Resources\Api\User\ApiProfileResource;
-use App\Models\User;
 use App\Models\UserAuthDevice;
 use App\Services\Auth\AuthenticationService;
 use Illuminate\Http\JsonResponse;
@@ -29,6 +30,7 @@ class AuthenticatedSessionController extends Controller
                 'token' => $data['token'],
                 'token_type' => 'Bearer',
                 'user' => new ApiProfileResource($data['user']),
+                'cooperative' => ApiCooperativeBrandingResource::forUser($data['user']),
             ]);
 
         } catch (ValidationException $e) {
@@ -36,6 +38,13 @@ class AuthenticatedSessionController extends Controller
                 'message' => 'Invalid credentials.',
                 'errors' => $e->errors(),
             ], 422);
+
+        } catch (AccountPendingReactivationException $e) {
+            return response()->json([
+                'status' => 'pending_reactivation',
+                'message' => $e->getMessage(),
+                'phone' => $e->phone,
+            ], 409);
 
         } catch (\RuntimeException $e) {
             return response()->json([
@@ -62,7 +71,6 @@ class AuthenticatedSessionController extends Controller
                 'public_key' => ['required', 'string'],
             ]);
 
-            // Find the auth device
             $authDevice = UserAuthDevice::where('device_id', $validated['device_id'])
                 ->where('public_key', $validated['public_key'])
                 ->where('biometric_enabled', true)
@@ -74,20 +82,16 @@ class AuthenticatedSessionController extends Controller
                 ], 401);
             }
 
-            // Get the user associated with the device
             $user = $authDevice->user;
 
-            // Verify user is active and phone is verified
             if (! $user || ! $user->phone_verified_at) {
                 return response()->json([
                     'message' => 'User account is not verified.',
                 ], 403);
             }
 
-            // Update last used timestamp
             $authDevice->update(['last_used_at' => now()]);
 
-            // Create token
             $token = $user->createToken('biometric-auth-token')->plainTextToken;
 
             return response()->json([
@@ -95,6 +99,7 @@ class AuthenticatedSessionController extends Controller
                 'token' => $token,
                 'token_type' => 'Bearer',
                 'user' => new ApiProfileResource($user),
+                'cooperative' => ApiCooperativeBrandingResource::forUser($user),
             ]);
 
         } catch (ValidationException $e) {
