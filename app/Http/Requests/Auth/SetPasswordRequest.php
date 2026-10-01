@@ -8,17 +8,25 @@ use Illuminate\Validation\Rules\Password;
 
 class SetPasswordRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
+     * Must match the normalization in RegisterRequest, because
+     * pending_registrations.phone is stored exactly as RegisterRequest cleaned it.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('phone')) {
+            $this->merge([
+                'phone' => preg_replace('/\D+/', '', (string) $this->input('phone')),
+            ]);
+        }
+    }
+
+    /**
      * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
