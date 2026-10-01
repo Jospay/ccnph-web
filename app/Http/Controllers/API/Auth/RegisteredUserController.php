@@ -5,9 +5,12 @@ namespace App\Http\Controllers\API\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\SetPasswordRequest;
+use App\Http\Resources\Api\Cooperative\ApiCooperativeBrandingResource;
+use App\Http\Resources\Api\User\ApiProfileResource;
 use App\Notifications\GeneralNotification;
 use App\Services\Auth\RegistrationService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 use Throwable;
 
@@ -23,22 +26,6 @@ class RegisteredUserController extends Controller
      * @tags Auth
      *
      * @unauthenticated
-     *
-     * @response 201 scenario="New registration" {
-     *   "status": "created",
-     *   "message": "OTP sent.",
-     *   "phone": "+639171234567"
-     * }
-     * @response 200 scenario="Pending registration" {
-     *   "status": "pending",
-     *   "message": "A pending registration already exists. OTP resent.",
-     *   "phone": "+639171234567"
-     * }
-     * @response 422 {
-     *   "message": "The phone has already been taken.",
-     *   "errors": { "phone": ["The phone has already been taken."] }
-     * }
-     * @response 500 { "message": "Registration failed." }
      */
     public function store(RegisterRequest $request): JsonResponse
     {
@@ -55,9 +42,10 @@ class RegisteredUserController extends Controller
             ], (int) $e->getCode() ?: 500);
 
         } catch (Throwable $e) {
+            Log::error('Registration failed', ['exception' => $e]);
+
             return response()->json([
                 'message' => 'Registration failed.',
-                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -76,14 +64,11 @@ class RegisteredUserController extends Controller
      *   "message": "Registration complete.",
      *   "token": "1|abc123...",
      *   "token_type": "Bearer",
-     *   "user": {
-     *     "id": 1,
-     *     "name": "Juan dela Cruz",
-     *     "first_name": "Juan",
-     *     "middle_name": null,
-     *     "last_name": "dela Cruz",
-     *     "cooperative_id": 1,
-     *     "phone": "09171234567"
+     *   "user": { "data": { "id": "1", "type": "users", "attributes": {} } },
+     *   "cooperative": {
+     *     "primary_color": "#3E4093",
+     *     "secondary_color": "#F59E0B",
+     *     "logo": "https://example.com/storage/logos/coop.png"
      *   }
      * }
      * @response 403 { "message": "Invalid or expired verification token." }
@@ -99,14 +84,16 @@ class RegisteredUserController extends Controller
                 $request->validated('verification_token'),
             );
 
-            $result['user']->notify(new GeneralNotification(
+            $user = $result['user'];
+
+            $user->notify(new GeneralNotification(
                 type: 'registration_completed',
                 title: 'Registration Successful!',
                 body: 'Your account has been created. You can now complete your profile setup.',
                 actionType: 'VIEW_PROFILE',
                 route: '/profile',
                 extraData: [
-                    'user_id' => $result['user']->id,
+                    'user_id' => $user->id,
                     'status' => 'registered',
                 ]
             ));
@@ -115,7 +102,8 @@ class RegisteredUserController extends Controller
                 'message' => 'Registration complete.',
                 'token' => $result['token'],
                 'token_type' => 'Bearer',
-                'user' => $result['user'],
+                'user' => new ApiProfileResource($user),
+                'cooperative' => ApiCooperativeBrandingResource::forUser($user),
             ], 201);
 
         } catch (RuntimeException $e) {
@@ -124,9 +112,10 @@ class RegisteredUserController extends Controller
             ], (int) $e->getCode() ?: 500);
 
         } catch (Throwable $e) {
+            Log::error('Registration completion failed', ['exception' => $e]);
+
             return response()->json([
                 'message' => 'Failed to complete registration.',
-                'error' => $e->getMessage(),
             ], 500);
         }
     }
