@@ -13,9 +13,7 @@ use Throwable;
 
 class RegistrationService
 {
-    public function __construct(private MoviderVerifyService $movider)
-    {
-    }
+    public function __construct(private MoviderVerifyService $movider) {}
 
     /**
      * Step 1: Store in pending_registrations and send OTP via Movider.
@@ -25,7 +23,7 @@ class RegistrationService
     public function initiateRegistration(array $data): array
     {
         $phone = $data['phone'];
-        $normalizedPhone = str_starts_with($phone, '63') ? '0' . substr($phone, 2) : $phone;
+        $normalizedPhone = str_starts_with($phone, '63') ? '0'.substr($phone, 2) : $phone;
         $existingUser = User::where('phone', $normalizedPhone)->exists();
 
         if ($existingUser) {
@@ -40,6 +38,7 @@ class RegistrationService
 
             if ($secondsPassed < 300) {
                 $wait = 300 - $secondsPassed;
+
                 return [
                     'status' => 'pending',
                     'retry_after' => $wait,
@@ -91,7 +90,7 @@ class RegistrationService
     {
         $pending = PendingRegistration::where('phone', $phone)->first();
 
-        if (!$pending || !$pending->verification_request_id) {
+        if (! $pending || ! $pending->verification_request_id) {
             throw new \RuntimeException('No pending registration found.', 404);
         }
 
@@ -134,14 +133,14 @@ class RegistrationService
             ->where('phone_verified', true)
             ->first();
 
-        if (!$pending || !Hash::check($verificationToken, $pending->verification_token)) {
+        if (! $pending || ! Hash::check($verificationToken, $pending->verification_token)) {
             throw new \RuntimeException('Invalid or expired verification token.', 403);
         }
 
         return DB::transaction(function () use ($pending, $password): array {
             $formattedPhone = $pending->phone;
             if (str_starts_with($formattedPhone, '63')) {
-                $formattedPhone = '0' . substr($formattedPhone, 2);
+                $formattedPhone = '0'.substr($formattedPhone, 2);
             }
 
             $user = User::create([
@@ -181,7 +180,7 @@ class RegistrationService
             ->where('phone_verified', false)
             ->first();
 
-        if (!$pending) {
+        if (! $pending) {
             throw new \RuntimeException('No pending registration found for this number.', 404);
         }
 
@@ -190,6 +189,7 @@ class RegistrationService
 
             if ($secondsPassed < 300) {
                 $wait = 300 - $secondsPassed;
+
                 return [
                     'status' => 'pending',
                     'retry_after' => $wait,
