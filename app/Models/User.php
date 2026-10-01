@@ -26,6 +26,7 @@ use Laravel\Sanctum\HasApiTokens;
     'email',
     'password',
     'user_type_id',
+    'cooperative_id',
     'status_id',
     'is_seller',
     'phone',
@@ -225,5 +226,10 @@ class User extends Authenticatable
     public function authDevices(): HasMany
     {
         return $this->hasMany(UserAuthDevice::class);
+    }
+
+    public function cooperative(): BelongsTo
+    {
+        return $this->belongsTo(Cooperative::class);
     }
 }
