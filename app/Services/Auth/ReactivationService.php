@@ -4,12 +4,16 @@ namespace App\Services\Auth;
 
 use App\Models\User;
 use App\Services\Movider\MoviderVerifyService;
+use GuzzleHttp\Exception\ClientException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class ReactivationService
 {
+    private const OTP_COOLDOWN_SECONDS = 300;
+
     public function __construct(private MoviderVerifyService $movider) {}
 
     /**
@@ -21,32 +25,51 @@ class ReactivationService
      */
     public function sendOtp(User $user): int
     {
-        if ($user->deletion_otp_sent_at) {
+        // Cooldown only applies while a reactivation OTP is actually active.
+        if ($user->deletion_otp_sent_at && $user->deletion_verification_request_id) {
             $secondsPassed = (int) $user->deletion_otp_sent_at->diffInSeconds(now());
 
-            if ($secondsPassed < 300) {
-                return 300 - $secondsPassed;
+            if ($secondsPassed < self::OTP_COOLDOWN_SECONDS) {
+                return self::OTP_COOLDOWN_SECONDS - $secondsPassed;
             }
         }
 
+        // Cancel the old Movider request (best effort — never block the resend)
         if ($user->deletion_verification_request_id) {
-            $this->movider->cancel($user->deletion_verification_request_id);
+            try {
+                $this->movider->cancel($user->deletion_verification_request_id);
+            } catch (Throwable $e) {
+                Log::warning('Movider cancel failed', ['message' => $e->getMessage()]);
+            }
         }
 
-        DB::transaction(function () use ($user) {
-            $response = $this->movider->startVerification($user->phone);
+        $to = $this->toMoviderPhone((string) $user->phone);
 
-            if (empty($response['request_id'])) {
-                throw new \RuntimeException('Failed to send reactivation code. Please try again.', 500);
-            }
+        try {
+            $response = $this->movider->startVerification($to);
+        } catch (ClientException $e) {
+            $body = json_decode((string) $e->getResponse()->getBody(), true);
 
-            $user->update([
-                'deletion_verification_request_id' => $response['request_id'],
-                'deletion_otp_sent_at' => now(),
-            ]);
-        });
+            Log::error('Movider reactivation OTP failed', ['body' => $body, 'to' => $to]);
 
-        return 300;
+            throw new \RuntimeException(
+                'Could not send reactivation code. Please try again.',
+                422
+            );
+        }
+
+        if (empty($response['request_id'])) {
+            Log::error('Movider reactivation OTP: no request_id', ['response' => $response, 'to' => $to]);
+
+            throw new \RuntimeException('Failed to send reactivation code. Please try again.', 500);
+        }
+
+        $user->update([
+            'deletion_verification_request_id' => $response['request_id'],
+            'deletion_otp_sent_at' => now(),
+        ]);
+
+        return self::OTP_COOLDOWN_SECONDS;
     }
 
     /**
@@ -83,7 +106,7 @@ class ReactivationService
         );
 
         if (isset($response['error'])) {
-            $code = $response['error']['code'];
+            $code = $response['error']['code'] ?? null;
 
             match ($code) {
                 426 => throw new \RuntimeException('This code has already been used.', 422),
@@ -114,13 +137,38 @@ class ReactivationService
     }
 
     /**
+     * Re-verify credentials, then send the reactivation OTP. This is
+     * called only when the user explicitly taps "Okay" on the
+     * reactivation prompt — never automatically during login.
+     *
+     * @throws \RuntimeException
+     * @throws Throwable
+     */
+    public function sendOtpForCredentials(string $phone, string $password): int
+    {
+        $user = User::onlyTrashed()
+            ->where('phone', $this->toLocalPhone($phone))
+            ->first();
+
+        if (! $user || ! Hash::check($password, $user->password)) {
+            throw new \RuntimeException('No pending reactivation found for this number.', 404);
+        }
+
+        if (! $user->scheduled_deletion_at || $user->scheduled_deletion_at->isPast()) {
+            throw new \RuntimeException('No pending reactivation found for this number.', 404);
+        }
+
+        return $this->sendOtp($user);
+    }
+
+    /**
      * @throws \RuntimeException
      */
     private function findPendingUser(string $phone, bool $requireOtpSent = false): User
     {
-        $normalizedPhone = str_starts_with($phone, '63') ? '0'.substr($phone, 2) : $phone;
-
-        $user = User::onlyTrashed()->where('phone', $normalizedPhone)->first();
+        $user = User::onlyTrashed()
+            ->where('phone', $this->toLocalPhone($phone))
+            ->first();
 
         $isPending = $user
             && $user->scheduled_deletion_at
@@ -135,27 +183,26 @@ class ReactivationService
     }
 
     /**
-     * Re-verify credentials, then send the reactivation OTP. This is
-     * called only when the user explicitly taps "Okay" on the
-     * reactivation prompt — never automatically during login.
-     *
-     * @throws \RuntimeException
-     * @throws Throwable
+     * Normalize input to the stored format: 09XXXXXXXXX.
      */
-    public function sendOtpForCredentials(string $phone, string $password): int
+    private function toLocalPhone(string $phone): string
     {
-        $normalizedPhone = str_starts_with($phone, '63') ? '0'.substr($phone, 2) : $phone;
+        $digits = preg_replace('/\D+/', '', $phone);
 
-        $user = User::onlyTrashed()->where('phone', $normalizedPhone)->first();
+        return str_starts_with($digits, '63') ? '0'.substr($digits, 2) : $digits;
+    }
 
-        if (! $user || ! Hash::check($password, $user->password)) {
-            throw new \RuntimeException('No pending reactivation found for this number.', 404);
+    /**
+     * users.phone is stored as 09XXXXXXXXX, but Movider needs 639XXXXXXXXX.
+     */
+    private function toMoviderPhone(string $phone): string
+    {
+        $digits = preg_replace('/\D+/', '', $phone);
+
+        if (str_starts_with($digits, '09')) {
+            return '63'.substr($digits, 1);
         }
 
-        if (! $user->scheduled_deletion_at || $user->scheduled_deletion_at->isPast()) {
-            throw new \RuntimeException('No pending reactivation found for this number.', 404);
-        }
-
-        return $this->sendOtp($user);
+        return $digits;
     }
 }
