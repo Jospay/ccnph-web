@@ -54,4 +54,11 @@ class ShareCapitalSchedule extends Model implements Payable
     {
         return 'share-capital';
     }
+
+    public function cooperativeId(): ?int
+    {
+        $this->loadMissing('shareCapital.user');
+
+        return $this->shareCapital?->user?->cooperative_id;
+    }
 }
