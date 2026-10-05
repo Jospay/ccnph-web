@@ -2,6 +2,7 @@
 
 namespace App\Services\Cooperative;
 
+use App\Models\Cooperative;
 use App\Models\RevenueBreakdown;
 use App\Models\Service;
 use Carbon\Carbon;
@@ -10,11 +11,13 @@ use Illuminate\Support\Facades\DB;
 class CooperativeTransparencyService
 {
     /**
-     * Years that actually have recorded revenue (for the year filter).
+     * Years that actually have recorded revenue for this cooperative
+     * (for the year filter).
      */
-    public function availableYears(): array
+    public function availableYears(int $cooperativeId): array
     {
         return RevenueBreakdown::query()
+            ->where('cooperative_id', $cooperativeId)
             ->orderByDesc('created_at')
             ->pluck('created_at')
             ->map(fn ($date) => (string) Carbon::parse($date)->year)
@@ -241,9 +244,11 @@ class CooperativeTransparencyService
     }
 
     /**
-     * Full fund summary for a year, optionally scoped to one service.
+     * Full fund summary for a year, scoped to one cooperative and
+     * optionally to one service.
      */
     public function summary(
+        int $cooperativeId,
         int $year,
         ?string $serviceSlug = null
     ): array {
@@ -265,6 +270,10 @@ class CooperativeTransparencyService
                 'allocation_services.service_id',
                 '=',
                 'services.id'
+            )
+            ->where(
+                'revenue_breakdowns.cooperative_id',
+                $cooperativeId
             )
             ->whereYear(
                 'revenue_breakdowns.created_at',
@@ -428,7 +437,16 @@ class CooperativeTransparencyService
             ->sortByDesc('amount')
             ->values();
 
+        $cooperative = Cooperative::query()
+            ->select(['id', 'name'])
+            ->find($cooperativeId);
+
         return [
+            'cooperative' => [
+                'id' => $cooperativeId,
+                'name' => $cooperative?->name,
+            ],
+
             'year' => $year,
 
             'service_filter' => $serviceSlug ?: 'all',
