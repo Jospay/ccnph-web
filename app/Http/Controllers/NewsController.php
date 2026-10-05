@@ -3,105 +3,192 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
 
 class NewsController extends Controller
 {
-    public function index(Request $request)
+    /**
+     * Create the HTTP client for the external News API.
+     */
+    private function client()
     {
-        $search = $request->search;
-        $category = $request->category;
-        $limit = $request->limit ?? 10;
-
-        $query = DB::connection('news_mysql')
-            ->table('tblposts as p')
-            ->join('tblcategory as c', 'p.CategoryId', '=', 'c.id')
-            ->select(
-                'p.id',
-                'p.PostTitle',
-                'p.PostImage',
-                'p.PostUrl',
-                'p.PostingDate',
-                'c.CategoryName'
-            )
-            ->where('p.Is_Active', 1);
-
-        if (! empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->where('p.PostTitle', 'LIKE', "%{$search}%")
-                    ->orWhere('c.CategoryName', 'LIKE', "%{$search}%");
-            });
-        }
-
-        if (! empty($category) && $category != 'All') {
-            $query->where('c.CategoryName', $category);
-        }
-
-        $news = $query
-            ->orderBy('p.PostingDate', 'DESC')
-            ->paginate($limit);
-
-        $categories = DB::connection('news_mysql')
-            ->table('tblcategory')
-            ->pluck('CategoryName')
-            ->unique()
-            ->values();
-
-        return Inertia::render('News/NewsMedia', [
-            'news' => $news->items(),
-
-            'categories' => [
-                'All',
-                ...$categories,
-            ],
-
-            'pagination' => [
-                'current_page' => $news->currentPage(),
-                'last_page' => $news->lastPage(),
-                'total' => $news->total(),
-            ],
+        return Http::withHeaders([
+            'X-API-KEY' => env('NEWS_API_KEY'),
+            'Accept' => 'application/json',
         ]);
     }
 
-    public function show($id)
+    /**
+     * Display the News & Media page.
+     */
+    public function index(Request $request)
     {
-        $news = DB::connection('news_mysql')
-            ->table('tblposts as p')
-            ->join('tblcategory as c', 'p.CategoryId', '=', 'c.id')
-            ->select(
-                'p.id',
-                'p.PostTitle',
-                'p.PostDetails',
-                'p.PostImage',
-                'p.PostUrl',
-                'p.PostingDate',
-                'c.CategoryName'
-            )
-            ->where('p.id', $id)
-            ->where('p.Is_Active', 1)
-            ->first();
+        /*
+         * The external API already handles:
+         * - Category ID
+         * - Search
+         * - Pagination
+         * - Total count
+         *
+         * Do not add category filtering here.
+         */
+        $limit = (int) ($request->limit ?? 10);
+        $page = (int) ($request->page ?? 1);
 
-        if (! $news) {
-            abort(404);
+        $limit = max(1, min(100, $limit));
+        $page = max(1, $page);
+
+        /*
+         * Fetch the current page of news.
+         */
+        $response = $this->client()->get(env('NEWS_API_URL'), [
+            'action' => 'index',
+            'search' => $request->search,
+            'limit' => $limit,
+            'page' => $page,
+        ]);
+
+        if ($response->failed()) {
+            return Inertia::render('News/NewsMedia', [
+                'news' => [],
+                'otherNews' => [],
+                'pagination' => [
+                    'current_page' => 1,
+                    'last_page' => 1,
+                    'total' => 0,
+                    'per_page' => $limit,
+                ],
+                'search' => $request->search,
+            ]);
         }
 
-        $otherNews = DB::connection('news_mysql')
-            ->table('tblposts as p')
-            ->join('tblcategory as c', 'p.CategoryId', '=', 'c.id')
-            ->select(
-                'p.id',
-                'p.PostTitle',
-                'p.PostImage',
-                'p.PostingDate',
-                'c.CategoryName'
-            )
-            ->where('p.Is_Active', 1)
-            ->where('p.id', '!=', $id)
+        $responseData = $response->json();
 
-            ->orderBy('p.PostingDate', 'DESC')
-            ->limit(5)
-            ->get();
+        $newsList = $responseData['data'] ?? [];
+
+        /*
+         * IMPORTANT:
+         *
+         * Your API returns pagination inside "meta":
+         *
+         * "meta": {
+         *     "current_page": 1,
+         *     "last_page": 10,
+         *     "total": 100
+         * }
+         *
+         * Therefore we read "meta", not "pagination".
+         */
+        $meta = $responseData['meta'] ?? [];
+
+        $pagination = [
+            'current_page' => (int) ($meta['current_page'] ?? $page),
+            'last_page' => (int) ($meta['last_page'] ?? 1),
+            'total' => (int) ($meta['total'] ?? count($newsList)),
+            'per_page' => $limit,
+        ];
+
+        /*
+         * Fetch additional articles for the "Other News" section.
+         *
+         * We request up to 100 articles because the API allows
+         * a maximum limit of 100.
+         *
+         * This does NOT affect the main pagination.
+         */
+        $otherNewsResponse = $this->client()->get(env('NEWS_API_URL'), [
+            'action' => 'index',
+            'limit' => 100,
+            'page' => 1,
+        ]);
+
+        $otherNews = [];
+
+        if (
+            $otherNewsResponse->successful() &&
+            isset($otherNewsResponse->json()['data'])
+        ) {
+            /*
+             * Get IDs from the current page.
+             *
+             * These articles should not be repeated
+             * inside "Other News".
+             */
+            $currentNewsIds = collect($newsList)
+                ->pluck('id')
+                ->map(fn ($id) => (string) $id)
+                ->all();
+
+            $otherNews = collect($otherNewsResponse->json()['data'])
+                ->reject(function ($item) use ($currentNewsIds) {
+                    return in_array(
+                        (string) ($item['id'] ?? ''),
+                        $currentNewsIds,
+                        true
+                    );
+                })
+                ->take(5)
+                ->values()
+                ->all();
+        }
+
+        return Inertia::render('News/NewsMedia', [
+            'news' => $newsList,
+            'otherNews' => $otherNews,
+            'pagination' => $pagination,
+            'search' => $request->search,
+        ]);
+    }
+
+    /**
+     * Display a specific news article.
+     */
+    public function show($id)
+    {
+        /*
+         * Fetch the selected news article.
+         */
+        $response = $this->client()->get(env('NEWS_API_URL'), [
+            'action' => 'show',
+            'id' => $id,
+        ]);
+
+        if (
+            $response->failed() ||
+            empty($response->json()['data'])
+        ) {
+            abort(404, 'News item not found');
+        }
+
+        $news = $response->json()['data'];
+
+        /*
+         * Fetch other news for recommendations.
+         *
+         * The API already limits this to the same category
+         * because category ID 14 is handled by the API.
+         */
+        $otherNewsResponse = $this->client()->get(env('NEWS_API_URL'), [
+            'action' => 'index',
+            'limit' => 100,
+            'page' => 1,
+        ]);
+
+        $otherNews = [];
+
+        if (
+            $otherNewsResponse->successful() &&
+            isset($otherNewsResponse->json()['data'])
+        ) {
+            $otherNews = collect($otherNewsResponse->json()['data'])
+                ->reject(function ($item) use ($id) {
+                    return (string) ($item['id'] ?? '') === (string) $id;
+                })
+                ->take(5)
+                ->values()
+                ->all();
+        }
 
         return Inertia::render('News/NewsDetails', [
             'news' => $news,
