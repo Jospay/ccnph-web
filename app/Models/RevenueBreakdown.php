@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'allocation_service_id',
+    'cooperative_id',
     'amount',
 ])]
 class RevenueBreakdown extends Model
@@ -19,6 +20,7 @@ class RevenueBreakdown extends Model
     {
         return [
             'allocation_service_id' => 'integer',
+            'cooperative_id' => 'integer',
             'amount' => 'decimal:2',
         ];
     }
@@ -26,5 +28,10 @@ class RevenueBreakdown extends Model
     public function allocationService(): BelongsTo
     {
         return $this->belongsTo(AllocationService::class);
+    }
+
+    public function cooperative(): BelongsTo
+    {
+        return $this->belongsTo(Cooperative::class);
     }
 }
