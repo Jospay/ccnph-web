@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\ResendReactivationOtpRequest;
 use App\Http\Requests\Auth\SendReactivationOtpRequest;
 use App\Http\Requests\Auth\VerifyReactivationOtpRequest;
+use App\Http\Resources\Api\Cooperative\ApiCooperativeBrandingResource;
 use App\Http\Resources\Api\User\ApiProfileResource;
 use App\Services\Auth\ReactivationService;
 use Illuminate\Http\JsonResponse;
@@ -63,6 +64,7 @@ class ReactivationController extends Controller
                 'token' => $data['token'],
                 'token_type' => 'Bearer',
                 'user' => new ApiProfileResource($data['user']),
+                'cooperative' => ApiCooperativeBrandingResource::forUser($data['user']),
             ]);
 
         } catch (\RuntimeException $e) {
