@@ -129,14 +129,12 @@ const formatDate = (date: string | null | undefined): string => {
 
           <!-- Author and Date Row -->
           <div class="mb-8">
-            <a
-              :href="`https://newsphilippinesonline.com/news-details.php?nid=${news.id}`"
-            >
+            <a :href="news.npo_url" target="_blank">
               <div
-                class="flex w-fit items-center gap-2.5 text-sm font-medium text-gray-600"
+                class="text-md flex w-fit items-center gap-2.5 font-medium text-gray-600"
               >
                 <div
-                  class="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded"
+                  class="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded"
                 >
                   <img
                     src="https://newsphilippinesonline.com/images/fabico.png"

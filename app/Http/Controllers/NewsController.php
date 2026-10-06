@@ -163,11 +163,12 @@ class NewsController extends Controller
 
         $news = $response->json()['data'];
 
+        // Generate the original NPO article URL.
+        $news['npo_url'] = 'https://newsphilippinesonline.com/news-details.php?nid='
+            .base64_encode((string) $news['id']);
+
         /*
          * Fetch other news for recommendations.
-         *
-         * The API already limits this to the same category
-         * because category ID 14 is handled by the API.
          */
         $otherNewsResponse = $this->client()->get(env('NEWS_API_URL'), [
             'action' => 'index',
