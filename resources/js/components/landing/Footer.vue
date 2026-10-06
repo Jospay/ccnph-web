@@ -1,5 +1,8 @@
 <script setup lang="ts">
-// Newsletter submission logic can go here
+import { Link } from '@inertiajs/vue3';
+import { computed } from 'vue';
+
+const currentYear = computed(() => new Date().getFullYear());
 </script>
 
 <template>
@@ -56,11 +59,14 @@
             <li><a href="#home" class="flex items-center gap-2 hover:text-orange-500 transition-colors"><span class="font-bold">&gt;</span> Home</a></li>
             <li><a href="#about" class="flex items-center gap-2 hover:text-orange-500 transition-colors"><span class="font-bold">&gt;</span> About Us</a></li>
             <li><a href="#cooperatives" class="flex items-center gap-2 hover:text-orange-500 transition-colors"><span class="font-bold">&gt;</span> Cooperatives</a></li>
-            <li><a href="#news-media" class="flex items-center gap-2 hover:text-orange-500 transition-colors"><span class="font-bold">&gt;</span> News & Media</a></li>
+            <li><a href="#news-media" class="flex items-center gap-2 hover:text-orange-500 transition-colors"><span class="font-bold">&gt;</span> News &amp; Media</a></li>
             <li><a href="#contact" class="flex items-center gap-2 hover:text-orange-500 transition-colors"><span class="font-bold">&gt;</span> Contact Us</a></li>
+            <li><Link href="/terms-and-conditions" class="flex items-center gap-2 hover:text-orange-500 transition-colors"><span class="font-bold">&gt;</span> Terms and Conditions</Link></li>
+            <li><Link href="/privacy-policy" class="flex items-center gap-2 hover:text-orange-500 transition-colors"><span class="font-bold">&gt;</span> Privacy Policy</Link></li>
           </ul>
         </div>
 
+        <!-- Column 3: Newsletter -->
         <div class="flex flex-col gap-4">
           <h3 class="text-white font-bold text-lg">News Letter</h3>
           <p class="text-md md:text-md text-gray-200 leading-relaxed">
@@ -86,21 +92,21 @@
       </div>
 
       <!-- Bottom Bar: Copyright & Credits -->
-    <div class="flex flex-col md:flex-row items-center justify-between text-md text-white gap-4 text-center md:text-left">
-  <p>&copy; 2026 Cooperatives Cooperation Network Philippines. All Rights Reserved.</p>
+      <div class="flex flex-col md:flex-row items-center justify-between text-md text-white gap-4 text-center md:text-left">
+        <p>&copy; {{ currentYear }} Cooperatives Cooperation Network Philippines. All Rights Reserved.</p>
 
-  <p>
-    Designed &amp; Developed By
-    <a
-      href="https://bb88advertising.com/"
-      target="_blank"
-      rel="noopener noreferrer"
-      class="text-white underline-offset-4 transition-colors duration-200 hover:text-orange-500 hover:underline"
-    >
-      BB 88 Advertising and Digital Solutions Inc.
-    </a>
-  </p>
-</div>
+        <p>
+          Designed &amp; Developed By
+          <a
+            href="https://bb88advertising.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-white underline-offset-4 transition-colors duration-200 hover:text-orange-500 hover:underline"
+          >
+            BB 88 Advertising and Digital Solutions Inc.
+          </a>
+        </p>
+      </div>
 
     </div>
   </footer>
