@@ -20,6 +20,8 @@ use App\Http\Controllers\Web\Seller\ShopConversationController as SellerShopConv
 use App\Http\Controllers\Web\SuperAdmin\AdminManagementController;
 use App\Http\Controllers\Web\SuperAdmin\CoopMembershipController;
 use App\Http\Controllers\Web\SupportChat\SupportChatController;
+use App\Models\TermsAndCondition;
+
 use App\Models\UserType;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -46,6 +48,15 @@ Route::get('/news/details/{id}', [NewsController::class,'show'])
 Route::get('/join-us', function () {
     return Inertia::render('landing/JoinUs');
 })->name('join-us');
+
+
+Route::get('/terms-and-conditions', function () {
+    $terms = TermsAndCondition::latest('id')->first();
+    
+    return Inertia::render('Terms/Index', [
+        'terms' => $terms
+    ]);
+});
 
 Route::middleware([
     'auth',
