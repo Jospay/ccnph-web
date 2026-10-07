@@ -8,18 +8,18 @@ import MissionVision from '@/components/landing/MissionVision.vue';
 import Navbar from '@/components/landing/Navbar.vue';
 
 withDefaults(
-    defineProps<{
-        canRegister: boolean;
-    }>(),
-    {
-        canRegister: true,
-    },
+  defineProps<{
+    canRegister: boolean;
+  }>(),
+  {
+    canRegister: true,
+  },
 );
 </script>
 
 <template>
-    <Navbar :can-register="canRegister" />
-    <main>
+  <Navbar :can-register="canRegister" />
+  <main>
     <HomeSection id="home" :data="$page.props.home" />
     <About id="about" />
     <MissionVision />
@@ -27,5 +27,5 @@ withDefaults(
     <ConnectWithUs />
 
     <Footer />
-    </main>
+  </main>
 </template>
