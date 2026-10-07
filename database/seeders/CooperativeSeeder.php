@@ -20,12 +20,12 @@ class CooperativeSeeder extends Seeder
                 'secondary_color' => '#DDE9D1',
                 'logo' => 'coop-logo/rifac.png',
             ],
-            // [
-            //     'name' => 'Masters Institute for Graphics Inc.',
-            //     'primary_color' => '#3884DC',
-            //     'secondary_color' => '#111827',
-            //     'logo' => 'coop-logo/migs.png',
-            // ],
+            [
+                'name' => 'Cooperatives Cooperation Network Philippines',
+                'primary_color' => '#3E4093',
+                'secondary_color' => '#CDE7D5',
+                'logo' => 'coop-logo/ccnph.png',
+            ],
             // [
             //     'name' => 'BB 88 Advertising & Digital Solutions Inc',
             //     'primary_color' => '#458C72',
