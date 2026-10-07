@@ -82,9 +82,30 @@ class AuthenticatedSessionController extends Controller
                 ], 401);
             }
 
-            $user = $authDevice->user;
+            // Include soft-deleted user attached to this device
+            $user = $authDevice->user()->withTrashed()->first();
 
-            if (! $user || ! $user->phone_verified_at) {
+            if (! $user) {
+                return response()->json([
+                    'message' => 'User account not found.',
+                ], 404);
+            }
+
+            // Check if user is soft-deleted and pending reactivation
+            if ($user->trashed()) {
+                if ($user->scheduled_deletion_at && $user->scheduled_deletion_at->isFuture()) {
+                    throw new AccountPendingReactivationException(
+                        $user->phone,
+                        'Your account is scheduled for deletion. Would you like to reactivate it?'
+                    );
+                }
+
+                return response()->json([
+                    'message' => 'User account has been deleted.',
+                ], 410);
+            }
+
+            if (! $user->phone_verified_at) {
                 return response()->json([
                     'message' => 'User account is not verified.',
                 ], 403);
@@ -107,6 +128,13 @@ class AuthenticatedSessionController extends Controller
                 'message' => 'Validation failed.',
                 'errors' => $e->errors(),
             ], 422);
+
+        } catch (AccountPendingReactivationException $e) {
+            return response()->json([
+                'status' => 'pending_reactivation',
+                'message' => $e->getMessage(),
+                'phone' => $e->phone,
+            ], 409);
 
         } catch (\Exception $e) {
             return response()->json([
