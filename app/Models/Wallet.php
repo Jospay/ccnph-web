@@ -179,6 +179,8 @@ class Wallet extends Model implements Payable
     {
         $this->loadMissing('user');
 
-        return $this->user?->cooperative_id;
+        $cooperativeId = $this->user?->cooperative_id;
+
+        return $cooperativeId !== null ? (int) $cooperativeId : null;
     }
 }

@@ -77,7 +77,7 @@ class MemberShareCapital extends Model implements Payable
     public function onPaymentSuccess(Payment $payment): void
     {
         if ($this->isFullyPaid()) {
-            $this->user->notify(new GeneralNotification(
+            $this->user?->notify(new GeneralNotification(
                 type: 'share_capital_fully_paid',
                 title: 'Congratulations! Share Capital Completed',
                 body: 'Your share capital has been fully paid! You are now eligible to apply for loans.',
@@ -98,13 +98,15 @@ class MemberShareCapital extends Model implements Payable
 
     public function cooperativeServiceSlug(): ?string
     {
-        return 'share-capital'; // Return the appropriate slug string or null
+        return 'share-capital';
     }
 
     public function cooperativeId(): ?int
     {
         $this->loadMissing('user');
 
-        return $this->user?->cooperative_id;
+        $cooperativeId = $this->user?->cooperative_id;
+
+        return $cooperativeId !== null ? (int) $cooperativeId : null;
     }
 }

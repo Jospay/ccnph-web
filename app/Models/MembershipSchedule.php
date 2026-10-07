@@ -59,6 +59,8 @@ class MembershipSchedule extends Model implements Payable
     {
         $this->loadMissing('membership.user');
 
-        return $this->membership?->user?->cooperative_id;
+        $cooperativeId = $this->membership?->user?->cooperative_id;
+
+        return $cooperativeId !== null ? (int) $cooperativeId : null;
     }
 }

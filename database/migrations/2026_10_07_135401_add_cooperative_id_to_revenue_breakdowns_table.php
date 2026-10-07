@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    // Add cooperative_id migration
     public function up(): void
     {
         if (Schema::hasColumn('revenue_breakdowns', 'cooperative_id')) {
@@ -23,6 +24,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (! Schema::hasColumn('revenue_breakdowns', 'cooperative_id')) {
+            return;
+        }
+
         Schema::table('revenue_breakdowns', function (Blueprint $table) {
             $table->dropConstrainedForeignId('cooperative_id');
         });
