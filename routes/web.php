@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountDeletionController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Web\BusinessTrainingController;
@@ -60,6 +61,26 @@ Route::get('/terms-and-conditions', function () {
         'terms' => $terms,
     ]);
 });
+
+Route::prefix('delete-account')->name('account-deletion.')->group(function () {
+    Route::get('/', [AccountDeletionController::class, 'edit'])
+        ->name('edit');
+    Route::post('/identify', [AccountDeletionController::class, 'identify'])
+        ->middleware('throttle:6,1')
+        ->name('identify');
+    Route::post('/otp/resend', [AccountDeletionController::class, 'resendOtp'])
+        ->middleware('throttle:6,1')
+        ->name('otp.resend');
+    Route::post('/verify', [AccountDeletionController::class, 'verify'])
+        ->middleware('throttle:10,1')
+        ->name('verify');
+    Route::delete('/', [AccountDeletionController::class, 'destroy'])
+        ->middleware('throttle:6,1')
+        ->name('destroy');
+    Route::post('/cancel', [AccountDeletionController::class, 'cancel'])
+        ->name('cancel');
+});
+
 Route::middleware([
     'auth',
     'seller',
