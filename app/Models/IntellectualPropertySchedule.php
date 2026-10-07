@@ -54,13 +54,4 @@ class IntellectualPropertySchedule extends Model implements Payable
     {
         return 'intellectual-property-assistance'; // Return your slug string or null
     }
-
-    public function cooperativeId(): ?int
-    {
-        $this->loadMissing('intellectualProperty.user');
-
-        $cooperativeId = $this->intellectualProperty?->user?->cooperative_id;
-
-        return $cooperativeId !== null ? (int) $cooperativeId : null;
-    }
 }

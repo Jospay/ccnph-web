@@ -11,6 +11,4 @@ interface Payable
     public function onPaymentFailed(Payment $payment): void;
 
     public function cooperativeServiceSlug(): ?string;
-
-    public function cooperativeId(): ?int;
 }

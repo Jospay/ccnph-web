@@ -57,13 +57,4 @@ class LoanSchedule extends Model implements Payable
     {
         return 'loan-assistance';
     }
-
-    public function cooperativeId(): ?int
-    {
-        $this->loadMissing('loan.user');
-
-        $cooperativeId = $this->loan?->user?->cooperative_id;
-
-        return $cooperativeId !== null ? (int) $cooperativeId : null;
-    }
 }
