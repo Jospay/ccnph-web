@@ -13,8 +13,7 @@ class PaymentWebhookController extends Controller
 {
     public function __construct(
         private readonly PaymentWebhookService $webhookService,
-    ) {
-    }
+    ) {}
 
     public function __invoke(Request $request, string $gateway): JsonResponse
     {

@@ -3,6 +3,7 @@
 namespace App\Exceptions\Membership;
 
 use Exception;
+use Illuminate\Http\JsonResponse;
 
 class MembershipAlreadyExistsException extends Exception
 {
@@ -12,7 +13,7 @@ class MembershipAlreadyExistsException extends Exception
         parent::__construct($message);
     }
 
-    public function render(): \Illuminate\Http\JsonResponse
+    public function render(): JsonResponse
     {
         return response()->json([
             'success' => false,

@@ -17,7 +17,7 @@ class PaymentWebhookService
     ) {}
 
     /**
-     * Handle incoming payment status webhook event.
+     * Create a new class instance.
      */
     public function handle(
         string $gatewayPaymentIntentId,
@@ -59,7 +59,7 @@ class PaymentWebhookService
 
         $payable = $payment->payable;
 
-        // Verify Payable contract implementation
+        // check the contract
         if (! $payable instanceof Payable) {
             Log::warning('Payable does not implement Payable contract.', [
                 'payment_id' => $payment->id,
@@ -82,26 +82,15 @@ class PaymentWebhookService
                     'gateway_payment_id' => $gatewayPaymentId,
                 ]);
 
-                // Delegate completion actions to payable model
+                // delegates to Payable model
                 $payable->onPaymentSuccess($payment);
 
-                // Dynamically extract cooperative_id from payable relations
-                $cooperativeId = $this->resolveCooperativeId($payable);
-
-                // Record transaction share into revenue breakdowns
+                // record this transaction's share into the cooperative fund
                 if ($slug = $payable->cooperativeServiceSlug()) {
-                    try {
-                        $this->revenueAllocator->allocate(
-                            serviceSlug: $slug,
-                            amount: $payment->amount / 100,
-                            cooperativeId: $cooperativeId,
-                        );
-                    } catch (\Throwable $e) {
-                        Log::error('Revenue allocation failed.', [
-                            'payment_id' => $payment->id,
-                            'error' => $e->getMessage(),
-                        ]);
-                    }
+                    $this->revenueAllocator->allocate(
+                        serviceSlug: $slug,
+                        amount: $payment->amount / 100, // ASSUMPTION: Payment::amount is stored in cents — confirm below
+                    );
                 }
 
                 PaymentGatewayLog::create([
@@ -138,55 +127,6 @@ class PaymentWebhookService
 
             Log::info('Payment marked as failed.', ['payment_id' => $payment->id]);
         }
-    }
-
-    /**
-     * Dynamically resolve cooperative_id from the polymorphic model structure.
-     */
-    private function resolveCooperativeId(mixed $payable): ?int
-    {
-        if (! is_object($payable)) {
-            return null;
-        }
-
-        // 1. Check direct user relation (e.g. MemberShareCapital, Wallet)
-        if (method_exists($payable, 'user')) {
-            $payable->loadMissing('user');
-            if ($payable->user?->cooperative_id !== null) {
-                return (int) $payable->user->cooperative_id;
-            }
-        }
-
-        // 2. Check nested user relations for schedule models
-        if (method_exists($payable, 'loan')) {
-            $payable->loadMissing('loan.user');
-            if ($payable->loan?->user?->cooperative_id !== null) {
-                return (int) $payable->loan->user->cooperative_id;
-            }
-        }
-
-        if (method_exists($payable, 'intellectualProperty')) {
-            $payable->loadMissing('intellectualProperty.user');
-            if ($payable->intellectualProperty?->user?->cooperative_id !== null) {
-                return (int) $payable->intellectualProperty->user->cooperative_id;
-            }
-        }
-
-        if (method_exists($payable, 'membership')) {
-            $payable->loadMissing('membership.user');
-            if ($payable->membership?->user?->cooperative_id !== null) {
-                return (int) $payable->membership->user->cooperative_id;
-            }
-        }
-
-        if (method_exists($payable, 'shareCapital')) {
-            $payable->loadMissing('shareCapital.user');
-            if ($payable->shareCapital?->user?->cooperative_id !== null) {
-                return (int) $payable->shareCapital->user->cooperative_id;
-            }
-        }
-
-        return null;
     }
 
     private function normalizeStatus(string $status): string

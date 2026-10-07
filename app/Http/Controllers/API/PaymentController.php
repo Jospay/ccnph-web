@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use Illuminate\Http\JsonResponse;
+
 class PaymentController extends Controller
 {
     /**
@@ -14,9 +15,9 @@ class PaymentController extends Controller
     {
         $payment = Payment::where('gateway_payment_intent_id', $paymentIntentId)->first();
 
-        if (!$payment) {
+        if (! $payment) {
             return response()->json([
-                'status' => 'not_found'
+                'status' => 'not_found',
             ], 404);
         }
 
@@ -33,7 +34,7 @@ class PaymentController extends Controller
     public function success(): JsonResponse
     {
         return response()->json([
-            'message' => 'Redirect received (UI only)'
+            'message' => 'Redirect received (UI only)',
         ]);
     }
 }
