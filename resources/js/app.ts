@@ -22,6 +22,8 @@ createInertiaApp({
         case name === 'News/NewsDetails':
         case name === 'News/NewsMedia':
         case name === 'Terms/Index':
+        case name === 'Privacy/Index':
+        
 
         return null;
       case name.startsWith('auth/'):
