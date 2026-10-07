@@ -26,12 +26,6 @@ class CooperativeRevenueAllocatorService
             ->where('is_active', true)
             ->first();
 
-        if (! $service) {
-            throw new \RuntimeException(
-                "Revenue allocation failed: no active service found for slug [{$serviceSlug}]"
-            );
-        }
-
         $allocationServices = $service->allocationServices()
             ->orderBy('priority', 'asc')
             ->get();

@@ -167,7 +167,7 @@ class Wallet extends Model implements Payable
 
     public function cooperativeServiceSlug(): ?string
     {
-        return null;
+        return 'wallet';
     }
 
     public function batchTransfers(): HasMany
