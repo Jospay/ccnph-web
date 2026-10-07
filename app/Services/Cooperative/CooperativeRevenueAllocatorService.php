@@ -5,7 +5,6 @@ namespace App\Services\Cooperative;
 use App\Models\RevenueBreakdown;
 use App\Models\Service;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class CooperativeRevenueAllocatorService
 {
@@ -16,7 +15,7 @@ class CooperativeRevenueAllocatorService
      *
      * @param  float  $amount  Plain decimal value (e.g., 500.00)
      */
-    public function allocate(string $serviceSlug, float $amount): void
+    public function allocate(string $serviceSlug, float $amount, ?int $cooperativeId = null): void
     {
         if ($amount <= 0) {
             return;
@@ -27,24 +26,11 @@ class CooperativeRevenueAllocatorService
             ->where('is_active', true)
             ->first();
 
-        if (! $service) {
-            Log::warning("Cooperative allocation skipped: service [{$serviceSlug}] not found or inactive.");
-
-            return;
-        }
-
-        // Fetch allocations sorted by priority (1, 2, 3...)
         $allocationServices = $service->allocationServices()
             ->orderBy('priority', 'asc')
             ->get();
 
-        if ($allocationServices->isEmpty()) {
-            Log::warning("Cooperative allocation skipped: service [{$serviceSlug}] has no allocations configured.");
-
-            return;
-        }
-
-        DB::transaction(function () use ($allocationServices, $amount) {
+        DB::transaction(function () use ($allocationServices, $amount, $cooperativeId) {
             $totalAmount = round($amount, 2);
             $remainingBalance = $totalAmount;
 
@@ -69,6 +55,7 @@ class CooperativeRevenueAllocatorService
 
                 RevenueBreakdown::create([
                     'allocation_service_id' => $allocationService->id,
+                    'cooperative_id' => $cooperativeId,
                     'amount' => $share,
                 ]);
             }
@@ -79,7 +66,7 @@ class CooperativeRevenueAllocatorService
                 $percentageTracker = $poolForPercentages;
                 $lastIndex = $percentageAllocations->count() - 1;
 
-                $percentageAllocations->values()->each(function ($allocationService, $index) use ($poolForPercentages, &$percentageTracker, $lastIndex) {
+                $percentageAllocations->values()->each(function ($allocationService, $index) use ($poolForPercentages, &$percentageTracker, $lastIndex, $cooperativeId) {
                     $configuredPercentage = (float) $allocationService->value; // e.g., 0.20 or 20
 
                     // Support both decimal rate (0.20) and integer percentage (20)
@@ -94,6 +81,7 @@ class CooperativeRevenueAllocatorService
 
                     RevenueBreakdown::create([
                         'allocation_service_id' => $allocationService->id,
+                        'cooperative_id' => $cooperativeId,
                         'amount' => $share,
                     ]);
                 });

@@ -89,7 +89,8 @@ class PaymentWebhookService
                 if ($slug = $payable->cooperativeServiceSlug()) {
                     $this->revenueAllocator->allocate(
                         serviceSlug: $slug,
-                        amount: $payment->amount / 100, // ASSUMPTION: Payment::amount is stored in cents — confirm below
+                        amount: $payment->amount / 100,
+                        cooperativeId: $payable->cooperativeId(),
                     );
                 }
 

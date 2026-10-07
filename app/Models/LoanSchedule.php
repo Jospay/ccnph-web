@@ -41,7 +41,7 @@ class LoanSchedule extends Model implements Payable
         return $this->morphMany(Payment::class, 'payable');
     }
 
-    // Payable contract — this
+    // Payable contract: mark itself paid, then bubble up
     public function onPaymentSuccess(Payment $payment): void
     {
         $this->update(['status_id' => Status::PAID]);
@@ -56,5 +56,12 @@ class LoanSchedule extends Model implements Payable
     public function cooperativeServiceSlug(): ?string
     {
         return 'loan-assistance';
+    }
+
+    public function cooperativeId(): ?int
+    {
+        $this->loadMissing('loan.user');
+
+        return $this->loan?->user?->cooperative_id;
     }
 }

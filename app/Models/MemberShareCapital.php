@@ -100,4 +100,11 @@ class MemberShareCapital extends Model implements Payable
     {
         return 'share-capital';
     }
+
+    public function cooperativeId(): ?int
+    {
+        $this->loadMissing('user');
+
+        return $this->user?->cooperative_id;
+    }
 }

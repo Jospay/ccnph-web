@@ -174,4 +174,11 @@ class Wallet extends Model implements Payable
     {
         return $this->hasMany(BatchTransfer::class);
     }
+
+    public function cooperativeId(): ?int
+    {
+        $this->loadMissing('user');
+
+        return $this->user?->cooperative_id;
+    }
 }
