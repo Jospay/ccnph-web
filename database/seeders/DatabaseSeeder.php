@@ -25,6 +25,8 @@ class DatabaseSeeder extends Seeder
             AdSeeder::class,
             UserTypeSeeder::class,
             ServiceSeeder::class,
+            AllocationSeeder::class,
+            AllocationServiceSeeder::class,
             BusinessTrainingSeeder::class,
             StatusSeeder::class,
             PaymentMethodSeeder::class,
