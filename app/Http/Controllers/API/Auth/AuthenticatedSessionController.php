@@ -96,7 +96,7 @@ class AuthenticatedSessionController extends Controller
                 if ($user->scheduled_deletion_at && $user->scheduled_deletion_at->isFuture()) {
                     throw new AccountPendingReactivationException(
                         $user->phone,
-                        'Your account is scheduled for deletion. Would you like to reactivate it?'
+                        'Your account is scheduled for deletion. Would you like to reactivate it? You can log in manually with your phone number and password.'
                     );
                 }
 
