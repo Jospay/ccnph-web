@@ -17,21 +17,21 @@ class CooperativeSeeder extends Seeder
             [
                 'name' => 'Rice-Up Irrigators and Farmers Agricultural Cooperative',
                 'primary_color' => '#00A859',
-                'secondary_color' => '#9BD247',
+                'secondary_color' => '#DDE9D1',
                 'logo' => 'coop-logo/rifac.png',
             ],
-            [
-                'name' => 'Masters Institute for Graphics Inc.',
-                'primary_color' => '#3884DC',
-                'secondary_color' => '#111827',
-                'logo' => 'coop-logo/migs.png',
-            ],
-            [
-                'name' => 'BB 88 Advertising & Digital Solutions Inc',
-                'primary_color' => '#458C72',
-                'secondary_color' => '#AACE46',
-                'logo' => 'coop-logo/bb88.png',
-            ],
+            // [
+            //     'name' => 'Masters Institute for Graphics Inc.',
+            //     'primary_color' => '#3884DC',
+            //     'secondary_color' => '#111827',
+            //     'logo' => 'coop-logo/migs.png',
+            // ],
+            // [
+            //     'name' => 'BB 88 Advertising & Digital Solutions Inc',
+            //     'primary_color' => '#458C72',
+            //     'secondary_color' => '#AACE46',
+            //     'logo' => 'coop-logo/bb88.png',
+            // ],
         ];
 
         foreach ($cooperatives as $coop) {
