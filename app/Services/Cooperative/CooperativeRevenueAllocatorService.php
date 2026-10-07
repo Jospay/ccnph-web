@@ -5,6 +5,7 @@ namespace App\Services\Cooperative;
 use App\Models\RevenueBreakdown;
 use App\Models\Service;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CooperativeRevenueAllocatorService
 {
@@ -26,9 +27,24 @@ class CooperativeRevenueAllocatorService
             ->where('is_active', true)
             ->first();
 
+        if (! $service) {
+            Log::warning('Revenue allocation skipped: service not found or inactive.', [
+                'slug' => $serviceSlug,
+                'cooperative_id' => $cooperativeId,
+            ]);
+
+            return;
+        }
+
         $allocationServices = $service->allocationServices()
             ->orderBy('priority', 'asc')
             ->get();
+
+        if ($allocationServices->isEmpty()) {
+            Log::warning('Revenue allocation skipped: no allocation config.', ['slug' => $serviceSlug]);
+
+            return;
+        }
 
         DB::transaction(function () use ($allocationServices, $amount, $cooperativeId) {
             $totalAmount = round($amount, 2);

@@ -87,11 +87,18 @@ class PaymentWebhookService
 
                 // record this transaction's share into the cooperative fund
                 if ($slug = $payable->cooperativeServiceSlug()) {
-                    $this->revenueAllocator->allocate(
-                        serviceSlug: $slug,
-                        amount: $payment->amount / 100,
-                        cooperativeId: $payable->cooperativeId(),
-                    );
+                    try {
+                        $this->revenueAllocator->allocate(
+                            serviceSlug: $slug,
+                            amount: $payment->amount / 100,
+                            cooperativeId: $payable->cooperativeId(),
+                        );
+                    } catch (\Throwable $e) {
+                        Log::error('Revenue allocation failed.', [
+                            'payment_id' => $payment->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
                 }
 
                 PaymentGatewayLog::create([
