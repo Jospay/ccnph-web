@@ -85,15 +85,6 @@ class PaymentWebhookService
                 // delegates to Payable model
                 $payable->onPaymentSuccess($payment);
 
-                // record this transaction's share into the cooperative fund
-                if ($slug = $payable->cooperativeServiceSlug()) {
-                    $this->revenueAllocator->allocate(
-                        serviceSlug: $slug,
-                        amount: $payment->amount / 100,
-                        cooperativeId: $payable->cooperativeId(),
-                    );
-                }
-
                 PaymentGatewayLog::create([
                     'payment_id' => $payment->id,
                     'gateway' => $payment->gateway ?? 'paymongo',
@@ -106,6 +97,9 @@ class PaymentWebhookService
                     ],
                 ]);
             });
+
+            // After commit: allocation problems must never undo a paid payment
+            $this->allocateRevenue($payment, $payable);
         }
 
         if ($status === 'failed') {
@@ -127,6 +121,40 @@ class PaymentWebhookService
             });
 
             Log::info('Payment marked as failed.', ['payment_id' => $payment->id]);
+        }
+    }
+
+    private function allocateRevenue(Payment $payment, Payable $payable): void
+    {
+        $slug = null;
+
+        try {
+            $slug = $payable->cooperativeServiceSlug();
+
+            if (! $slug) {
+                return;
+            }
+
+            $this->revenueAllocator->allocate(
+                serviceSlug: $slug,
+                amount: $payment->amount / 100,
+                cooperativeId: $payable->cooperativeId(),
+            );
+        } catch (\Throwable $e) {
+            report($e);
+
+            Log::error('Revenue allocation failed after successful payment.', [
+                'payment_id' => $payment->id,
+                'slug' => $slug,
+                'error' => $e->getMessage(),
+            ]);
+
+            PaymentGatewayLog::create([
+                'payment_id' => $payment->id,
+                'gateway' => $payment->gateway ?? 'paymongo',
+                'event' => 'allocation_failed',
+                'payload' => ['slug' => $slug, 'error' => $e->getMessage()],
+            ]);
         }
     }
 
