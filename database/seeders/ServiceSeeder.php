@@ -17,8 +17,8 @@ class ServiceSeeder extends Seeder
         $services = [
             'Coop Membership',
             'Business Training',
-            'Intellectual Property Assistance',
-            'Loan Assistance',
+            // 'Intellectual Property Assistance',
+            // 'Loan Assistance',
             // 'Funding & Invest Opportunities',
             // 'Licensing & Permit Assistance',
             // 'R & D Collaboration',
@@ -27,7 +27,7 @@ class ServiceSeeder extends Seeder
             // 'Product Validation Services',
             // 'Lost & Found',
             // 'Suggest Service',
-            // 'News & Events',
+            'News & Events',
         ];
 
         foreach ($services as $service) {
