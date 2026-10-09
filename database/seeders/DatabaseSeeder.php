@@ -48,23 +48,23 @@ class DatabaseSeeder extends Seeder
             'user_type_id' => UserType::SUPER_ADMIN,
         ]);
 
-        User::factory()->create([
-            'name' => 'Member One',
-            'email' => 'member1@example.com',
-            'user_type_id' => UserType::MEMBER,
-        ]);
+        // User::factory()->create([
+        //     'name' => 'Member One',
+        //     'email' => 'member1@example.com',
+        //     'user_type_id' => UserType::MEMBER,
+        // ]);
 
-        User::factory()->create([
-            'name' => 'Member Two',
-            'email' => 'member2@example.com',
-            'user_type_id' => UserType::MEMBER,
-        ]);
+        // User::factory()->create([
+        //     'name' => 'Member Two',
+        //     'email' => 'member2@example.com',
+        //     'user_type_id' => UserType::MEMBER,
+        // ]);
 
-        User::factory()->create([
-            'name' => 'Member Three',
-            'email' => 'member3@example.com',
-            'user_type_id' => UserType::MEMBER,
-        ]);
+        // User::factory()->create([
+        //     'name' => 'Member Three',
+        //     'email' => 'member3@example.com',
+        //     'user_type_id' => UserType::MEMBER,
+        // ]);
 
         $seller = User::factory()->create([
             'name' => 'Member Seller',
