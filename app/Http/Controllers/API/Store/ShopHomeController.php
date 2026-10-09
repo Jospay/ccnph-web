@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API\Store;
 
+use App\Enums\CooperativeScope;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\Store\ProductCardResource;
 use App\Models\Category;
@@ -63,7 +64,10 @@ class ShopHomeController extends Controller
 
     private function buildBaseQuery(string $type, Request $request): Builder
     {
-        $userId = $request->user()?->id;
+        $user = $request->user();
+        $userId = $user?->id;
+        $userCoopId = $user?->cooperative_id;
+        $scope = $request->query('scope'); // all | local | national
 
         return Product::query()
             ->select([
@@ -73,9 +77,10 @@ class ShopHomeController extends Controller
                 'products.rating',
                 'products.sold_count',
                 'products.is_featured',
+                'products.cooperative_id',
+                'products.cooperative_scope',
                 'products.created_at',
             ])
-            // 1. ADD THIS line to sum up variant stocks dynamically
             ->withSum('variants as total_stock', 'stock')
             ->with([
                 'images:id,product_id,image,sort_order',
@@ -85,6 +90,25 @@ class ShopHomeController extends Controller
             ->whereHas('variants', function (Builder $query) {
                 $query->where('stock', '>', 0);
             })
+
+            // VISIBILITY RULE: national = everyone, local = same cooperative only
+            ->where(function (Builder $q) use ($userCoopId) {
+                $q->where('products.cooperative_scope', CooperativeScope::NATIONAL->value);
+
+                if ($userCoopId) {
+                    $q->orWhere(function (Builder $local) use ($userCoopId) {
+                        $local->where('products.cooperative_scope', CooperativeScope::LOCAL->value)
+                            ->where('products.cooperative_id', $userCoopId);
+                    });
+                }
+            })
+
+            // OPTIONAL FILTER FROM THE APP: local / national
+            ->when(
+                in_array($scope, [CooperativeScope::LOCAL->value, CooperativeScope::NATIONAL->value], true),
+                fn (Builder $query) => $query->where('products.cooperative_scope', $scope)
+            )
+
             ->when($request->filled('search'), function (Builder $query) use ($request) {
                 $query->where('products.name', 'like', '%'.$request->query('search').'%');
             })
