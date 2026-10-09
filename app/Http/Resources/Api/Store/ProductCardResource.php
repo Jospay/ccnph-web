@@ -22,6 +22,8 @@ class ProductCardResource extends JsonResource
             'compare_price' => $this->defaultVariant?->compare_price,
             'stock' => (int) ($this->total_stock ?? 0),
             'is_liked' => (bool) $this->is_liked,
+            'cooperative_id' => $this->cooperative_id,
+            'cooperative_scope' => $this->cooperative_scope?->value,
         ];
     }
 }
