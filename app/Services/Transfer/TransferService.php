@@ -142,7 +142,7 @@ class TransferService
         });
 
         $senderName = $user->name;
-        $description = $data['remarks'] ?? "FISMPC Transfer from {$senderName} via {$channel->name}";
+        $description = $data['remarks'] ?? "CCNPH Transfer from {$senderName} via {$channel->name}";
 
         $payload = [
             'provider' => $provider,

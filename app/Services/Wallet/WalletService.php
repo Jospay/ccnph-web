@@ -126,14 +126,14 @@ class WalletService
                 ?: ($user->name ?? 'User');
 
             // Force full description with sender name
-            $description = Str::limit("FISMPC Load Wallet - {$senderName}", 255);
+            $description = Str::limit("CCNPH Load Wallet - {$senderName}", 255);
 
             // Charge amount + fee via gateway
             $intentResponse = $service->createPaymentIntent(
                 $totalChargeCents / 100,
                 [
                     'description' => $description,
-                    'statement_descriptor' => 'FISMPC',
+                    'statement_descriptor' => 'FCCNPH',
                     'statement_descriptor_suffix' => 'LOAD',
                 ]
             );

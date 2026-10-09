@@ -48,7 +48,7 @@ class CartResource extends JsonResource
                         'name' => $product->name,
                         'slug' => $product->slug,
                         // Adding seller dynamically from your store relation
-                        'seller' => $store?->name ?? 'FISMPC Store',
+                        'seller' => $store?->name ?? 'CCNPH Store',
                     ] : null,
                 ];
             })->values()->toArray(),

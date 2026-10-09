@@ -23,7 +23,7 @@ class ServiceSeeder extends Seeder
             // 'Licensing & Permit Assistance',
             // 'R & D Collaboration',
             // 'Ask an Expert Assistance',
-            // 'FISMPC Online Store',
+            // 'CCNPH Online Store',
             // 'Product Validation Services',
             // 'Lost & Found',
             // 'Suggest Service',
