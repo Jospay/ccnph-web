@@ -32,6 +32,9 @@ class CheckoutItemResource extends JsonResource
                             ? Storage::url($product->images->first()->image)
                             : null
                     ),
+                // Local / National label (enum cast -> string value)
+                'cooperative_id' => $product?->cooperative_id,
+                'cooperative_scope' => $product?->cooperative_scope?->value,
                 'store' => [
                     'name' => $store->name,
                     'slug' => $store->slug,

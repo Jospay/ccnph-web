@@ -94,7 +94,8 @@ class CustomerOrderController extends Controller
             ->where('user_id', $user->id)
             ->with([
                 'store:id,name',
-                'items:id,order_id,product_name,product_image,variant_name,price,quantity',
+                'items:id,order_id,product_id,product_name,product_image,variant_name,price,quantity',
+                'items.product:id,cooperative_id,cooperative_scope',
                 'items.review:id,order_item_id',
             ])
             ->when(
@@ -178,7 +179,8 @@ class CustomerOrderController extends Controller
 
         $order->load([
             'store:id,name',
-            'items:id,order_id,product_name,product_image,variant_name,price,quantity',
+            'items:id,order_id,product_id,product_name,product_image,variant_name,price,quantity',
+            'items.product:id,cooperative_id,cooperative_scope',
         ]);
 
         $fullAddress = collect([
@@ -209,12 +211,16 @@ class CustomerOrderController extends Controller
                     'store' => $order->store,
                     'items' => $order->items->map(fn ($item) => [
                         'id' => $item->id,
+                        'product_id' => $item->product_id,
                         'product_name' => $item->product_name,
                         // 'product_image' => $item->product_image ? Storage::url($item->product_image) : null,
-                        'product_image' => $item->product_image ? asset('storage'.$item->product_image) : null,
+                        'product_image' => $item->product_image ? asset('storage/'.$item->product_image) : null,
                         'variant_name' => $item->variant_name,
                         'price' => (float) $item->price,
                         'quantity' => $item->quantity,
+                        // Local / National label (null if the product was deleted)
+                        'cooperative_id' => $item->product?->cooperative_id,
+                        'cooperative_scope' => $item->product?->cooperative_scope?->value,
                     ])->values()->all(),
                     'shipping_name' => $order->recipient_name,
                     'shipping_phone' => $order->recipient_phone,
@@ -256,10 +262,11 @@ class CustomerOrderController extends Controller
             ], 403);
         }
 
-        // Load store, items, and their associated reviews + images
+        // Load store, items, their product scope, and their associated reviews + images
         $order->load([
             'store:id,name',
-            'items:id,order_id,product_name,product_image,variant_name',
+            'items:id,order_id,product_id,product_name,product_image,variant_name',
+            'items.product:id,cooperative_id,cooperative_scope',
             'items.review.images',
         ]);
 
@@ -273,9 +280,13 @@ class CustomerOrderController extends Controller
                     'items' => $order->items->map(fn ($item) => [
                         'id' => $item->id,
                         'order_id' => $item->order_id,
+                        'product_id' => $item->product_id,
                         'product_name' => $item->product_name,
                         'product_image' => $item->product_image ? asset('storage/'.$item->product_image) : null,
                         'variant_name' => $item->variant_name,
+                        // Local / National label (null if the product was deleted)
+                        'cooperative_id' => $item->product?->cooperative_id,
+                        'cooperative_scope' => $item->product?->cooperative_scope?->value,
                         // Pass the review data if it exists
                         'review' => $item->review ? [
                             'id' => $item->review->id,
@@ -286,6 +297,9 @@ class CustomerOrderController extends Controller
                             'images' => $item->review->images->map(
                                 fn ($img) => asset('storage/'.$img->image)
                             )->values()->all(),
+                            'created_at' => $item->review->created_at
+    ? $item->review->created_at->format('M d, Y g:i A')
+    : null,
                         ] : null,
                     ])->values()->all(),
                 ],

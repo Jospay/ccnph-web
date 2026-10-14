@@ -24,6 +24,7 @@ class ProductCardResource extends JsonResource
             'is_liked' => (bool) $this->is_liked,
             'cooperative_id' => $this->cooperative_id,
             'cooperative_scope' => $this->cooperative_scope?->value,
+            'cooperative_name' => $this->whenLoaded('cooperative', fn () => $this->cooperative?->name),
         ];
     }
 }

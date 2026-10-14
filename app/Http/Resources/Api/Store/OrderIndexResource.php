@@ -38,10 +38,12 @@ class OrderIndexResource extends JsonResource
                 'id' => $item->id,
                 'product_id' => $item->product_id,
                 'product_name' => $item->product_name,
-                'product_image' => $item->product_image ? asset('storage'.$item->product_image) : null,
+                'product_image' => $item->product_image ? asset('storage/'.$item->product_image) : null,
                 'variant_name' => $item->variant_name,
                 'price' => (float) $item->price,
                 'quantity' => $item->quantity,
+                'cooperative_id' => $item->product?->cooperative_id,
+                'cooperative_scope' => $item->product?->cooperative_scope?->value,
             ])->values()->all(),
             'tracking' => [
                 'created_at' => $this->created_at ? $this->created_at->toIso8601String() : null,

@@ -29,6 +29,7 @@ use App\Http\Controllers\API\Store\CollectionProductController;
 use App\Http\Controllers\API\Store\CustomerCartController;
 use App\Http\Controllers\API\Store\CustomerCheckoutController;
 use App\Http\Controllers\API\Store\CustomerOrderController;
+use App\Http\Controllers\API\Store\CustomerPointController;
 use App\Http\Controllers\API\Store\ProductReviewController;
 use App\Http\Controllers\API\Store\ShopHomeController;
 use App\Http\Controllers\API\Store\ShopProductController;
@@ -228,6 +229,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('store')
         ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER)
         ->group(function () {
+
+            Route::get('points', [CustomerPointController::class, 'index']);
+            Route::post('points/visibility', [CustomerPointController::class, 'toggleVisibility']);
+            Route::get('points/config', [CustomerPointController::class, 'config']);
+            Route::get('points/transactions', [CustomerPointController::class, 'transactions']);
+            Route::post('points/load', [CustomerPointController::class, 'load']);
+
             Route::get('home', [ShopHomeController::class, 'index']);
             Route::get('/top-deals', [ShopHomeController::class, 'topDeals']);
             Route::get('products', [ShopProductController::class, 'index']);
