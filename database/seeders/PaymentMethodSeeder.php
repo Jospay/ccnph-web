@@ -23,6 +23,7 @@ class PaymentMethodSeeder extends Seeder
             ['id' => 8, 'name' => 'Wallet', 'gateway_type' => 'wallet'],
             ['id' => 9, 'name' => 'Cash on Delivery', 'gateway_type' => null],
             ['id' => 10, 'name' => 'Pay Online', 'gateway_type' => null],
+            ['id' => 11, 'name' => 'Point', 'gateway_type' => 'point'],
         ]);
     }
 }
