@@ -38,5 +38,15 @@ class TransactionFeeSeeder extends Seeder
                 'minimum_fee' => 0,
             ],
         );
+
+        // Load transaction fee - 2%
+        TransactionFee::updateOrCreate(
+            ['module' => 'Point Load'],
+            [
+                'type' => TransactionFee::TYPE_PHP,
+                'transfer_fee' => 2,
+                'minimum_fee' => 1,
+            ],
+        );
     }
 }
