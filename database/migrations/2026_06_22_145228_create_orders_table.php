@@ -1,9 +1,9 @@
 <?php
 
+use App\Enums\OrderStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Enums\OrderStatus;
 
 return new class extends Migration
 {
@@ -21,7 +21,11 @@ return new class extends Migration
             $table->string('status')->default(OrderStatus::PENDING->value);
             $table->decimal('subtotal', 12, 2);
             $table->decimal('shipping_fee', 12, 2)->default(0);
-            $table->decimal('discount', 12, 2)->default(0);
+
+            $table->decimal('membership_discount', 12, 2)->default(0);
+            $table->decimal('shared_capital_discount', 12, 2)->default(0);
+            $table->decimal('point_discount', 12, 2)->default(0);
+
             $table->decimal('total', 12, 2);
             $table->text('notes')->nullable();
             $table->text('cancellation_reason')->nullable();
