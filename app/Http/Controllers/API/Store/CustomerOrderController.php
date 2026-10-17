@@ -7,9 +7,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\Store\OrderIndexResource;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\Review;
 use App\Models\Shop;
+use App\Services\Store\CheckoutService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -19,6 +21,36 @@ use Illuminate\Validation\Rule;
 
 class CustomerOrderController extends Controller
 {
+    /**
+     * Only orders the customer should see:
+     *  - Cash on Delivery orders
+     *  - orders whose payment is paid (points, QR, Maya, BillEase, GrabPay)
+     *  - older orders that have no checkout payment at all
+     * Online orders still waiting for (or failed) third-party payment are hidden.
+     */
+    private function visibleOrders(Builder $query): Builder
+    {
+        return $query->where(function (Builder $q) {
+            $q->whereDoesntHave('checkout.payment')
+                ->orWhereHas('checkout.payment', function (Builder $payment) {
+                    $payment->where('payment_method_id', PaymentMethod::CASH_ON_DELIVERY)
+                        ->orWhere('status_id', CheckoutService::PAYMENT_STATUS_PAID);
+                });
+        });
+    }
+
+    /**
+     * 404 for orders that are not visible yet (unpaid online orders).
+     */
+    private function ensureVisible(Order $order): void
+    {
+        abort_unless(
+            $this->visibleOrders(Order::query())->whereKey($order->id)->exists(),
+            404,
+            'Order not found.'
+        );
+    }
+
     public function index(Request $request)
     {
         $user = $request->user();
@@ -56,7 +88,7 @@ class CustomerOrderController extends Controller
 
         // 1. Calculate Badges
         // Count orders in 'completed' status that STILL HAVE at least one item WITHOUT a review
-        $toRateCount = Order::query()
+        $toRateCount = $this->visibleOrders(Order::query())
             ->where('user_id', $user->id)
             ->where('status', $completedStatus)
             ->whereHas('items', function ($query) {
@@ -65,7 +97,7 @@ class CustomerOrderController extends Controller
             ->count();
 
         // Raw query for other simple badge counts
-        $badgeCountsRaw = Order::query()
+        $badgeCountsRaw = $this->visibleOrders(Order::query())
             ->where('user_id', $user->id)
             ->selectRaw('
             COUNT(CASE WHEN status = ? THEN 1 END) as to_pay,
@@ -90,7 +122,7 @@ class CustomerOrderController extends Controller
         ];
 
         // 2. Fetch paginated orders with relationships
-        $paginator = Order::query()
+        $paginator = $this->visibleOrders(Order::query())
             ->where('user_id', $user->id)
             ->with([
                 'store:id,name',
@@ -177,6 +209,8 @@ class CustomerOrderController extends Controller
             ], 403);
         }
 
+        $this->ensureVisible($order);
+
         $order->load([
             'store:id,name',
             'items:id,order_id,product_id,product_name,product_image,variant_name,price,quantity',
@@ -262,6 +296,8 @@ class CustomerOrderController extends Controller
             ], 403);
         }
 
+        $this->ensureVisible($order);
+
         // Load store, items, their product scope, and their associated reviews + images
         $order->load([
             'store:id,name',
@@ -298,107 +334,14 @@ class CustomerOrderController extends Controller
                                 fn ($img) => asset('storage/'.$img->image)
                             )->values()->all(),
                             'created_at' => $item->review->created_at
-    ? $item->review->created_at->format('M d, Y g:i A')
-    : null,
+                                ? $item->review->created_at->format('M d, Y g:i A')
+                                : null,
                         ] : null,
                     ])->values()->all(),
                 ],
             ],
         ]);
     }
-
-    // public function storeRating(Request $request, Order $order)
-    // {
-    //     if ($order->user_id !== $request->user()->id) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Unauthorized action.',
-    //         ], 403);
-    //     }
-
-    //     $validated = $request->validate([
-    //         'items' => ['required', 'array', 'min:1'],
-    //         'items.*.order_item_id' => ['required', 'exists:order_items,id'],
-    //         'items.*.rating' => ['required', 'integer', 'min:1', 'max:5'],
-    //         'items.*.comment' => ['nullable', 'string', 'max:1000'],
-    //         'items.*.is_anonymous' => ['nullable', 'boolean'],
-    //         'items.*.video' => ['nullable', 'file', 'mimes:mp4,mov,avi', 'max:20480'],
-    //         'items.*.images' => ['nullable', 'array', 'max:5'],
-    //         'items.*.images.*' => ['file', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
-    //     ]);
-
-    //     // Pre-check: don't let the same order_item get rated twice
-    //     $orderItemIds = collect($validated['items'])->pluck('order_item_id');
-    //     $alreadyRatedIds = Review::where('user_id', $request->user()->id)
-    //         ->whereIn('order_item_id', $orderItemIds)
-    //         ->pluck('order_item_id')
-    //         ->toArray();
-
-    //     if (! empty($alreadyRatedIds)) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'One or more items in this order have already been rated.',
-    //             'errors' => [
-    //                 'items' => ['You already submitted a review for this order.'],
-    //             ],
-    //         ], 422);
-    //     }
-
-    //     try {
-    //         DB::transaction(function () use ($validated, $order, $request) {
-    //             foreach ($validated['items'] as $index => $itemData) {
-    //                 $item = OrderItem::where('id', $itemData['order_item_id'])
-    //                     ->where('order_id', $order->id)
-    //                     ->first();
-
-    //                 if (! $item) {
-    //                     continue;
-    //                 }
-
-    //                 $videoPath = null;
-    //                 if ($request->hasFile("items.{$index}.video")) {
-    //                     $videoPath = $request->file("items.{$index}.video")->store('feedback_products/videos', 'public');
-    //                 }
-
-    //                 // updateOrCreate as a safety net against race conditions / double taps
-    //                 $review = $item->review()->updateOrCreate(
-    //                     ['order_item_id' => $item->id],
-    //                     [
-    //                         'user_id' => $request->user()->id,
-    //                         'shop_id' => $order->shop_id,
-    //                         'product_id' => $item->product_id ?? null,
-    //                         'rating' => $itemData['rating'],
-    //                         'review' => $itemData['comment'] ?? null,
-    //                         'video' => $videoPath,
-    //                         'is_anonymous' => $itemData['is_anonymous'] ?? false,
-    //                     ]
-    //                 );
-
-    //                 if ($request->hasFile("items.{$index}.images")) {
-    //                     foreach ($request->file("items.{$index}.images") as $imageFile) {
-    //                         $imagePath = $imageFile->store('feedback_products/images', 'public');
-    //                         $review->images()->create([
-    //                             'image' => $imagePath,
-    //                         ]);
-    //                     }
-    //                 }
-    //             }
-    //         });
-    //     } catch (QueryException $e) {
-    //         if ((string) $e->getCode() === '23000') {
-    //             return response()->json([
-    //                 'success' => false,
-    //                 'message' => 'You have already submitted a review for one of these items.',
-    //             ], 422);
-    //         }
-    //         throw $e;
-    //     }
-
-    //     return response()->json([
-    //         'success' => true,
-    //         'message' => 'Thank you for your feedback!',
-    //     ]);
-    // }
 
     public function storeRating(Request $request, Order $order)
     {
@@ -422,6 +365,8 @@ class CustomerOrderController extends Controller
                 'message' => 'Unauthorized action.',
             ], 403);
         }
+
+        $this->ensureVisible($order);
 
         // 3. Request Validation
         $validated = $request->validate([
@@ -566,6 +511,8 @@ class CustomerOrderController extends Controller
                 'message' => 'Unauthorized action.',
             ], 403);
         }
+
+        $this->ensureVisible($order);
 
         $validated = $request->validate([
             'status' => [
