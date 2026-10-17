@@ -6,6 +6,7 @@ use App\Enums\OrderStatus;
 use App\Observers\OrderObserver;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,7 +20,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'status',
     'subtotal',
     'shipping_fee',
-    'discount',
+    'membership_discount',
+    'shared_capital_discount',
+    'point_discount',
     'total',
     'notes',
     'cancellation_reason',
@@ -58,7 +61,9 @@ class Order extends Model
             'status' => OrderStatus::class,
             'subtotal' => 'decimal:2',
             'shipping_fee' => 'decimal:2',
-            'discount' => 'decimal:2',
+            'membership_discount' => 'decimal:2',
+            'shared_capital_discount' => 'decimal:2',
+            'point_discount' => 'decimal:2',
             'total' => 'decimal:2',
             'confirmed_at' => 'datetime',
             'processing_at' => 'datetime',
@@ -71,6 +76,21 @@ class Order extends Model
             'return_approved_at' => 'datetime',
             'returned_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Combined discount. The old `discount` column was split into membership /
+     * shared capital / point discounts, this keeps `$order->discount` working
+     * (read-only) for any resource or view that still uses it.
+     */
+    protected function discount(): Attribute
+    {
+        return Attribute::get(fn () => round(
+            (float) $this->membership_discount
+            + (float) $this->shared_capital_discount
+            + (float) $this->point_discount,
+            2
+        ));
     }
 
     public function user(): BelongsTo
