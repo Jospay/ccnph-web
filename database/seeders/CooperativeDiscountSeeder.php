@@ -26,5 +26,14 @@ class CooperativeDiscountSeeder extends Seeder
                 'discount_value' => 5,
             ],
         );
+
+        // Point discount
+        CooperativeDiscount::updateOrCreate(
+            ['module' => 'Point'],
+            [
+                'type' => CooperativeDiscount::TYPE_PERCENTAGE,
+                'discount_value' => 2,
+            ],
+        );
     }
 }
