@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
     'gateway_payment_intent_id',
     'gateway_payment_id',
     'gateway_response',
+    'meta',
     'sender_name',
     'sender_account_number',
 ])]
@@ -44,6 +45,7 @@ class Payment extends Model
             'fee' => 'integer',
             'payment_date' => 'date',
             'gateway_response' => 'array',
+            'meta' => 'array',
         ];
     }
 
