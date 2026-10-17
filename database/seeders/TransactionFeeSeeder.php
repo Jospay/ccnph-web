@@ -48,5 +48,15 @@ class TransactionFeeSeeder extends Seeder
                 'minimum_fee' => 1,
             ],
         );
+
+        // Store transaction fee - 2%
+        TransactionFee::updateOrCreate(
+            ['module' => 'Store'],
+            [
+                'type' => TransactionFee::TYPE_PHP,
+                'transfer_fee' => 2,
+                'minimum_fee' => 0,
+            ],
+        );
     }
 }
