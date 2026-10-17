@@ -9,17 +9,31 @@ use App\Http\Resources\Api\Store\CheckoutItemResource;
 use App\Http\Resources\Api\Store\PaymentMethodResource;
 use App\Http\Resources\Api\Store\UserAddressResource;
 use App\Models\CartItem;
+use App\Models\Checkout;
+use App\Models\Payment;
 use App\Models\PaymentMethod;
 use App\Models\ProductVariant;
+use App\Models\UserAddress;
+use App\Services\Payments\PaymentGatewayFactory;
+use App\Services\Points\PointService;
+use App\Services\Store\CheckoutPricingService;
 use App\Services\Store\CheckoutService;
+use App\Services\Store\StorePayMongoService;
+use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class CustomerCheckoutController extends Controller
 {
     public function __construct(
         protected CheckoutService $checkoutService,
-        // protected PayMongoService $payMongoService,
+        protected StorePayMongoService $payMongo,
+        protected PointService $pointService,
+        protected CheckoutPricingService $pricing,
     ) {}
 
     /**
@@ -79,7 +93,6 @@ class CustomerCheckoutController extends Controller
 
     /**
      * Step 2: Fetch checkout screen details.
-     * Compiles addresses, methods, and calculations contextually without cluttering DB state.
      */
     public function index(Request $request): JsonResponse
     {
@@ -97,7 +110,6 @@ class CustomerCheckoutController extends Controller
                 'attributeValues.attribute',
             ])->findOrFail($variantId);
 
-            // Instantiate transient (non-saved) model frame mirroring resource definitions smoothly
             $temporaryCartItem = new CartItem([
                 'product_variant_id' => $variant->id,
                 'quantity' => $quantity,
@@ -140,17 +152,14 @@ class CustomerCheckoutController extends Controller
             ->latest()
             ->get();
 
+        // Only the methods the store checkout supports
         $paymentMethods = PaymentMethod::query()
-            ->orderBy('name')
+            ->whereIn('id', PaymentMethod::STORE_CHECKOUT_METHODS)
+            ->orderBy('id')
             ->get();
 
-        $subtotal = $itemsCollection->sum(
-            fn ($item) => $item->quantity * $item->productVariant->price
-        );
-
-        $shippingFee = $itemsCollection
-            ->groupBy(fn ($item) => $item->productVariant->product->store_id)
-            ->count() * 60;
+        // same numbers CheckoutService will use when the order is placed
+        $pricing = $this->pricing->preview($user, $itemsCollection);
 
         return response()->json([
             'success' => true,
@@ -158,12 +167,10 @@ class CustomerCheckoutController extends Controller
                 'addresses' => UserAddressResource::collection($addresses),
                 'paymentMethods' => PaymentMethodResource::collection($paymentMethods),
                 'items' => CheckoutItemResource::collection($itemsCollection),
-                'summary' => [
-                    'subtotal' => $subtotal,
-                    'shipping_fee' => $shippingFee,
-                    'discount' => 0,
-                    'total' => $subtotal + $shippingFee,
-                ],
+                // Spendable points (1 point = ₱1)
+                'points_balance' => (float) $this->pointService->getBalance($user),
+                // total = COD price. Points: total - point_discount. Online: total + online_fee.
+                'summary' => $pricing,
             ],
         ]);
     }
@@ -175,11 +182,155 @@ class CustomerCheckoutController extends Controller
     {
         $paymentMethod = PaymentMethod::findOrFail($request->payment_method_id);
 
-        return match ($paymentMethod->id) {
-            PaymentMethod::CASH_ON_DELIVERY => $this->checkoutCod($request, $paymentMethod),
-            PaymentMethod::PAY_ONLINE => $this->checkoutPayMongo($request, $paymentMethod),
+        return match (true) {
+            $paymentMethod->id === PaymentMethod::CASH_ON_DELIVERY => $this->checkoutCod($request, $paymentMethod),
+            $paymentMethod->id === PaymentMethod::POINT => $this->checkoutPoints($request, $paymentMethod),
+            $paymentMethod->isOnline() => $this->checkoutOnline($request, $paymentMethod),
             default => response()->json(['message' => 'Unsupported payment method.'], 422),
         };
+    }
+
+    /**
+     * Polled by the app after an online payment was started.
+     *
+     * Two things can mark a payment as paid:
+     *  1. the shared PayMongo webhook (POST /api/webhooks/paymongo). It needs a
+     *     public URL, so it never arrives while developing on localhost.
+     *  2. this endpoint, which asks PayMongo for the intent directly. This is
+     *     what confirms the payment locally, and it is also the safety net in
+     *     production if a webhook is late or missed.
+     */
+    public function paymentStatus(Request $request, Checkout $checkout): JsonResponse
+    {
+        abort_unless($checkout->user_id === $request->user()->id, 403);
+
+        $payment = $this->checkoutService->paymentFor($checkout);
+
+        abort_if(! $payment, 404, 'Payment not found.');
+
+        $status = 'pending';
+        $redirectUrl = null;
+        $qrImage = null;
+
+        if ((int) $payment->status_id === CheckoutService::PAYMENT_STATUS_PAID) {
+            // webhook may have paid the payment row first: make sure the checkout row is paid too
+            $this->checkoutService->markAsPaid($checkout);
+            $status = 'paid';
+        } elseif ((int) $payment->status_id === CheckoutService::PAYMENT_STATUS_FAILED) {
+            $status = 'failed';
+        } elseif ($payment->gateway_payment_intent_id) {
+            $intent = null;
+
+            // only the PayMongo call is guarded: a failure inside markAsPaid must not be hidden
+            try {
+                $intent = $this->payMongo->retrieve($payment->gateway_payment_intent_id);
+            } catch (Throwable $e) {
+                Log::warning('Store payment status: PayMongo retrieve failed.', [
+                    'checkout_id' => $checkout->id,
+                    'intent_id' => $payment->gateway_payment_intent_id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
+            if ($intent) {
+                if ($intent['status'] === 'succeeded') {
+                    $this->confirmPaid($checkout, $payment, $intent['payment_id'] ?? null);
+                    $status = 'paid';
+                } elseif ($intent['failed']) {
+                    $this->checkoutService->markAsFailed($checkout);
+                    $status = 'failed';
+                } else {
+                    $redirectUrl = $intent['redirect_url'];
+                    $qrImage = $intent['qr_image'];
+                }
+            }
+        }
+
+        $method = PaymentMethod::find($payment->payment_method_id);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'status' => $status,
+                'method' => $method?->name,
+                // what the user actually pays: order total + online processing fee
+                // (payments.amount / fee are stored in cents, grand_total is in pesos)
+                'amount' => round((float) $checkout->grand_total + ((int) ($payment->fee ?? 0)) / 100, 2),
+                'fee' => round(((int) ($payment->fee ?? 0)) / 100, 2),
+                'order_total' => (float) $checkout->grand_total,
+                'checkout_number' => $checkout->checkout_number,
+                'redirect_url' => $redirectUrl,
+                'qr_image' => $qrImage,
+            ],
+        ]);
+    }
+
+    /**
+     * User backed out of the payment screen: release the reserved stock, keep the cart.
+     *
+     * The user may have already paid in their wallet / bank app right before pressing
+     * cancel, so PayMongo is checked first. A paid intent is never cancelled.
+     */
+    public function cancelPayment(Request $request, Checkout $checkout): JsonResponse
+    {
+        abort_unless($checkout->user_id === $request->user()->id, 403);
+
+        $payment = $this->checkoutService->paymentFor($checkout);
+
+        if ((int) $payment?->status_id === CheckoutService::PAYMENT_STATUS_PAID) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This order is already paid.',
+            ], 422);
+        }
+
+        if ($payment?->gateway_payment_intent_id) {
+            try {
+                $intent = $this->payMongo->retrieve($payment->gateway_payment_intent_id);
+            } catch (Throwable $e) {
+                Log::warning('Store payment cancel: PayMongo retrieve failed.', [
+                    'checkout_id' => $checkout->id,
+                    'intent_id' => $payment->gateway_payment_intent_id,
+                    'error' => $e->getMessage(),
+                ]);
+
+                // can't be sure the money wasn't taken: don't release the order blindly
+                return response()->json([
+                    'success' => false,
+                    'message' => 'We could not verify your payment right now. Please try again in a moment.',
+                ], 503);
+            }
+
+            if ($intent['status'] === 'succeeded') {
+                $this->confirmPaid($checkout, $payment, $intent['payment_id'] ?? null);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This order is already paid.',
+                ], 422);
+            }
+        }
+
+        $this->checkoutService->markAsFailed($checkout);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Payment cancelled.',
+        ]);
+    }
+
+    /**
+     * Mark a checkout paid after PayMongo confirmed the intent succeeded.
+     * Stores the gateway payment id like the webhook does, then runs the same
+     * idempotent markAsPaid used by the webhook and the points flow.
+     */
+    private function confirmPaid(Checkout $checkout, Payment $payment, ?string $gatewayPaymentId): void
+    {
+        if ($gatewayPaymentId && ! $payment->gateway_payment_id) {
+            $payment->forceFill(['gateway_payment_id' => $gatewayPaymentId])->save();
+        }
+
+        $this->checkoutService->markAsPaid($checkout);
     }
 
     /**
@@ -236,48 +387,156 @@ class CustomerCheckoutController extends Controller
     }
 
     /**
-     * Handle order processing for Cash on Delivery purchases
+     * Shared: create checkout + orders and reserve stock.
+     * $clearCart = false for online payments: the cart is cleared when the payment succeeds
+     * (CheckoutService::markAsPaid reads cart_item_ids from the payment meta).
+     * Must be called inside a DB transaction.
+     *
+     * @return array{0: Checkout, 1: UserAddress}
      */
-    private function checkoutCod(CheckoutCreateRequest $request, PaymentMethod $paymentMethod): JsonResponse
-    {
+    private function placeOrder(
+        CheckoutCreateRequest $request,
+        PaymentMethod $paymentMethod,
+        bool $clearCart = true,
+    ): array {
         [
             'cartItems' => $cartItems,
             'address' => $address,
         ] = $this->getCheckoutData($request);
 
-        $order = $this->checkoutService
-            ->createCheckout(
-                user: $request->user(),
-                address: $address,
-                paymentMethod: $paymentMethod,
-                cartItems: $cartItems,
-                note: $request->note,
-                decrementStock: true
-            );
+        $isCart = $request->input('mode', 'cart') === 'cart';
+
+        $checkout = $this->checkoutService->createCheckout(
+            user: $request->user(),
+            address: $address,
+            paymentMethod: $paymentMethod,
+            cartItems: $cartItems,
+            note: $request->note,
+            meta: (! $clearCart && $isCart)
+                ? ['cart_item_ids' => $cartItems->pluck('id')->values()->all()]
+                : [],
+        );
 
         foreach ($cartItems as $cartItem) {
             $cartItem->productVariant()
                 ->decrement('stock', $cartItem->quantity);
         }
 
-        // Only clean out structural data from the persistent table database if using standard cart matching
-        if ($request->input('mode', 'cart') === 'cart') {
+        if ($clearCart && $isCart) {
             $cartItems->each->delete();
         }
+
+        return [$checkout, $address];
+    }
+
+    /**
+     * Cash on Delivery
+     */
+    private function checkoutCod(CheckoutCreateRequest $request, PaymentMethod $paymentMethod): JsonResponse
+    {
+        [$checkout] = DB::transaction(
+            fn () => $this->placeOrder($request, $paymentMethod)
+        );
 
         return response()->json([
             'success' => true,
             'message' => 'Order placed successfully via Cash on Delivery!',
-            'order_id' => $order->id,
+            'checkout_id' => $checkout->id,
+            'order_id' => $checkout->id,
         ], 201);
     }
 
     /**
-     * Handle payment integration setups (e.g. PayMongo)
+     * Pay with store points (1 point = ₱1).
      */
-    private function checkoutPayMongo(CheckoutCreateRequest $request, PaymentMethod $paymentMethod)
+    private function checkoutPoints(CheckoutCreateRequest $request, PaymentMethod $paymentMethod): JsonResponse
     {
-        // Implement your PayMongo logic here returning json responses.
-        return response()->json(['message' => 'PayMongo gateway not configured yet.'], 501);
+        $user = $request->user();
+
+        $checkout = DB::transaction(function () use ($request, $paymentMethod, $user) {
+            [$checkout] = $this->placeOrder($request, $paymentMethod);
+
+            try {
+                // spend() locks the point row and re-checks the balance + integrity
+                $this->pointService->spend(
+                    $user,
+                    (float) $checkout->grand_total,
+                    'Store purchase '.$checkout->checkout_number,
+                    $checkout,
+                );
+            } catch (DomainException $e) {
+                throw ValidationException::withMessages([
+                    'payment_method_id' => $e->getMessage(),
+                ]);
+            }
+
+            $this->checkoutService->markAsPaid($checkout);
+
+            return $checkout;
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order placed successfully using your points!',
+            'checkout_id' => $checkout->id,
+            'order_id' => $checkout->id,
+        ], 201);
+    }
+
+    /**
+     * QR Ph / Maya / BillEase / GrabPay through PayMongo.
+     * Everything rolls back (order, stock) if PayMongo rejects the request.
+     * The order only becomes visible/paid after the payment succeeds.
+     */
+    private function checkoutOnline(CheckoutCreateRequest $request, PaymentMethod $paymentMethod): JsonResponse
+    {
+        $returnUrl = $request->input('return_url') ?: url('/api/payment/success');
+
+        try {
+            [$checkout, $charge] = DB::transaction(function () use ($request, $paymentMethod, $returnUrl) {
+                // cart is kept until the payment succeeds
+                [$checkout, $address] = $this->placeOrder($request, $paymentMethod, clearCart: false);
+
+                // Append the checkout id so the app can resume the status screen
+                $separator = str_contains($returnUrl, '?') ? '&' : '?';
+                $finalReturnUrl = $returnUrl.$separator.'checkoutId='.$checkout->id;
+
+                $charge = $this->payMongo->charge(
+                    $checkout,
+                    $paymentMethod,
+                    $request->user(),
+                    $address,
+                    $finalReturnUrl,
+                );
+
+                $checkout->payment->forceFill([
+                    'gateway' => PaymentGatewayFactory::resolveGateway($paymentMethod),
+                    'gateway_payment_intent_id' => $charge['id'],
+                ])->save();
+
+                return [$checkout, $charge];
+            });
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'We could not start the payment. Please try again or choose another method.',
+            ], 502);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Order created. Complete your payment to confirm it.',
+            'checkout_id' => $checkout->id,
+            'payment' => [
+                'status' => 'pending',
+                'gateway_type' => $paymentMethod->gateway_type,
+                'redirect_url' => $charge['redirect_url'],
+                'qr_image' => $charge['qr_image'],
+            ],
+        ], 201);
     }
 }
