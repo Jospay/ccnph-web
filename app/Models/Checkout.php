@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Contracts\Payable;
 use App\Enums\CheckoutStatus;
+use App\Services\Store\CheckoutService;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 #[Fillable([
     'user_id',
@@ -17,7 +19,7 @@ use App\Enums\CheckoutStatus;
     'status',
     'cancelled_amount',
 ])]
-class Checkout extends Model
+class Checkout extends Model implements Payable
 {
     use HasFactory;
 
@@ -41,8 +43,30 @@ class Checkout extends Model
         return $this->hasMany(Order::class);
     }
 
-    public function payment(): HasOne
+    // payments.payable_type / payable_id (same link the webhook uses)
+    public function payment(): MorphOne
     {
-        return $this->hasOne(Payment::class);
+        return $this->morphOne(Payment::class, 'payable');
+    }
+
+    // Called by PaymentWebhookService
+    public function onPaymentSuccess(Payment $payment): void
+    {
+        app(CheckoutService::class)->markAsPaid($this);
+    }
+
+    public function onPaymentFailed(Payment $payment): void
+    {
+        app(CheckoutService::class)->markAsFailed($this);
+    }
+
+    public function cooperativeServiceSlug(): ?string
+    {
+        return null;
+    }
+
+    public function cooperativeId(): ?int
+    {
+        return $this->user?->cooperative_id;
     }
 }
