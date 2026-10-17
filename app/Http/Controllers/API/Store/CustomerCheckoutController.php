@@ -248,16 +248,34 @@ class CustomerCheckoutController extends Controller
 
         $method = PaymentMethod::find($payment->payment_method_id);
 
+        // payments.fee is stored in cents, grand_total / order columns are in pesos
+        $fee = round(((int) ($payment->fee ?? 0)) / 100, 2);
+        $orderTotal = (float) $checkout->grand_total;
+        $amount = round($orderTotal + $fee, 2);
+
+        $orders = $checkout->orders()->get();
+
+        $breakdown = [
+            'subtotal' => round((float) $orders->sum('subtotal'), 2),
+            'shipping_fee' => round((float) $orders->sum('shipping_fee'), 2),
+            'membership_discount' => round((float) $orders->sum('membership_discount'), 2),
+            'shared_capital_discount' => round((float) $orders->sum('shared_capital_discount'), 2),
+            'point_discount' => round((float) $orders->sum('point_discount'), 2),
+            'order_total' => $orderTotal,
+            'fee' => $fee,
+            'amount' => $amount,
+        ];
+
         return response()->json([
             'success' => true,
             'data' => [
                 'status' => $status,
                 'method' => $method?->name,
                 // what the user actually pays: order total + online processing fee
-                // (payments.amount / fee are stored in cents, grand_total is in pesos)
-                'amount' => round((float) $checkout->grand_total + ((int) ($payment->fee ?? 0)) / 100, 2),
-                'fee' => round(((int) ($payment->fee ?? 0)) / 100, 2),
-                'order_total' => (float) $checkout->grand_total,
+                'amount' => $amount,
+                'fee' => $fee,
+                'order_total' => $orderTotal,
+                'breakdown' => $breakdown,
                 'checkout_number' => $checkout->checkout_number,
                 'redirect_url' => $redirectUrl,
                 'qr_image' => $qrImage,
