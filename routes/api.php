@@ -253,6 +253,8 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/checkout/select', [CustomerCheckoutController::class, 'select']);
             Route::get('/checkout', [CustomerCheckoutController::class, 'index']);
             Route::post('/checkout', [CustomerCheckoutController::class, 'store']);
+            Route::get('/checkout/{checkout}/payment-status', [CustomerCheckoutController::class, 'paymentStatus']);
+            Route::post('/checkout/{checkout}/cancel', [CustomerCheckoutController::class, 'cancelPayment']);
 
             Route::get('/orders', [CustomerOrderController::class, 'index']);
             Route::get('/orders/{order}', [CustomerOrderController::class, 'show']);
