@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\Payments\PaymentGatewayFactory;
 use DomainException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -179,5 +180,47 @@ class PointService
 
         return data_get($response, 'data.id')
             ?? throw new DomainException('Failed to create payment method.');
+    }
+
+    /**
+     * Spendable balance in pesos/points (1 point = ₱1).
+     */
+    public function getBalance(User $user): float
+    {
+        return (float) $this->getUserPoint($user)->balance;
+    }
+
+    /**
+     * Debit points for a purchase. Call inside a DB transaction.
+     */
+    public function spend(User $user, float $amount, string $description, Model $reference): void
+    {
+        $point = $this->getUserPoint($user);
+
+        // lock the row so two checkouts can't overspend
+        $point = Point::whereKey($point->id)->lockForUpdate()->firstOrFail();
+
+        if ($point->isTampered()) {
+            throw new DomainException('Your points balance integrity check failed. Transactions are restricted.');
+        }
+
+        $amount = round($amount, 2);
+
+        if ($amount <= 0) {
+            throw new DomainException('Invalid amount.');
+        }
+
+        if ((float) $point->balance < $amount) {
+            throw new DomainException('You do not have enough points for this order.');
+        }
+
+        $point->withdraw(
+            $amount,
+            $reference,
+            $description,
+            0.00,
+            $reference->checkout_number ?? null,
+            'Store Checkout',
+        );
     }
 }
