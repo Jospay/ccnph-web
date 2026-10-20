@@ -203,6 +203,8 @@ class CustomerOrderController extends Controller
                 'items:id,order_id,product_id,product_name,product_image,variant_name,price,quantity',
                 'items.product:id,cooperative_id,cooperative_scope',
                 'items.review:id,order_item_id',
+                // needed for the Total Payment (online fee share) on each order
+                'checkout.payment',
             ])
             ->when(
                 $filters['status'] !== 'all',
