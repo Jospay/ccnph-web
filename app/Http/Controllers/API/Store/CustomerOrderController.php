@@ -51,6 +51,80 @@ class CustomerOrderController extends Controller
         );
     }
 
+    /**
+     * Payment info + price breakdown for ONE order (track order screen).
+     *
+     * - payment.fee is stored in cents and belongs to the whole checkout, so when a
+     *   checkout has several shop orders the online processing fee is split
+     *   between them in proportion to each order's total.
+     * - breakdown has the same shape as the checkout payment screen
+     *   (PaymentBreakdown), so the same card can render it.
+     *
+     * @return array{payment: array|null, breakdown: array}
+     */
+    private function paymentSummary(Order $order): array
+    {
+        $checkout = $order->checkout;
+        $payment = $checkout?->payment;
+        $method = $payment?->paymentMethod;
+
+        $orderTotal = round((float) $order->total, 2);
+
+        // online processing fee share of this order
+        $fee = 0.0;
+        if ($payment && $method && $method->isOnline()) {
+            $checkoutFee = round(((int) ($payment->fee ?? 0)) / 100, 2);
+            $checkoutTotal = (float) ($checkout->grand_total ?? 0);
+
+            $fee = $checkoutTotal > 0
+                ? round($checkoutFee * ($orderTotal / $checkoutTotal), 2)
+                : $checkoutFee;
+        }
+
+        $breakdown = [
+            'subtotal' => round((float) $order->subtotal, 2),
+            'shipping_fee' => round((float) $order->shipping_fee, 2),
+            'membership_discount' => round((float) $order->membership_discount, 2),
+            'shared_capital_discount' => round((float) $order->shared_capital_discount, 2),
+            'point_discount' => round((float) $order->point_discount, 2),
+            'order_total' => $orderTotal,
+            'fee' => $fee,
+            'amount' => round($orderTotal + $fee, 2),
+        ];
+
+        if (! $payment || ! $method) {
+            return ['payment' => null, 'breakdown' => $breakdown];
+        }
+
+        $isPaid = (int) $payment->status_id === CheckoutService::PAYMENT_STATUS_PAID;
+        $isCod = (int) $method->id === PaymentMethod::CASH_ON_DELIVERY;
+
+        // COD is paid in cash when the order is received
+        if ($isCod && $order->status === OrderStatus::COMPLETED) {
+            $isPaid = true;
+        }
+
+        $statusLabel = $isPaid
+            ? 'Paid'
+            : ($isCod ? 'Pay on delivery' : 'Pending');
+
+        return [
+            'payment' => [
+                'method_id' => (int) $method->id,
+                'method' => $method->name,
+                'is_online' => $method->isOnline(),
+                'is_cod' => $isCod,
+                'is_points' => (int) $method->id === PaymentMethod::POINT,
+                'status' => $isPaid ? 'paid' : 'pending',
+                'status_label' => $statusLabel,
+                'paid_at' => $isPaid && $payment->payment_date
+                    ? $payment->payment_date->toIso8601String()
+                    : null,
+            ],
+            'breakdown' => $breakdown,
+        ];
+    }
+
     public function index(Request $request)
     {
         $user = $request->user();
@@ -215,6 +289,7 @@ class CustomerOrderController extends Controller
             'store:id,name',
             'items:id,order_id,product_id,product_name,product_image,variant_name,price,quantity',
             'items.product:id,cooperative_id,cooperative_scope',
+            'checkout.payment.paymentMethod',
         ]);
 
         $fullAddress = collect([
@@ -226,6 +301,9 @@ class CustomerOrderController extends Controller
             $order->region,
             $order->postal_code,
         ])->filter()->implode(', ');
+
+        // payment method used + price breakdown (discounts, shipping, online fee)
+        $paymentSummary = $this->paymentSummary($order);
 
         return response()->json([
             'success' => true,
@@ -243,6 +321,12 @@ class CustomerOrderController extends Controller
                     'total' => (float) $order->total,
                     'created_at' => $order->created_at ? $order->created_at->toIso8601String() : null,
                     'store' => $order->store,
+                    'note' => $order->notes,
+
+                    // NEW: payment method + full price breakdown
+                    'payment' => $paymentSummary['payment'],
+                    'breakdown' => $paymentSummary['breakdown'],
+
                     'items' => $order->items->map(fn ($item) => [
                         'id' => $item->id,
                         'product_id' => $item->product_id,
