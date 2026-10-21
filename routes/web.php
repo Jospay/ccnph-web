@@ -7,6 +7,9 @@ use App\Http\Controllers\Web\BusinessTrainingController;
 use App\Http\Controllers\Web\Conversation\ConversationController;
 use App\Http\Controllers\Web\Conversation\MessageController;
 use App\Http\Controllers\Web\DashboardController;
+use App\Http\Controllers\Web\DeliveryAdmin\DeliveryController;
+use App\Http\Controllers\Web\DeliveryAdmin\DriverController;
+use App\Http\Controllers\Web\DeliveryAdmin\OrderAssignmentController;
 use App\Http\Controllers\Web\IntellectualPropertyController;
 use App\Http\Controllers\Web\LoanAssistanceController;
 use App\Http\Controllers\Web\LoanScheduleController;
@@ -251,6 +254,30 @@ Route::middleware([
 
     Route::prefix('admin/support-chat')->name('support-chat.')->group(function () {
         Route::get('/', [SupportChatController::class, 'index'])->name('index');
+    });
+
+    // Driver Management Domain
+    Route::middleware(['service_access:driver-management'])->group(function () {
+
+        // Drivers
+        Route::get('/driver-management', [DriverController::class, 'index'])->name('delivery-admin.drivers.index');
+        Route::post('/driver-management', [DriverController::class, 'store'])->name('delivery-admin.drivers.store');
+        Route::get('/driver-management/{driver}', [DriverController::class, 'show'])->whereNumber('driver')->name('delivery-admin.drivers.show');
+
+        // POST (not PATCH) so the photo upload works, same as your seller routes
+        Route::post('/driver-management/{driver}', [DriverController::class, 'update'])->whereNumber('driver')->name('delivery-admin.drivers.update');
+        Route::patch('/driver-management/{driver}/toggle-active', [DriverController::class, 'toggleActive'])->name('delivery-admin.drivers.toggle-active');
+        Route::delete('/driver-management/{driver}', [DriverController::class, 'destroy'])->name('delivery-admin.drivers.destroy');
+
+        // Dispatch board: orders by region / province / city / barangay, assign many orders
+        Route::get('/driver-management/dispatch/orders', [OrderAssignmentController::class, 'index'])->name('delivery-admin.orders.index');
+        Route::get('/driver-management/dispatch/eligible-drivers', [OrderAssignmentController::class, 'eligibleDrivers'])->name('delivery-admin.eligible-drivers');
+        Route::post('/driver-management/dispatch/assignments', [OrderAssignmentController::class, 'assign'])->name('delivery-admin.assignments.store');
+
+        // Assigned deliveries: monitor, reassign, unassign
+        Route::get('/driver-management/dispatch/deliveries', [DeliveryController::class, 'index'])->name('delivery-admin.deliveries.index');
+        Route::patch('/driver-management/dispatch/deliveries/{delivery}/reassign', [DeliveryController::class, 'reassign'])->name('delivery-admin.deliveries.reassign');
+        Route::delete('/driver-management/dispatch/deliveries/{delivery}', [DeliveryController::class, 'unassign'])->name('delivery-admin.deliveries.unassign');
     });
 
 });
