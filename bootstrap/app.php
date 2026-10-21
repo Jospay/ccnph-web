@@ -2,8 +2,9 @@
 
 use App\Http\Middleware\CheckServiceAccess;
 use App\Http\Middleware\CheckUserType;
-use App\Http\Middleware\HandleAppearance;
+use App\Http\Middleware\EnsureDriver;
 use App\Http\Middleware\EnsureUserIsSeller;
+use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -43,9 +44,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => CheckUserType::class,
             'service_access' => CheckServiceAccess::class,
             'seller' => EnsureUserIsSeller::class,
-
-            // API Middleware
-            'role.api' => App\Http\Middleware\Api\CheckUserType::class,
+            'driver.api' => EnsureDriver::class,
+            'role.api' => CheckUserType::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
