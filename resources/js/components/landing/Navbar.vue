@@ -109,6 +109,10 @@ onUnmounted(() => {
         </li>
 
         <li>
+          <Link href="/#tutorials" class="nav-link">Mobile App Tutorials</Link>
+        </li>
+
+        <li>
           <Link href="/cooperatives" class="nav-link">Cooperatives</Link>
         </li>
 
