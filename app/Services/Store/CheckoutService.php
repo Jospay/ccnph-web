@@ -187,11 +187,18 @@ class CheckoutService
                     'payment_date' => now(),
                 ]);
 
-                // online checkouts keep the cart until paid
                 if ($ids = data_get($payment->meta, 'cart_item_ids')) {
                     CartItem::whereIn('id', $ids)->delete();
                 }
             }
+
+            $locked->orders()
+                ->where('status', OrderStatus::PENDING->value)
+                ->get()
+                ->each(fn ($order) => $order->update([
+                    'status' => OrderStatus::CONFIRMED,
+                    'confirmed_at' => now(),
+                ]));
 
             $locked->update(['status' => CheckoutStatus::PAID]);
         });
