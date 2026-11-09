@@ -15,26 +15,69 @@ class AllocationServiceSeeder extends Seeder
         $now = now();
 
         DB::table('allocation_services')->upsert([
+            // Membership
             [
-                'id' => 1,
                 'allocation_id' => 1,
                 'service_id' => 1,
                 'priority' => 1,
                 'type' => 'Percentage',
-                'value' => 0.4000,
+                'value' => 40.0000,
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
             [
-                'id' => 2,
                 'allocation_id' => 5,
                 'service_id' => 1,
                 'priority' => 2,
                 'type' => 'Percentage',
-                'value' => 0.6000,
+                'value' => 60.0000,
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
-        ], ['id'], ['allocation_id', 'service_id', 'priority', 'type', 'value', 'updated_at']);
+
+            // Store
+            [
+                'allocation_id' => 1,
+                'service_id' => 3,
+                'priority' => 1,
+                'type' => 'PHP',
+                'value' => 1.0000,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'allocation_id' => 5,
+                'service_id' => 3,
+                'priority' => 2,
+                'type' => 'PHP',
+                'value' => 1.0000,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'allocation_id' => 7,
+                'service_id' => 3,
+                'priority' => 4,
+                'type' => 'Percentage',
+                'value' => 100.0000,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'allocation_id' => 8,
+                'service_id' => 3,
+                'priority' => 3,
+                'type' => 'PHP',
+                'value' => 1.0000,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+
+        ], ['allocation_id', 'service_id'], [
+            'priority',
+            'type',
+            'value',
+            'updated_at',
+        ]);
     }
 }
