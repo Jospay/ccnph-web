@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable([
     'allocation_service_id',
     'cooperative_id',
+    'user_id',
     'amount',
 ])]
 class RevenueBreakdown extends Model
@@ -21,6 +22,7 @@ class RevenueBreakdown extends Model
         return [
             'allocation_service_id' => 'integer',
             'cooperative_id' => 'integer',
+            'user_id' => 'integer',
             'amount' => 'decimal:2',
         ];
     }
@@ -33,5 +35,10 @@ class RevenueBreakdown extends Model
     public function cooperative(): BelongsTo
     {
         return $this->belongsTo(Cooperative::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }

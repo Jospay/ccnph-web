@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('allocation_service_id')->constrained('allocation_services')->onDelete('restrict');
             $table->foreignId('cooperative_id')->nullable()->constrained('cooperatives')->onDelete('restrict');
+            $table->foreignId('user_id')->constrained('users')->onDelete('restrict');
             $table->decimal('amount', 15, 2);
             $table->timestamps();
         });
