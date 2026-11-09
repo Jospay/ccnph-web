@@ -32,7 +32,7 @@ class CooperativeTransparencyService
     public function activeServices()
     {
         return Service::query()
-            ->where('is_active', true)
+            ->where('is_active_transparency', true)
             ->orderBy('name')
             ->get([
                 'id',
