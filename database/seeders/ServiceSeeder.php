@@ -17,28 +17,30 @@ class ServiceSeeder extends Seeder
         $services = [
             'Coop Membership',
             'Business Training',
+            'CCNPH Online Store',
+            'News & Events',
             // 'Intellectual Property Assistance',
             // 'Loan Assistance',
             // 'Funding & Invest Opportunities',
             // 'Licensing & Permit Assistance',
             // 'R & D Collaboration',
             // 'Ask an Expert Assistance',
-            // 'CCNPH Online Store',
             // 'Product Validation Services',
             // 'Lost & Found',
             // 'Suggest Service',
-            'News & Events',
         ];
 
         foreach ($services as $service) {
-            DB::table('services')->insert([
-                'name' => $service,
-                'slug' => Str::slug($service),
-                'is_active' => true,
-                'is_super_admin_only' => in_array($service, $superAdminOnly),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            DB::table('services')->updateOrInsert(
+                ['name' => $service],
+                [
+                    'slug' => Str::slug($service),
+                    'is_active' => true,
+                    'is_super_admin_only' => in_array($service, $superAdminOnly),
+                    'is_active_transparency' => false,
+                    'updated_at' => now(),
+                ]
+            );
         }
     }
 }
