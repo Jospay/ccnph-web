@@ -6,8 +6,11 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 #[Fillable([
+    'revenueable_type',
+    'revenueable_id',
     'allocation_service_id',
     'cooperative_id',
     'user_id',
@@ -25,6 +28,14 @@ class RevenueBreakdown extends Model
             'user_id' => 'integer',
             'amount' => 'decimal:2',
         ];
+    }
+
+    /**
+     * Get the parent revenueable model.
+     */
+    public function revenueable(): MorphTo
+    {
+        return $this->morphTo();
     }
 
     public function allocationService(): BelongsTo
