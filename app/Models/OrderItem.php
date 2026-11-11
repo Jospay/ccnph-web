@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany; // NEW
 
 #[Fillable([
     'order_id',
@@ -57,5 +58,10 @@ class OrderItem extends Model
     public function checkout(): BelongsTo
     {
         return $this->belongsTo(Checkout::class);
+    }
+
+    public function revenueBreakdowns(): MorphMany
+    {
+        return $this->morphMany(RevenueBreakdown::class, 'revenueable');
     }
 }
