@@ -83,4 +83,9 @@ class Payment extends Model
     {
         return $this->belongsTo(Checkout::class);
     }
+
+    public function revenueBreakdowns(): MorphMany
+    {
+        return $this->morphMany(RevenueBreakdown::class, 'revenueable');
+    }
 }
