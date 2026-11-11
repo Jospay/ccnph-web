@@ -11,6 +11,7 @@ use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\Review;
 use App\Models\Shop;
+use App\Services\Cooperative\CooperativeRevenueAllocatorService; // NEW
 use App\Services\Store\CheckoutService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
@@ -21,6 +22,9 @@ use Illuminate\Validation\Rule;
 
 class CustomerOrderController extends Controller
 {
+    // NEW: service slug used for the allocation config
+    private const STORE_SERVICE_SLUG = 'ccnph-online-store';
+
     /**
      * Only orders the customer should see:
      *  - Cash on Delivery orders
@@ -192,7 +196,7 @@ class CustomerOrderController extends Controller
             'to_pay' => (int) ($badgeCountsRaw->to_pay ?? 0),
             'to_ship' => (int) ($badgeCountsRaw->to_ship ?? 0),
             'to_receive' => (int) ($badgeCountsRaw->to_receive ?? 0),
-            'to_rate' => $toRateCount, // 👈 Accurately excludes already-rated orders
+            'to_rate' => $toRateCount,
         ];
 
         // 2. Fetch paginated orders with relationships
@@ -215,7 +219,6 @@ class CustomerOrderController extends Controller
 
         // 3. Compute `is_rated` boolean on each order
         $paginator->getCollection()->transform(function (Order $order) {
-            // Determine if the order status equals OrderStatus::COMPLETED
             $isCompleted = ($order->status instanceof OrderStatus)
                 ? $order->status === OrderStatus::COMPLETED
                 : $order->status === OrderStatus::COMPLETED->value;
@@ -325,7 +328,7 @@ class CustomerOrderController extends Controller
                     'store' => $order->store,
                     'note' => $order->notes,
 
-                    // NEW: payment method + full price breakdown
+                    // payment method + full price breakdown
                     'payment' => $paymentSummary['payment'],
                     'breakdown' => $paymentSummary['breakdown'],
 
@@ -333,7 +336,6 @@ class CustomerOrderController extends Controller
                         'id' => $item->id,
                         'product_id' => $item->product_id,
                         'product_name' => $item->product_name,
-                        // 'product_image' => $item->product_image ? Storage::url($item->product_image) : null,
                         'product_image' => $item->product_image ? asset('storage/'.$item->product_image) : null,
                         'variant_name' => $item->variant_name,
                         'price' => (float) $item->price,
@@ -454,6 +456,14 @@ class CustomerOrderController extends Controller
 
         $this->ensureVisible($order);
 
+        // NEW: only completed orders can be rated (and therefore book revenue)
+        if ($order->status !== OrderStatus::COMPLETED) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only completed orders can be rated.',
+            ], 422);
+        }
+
         // 3. Request Validation
         $validated = $request->validate([
             'items' => ['required', 'array', 'min:1'],
@@ -532,6 +542,20 @@ class CustomerOrderController extends Controller
                             'is_anonymous' => $itemData['is_anonymous'] ?? false,
                         ]
                     );
+
+                    // NEW: record revenue only the first time this item is rated
+                    if ($review->wasRecentlyCreated) {
+                        $item->loadMissing('product:id,cooperative_id');
+
+                        app(CooperativeRevenueAllocatorService::class)->allocate(
+                            serviceSlug: self::STORE_SERVICE_SLUG,
+                            amount: round((float) $item->price * (int) $item->quantity, 2),
+                            revenueable: $item,
+                            userId: $request->user()->id,
+                            cooperativeId: $item->product?->cooperative_id
+                                ?? $request->user()->cooperative_id,
+                        );
+                    }
 
                     // Handle Image Uploads
                     if ($request->hasFile("items.{$index}.images")) {
