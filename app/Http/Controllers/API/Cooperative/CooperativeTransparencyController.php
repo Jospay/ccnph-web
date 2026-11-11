@@ -15,37 +15,37 @@ class CooperativeTransparencyController extends Controller
 
     /**
      * Resolve the logged-in member's cooperative, or abort with 403.
-     * The ID always comes from the authenticated user, never from the request.
+     * The ID always comes from the authenticated user, never the request.
      */
     private function cooperativeId(Request $request): int
     {
         $cooperativeId = $request->user()?->cooperative_id;
 
-        abort_if(
-            ! $cooperativeId,
-            403,
-            'Your account is not linked to a cooperative.'
-        );
+        abort_if(! $cooperativeId, 403, 'Your account is not linked to a cooperative.');
 
         return (int) $cooperativeId;
     }
 
     /**
-     * Years that have recorded fund activity for the member's cooperative.
+     * The authenticated user's own ID (never taken from the request).
+     */
+    private function userId(Request $request): int
+    {
+        return (int) $request->user()->id;
+    }
+
+    /**
+     * Years that have recorded fund activity for the authenticated member.
      *
      * @tags Cooperative > Transparency
-     *
-     * @response scenario="success" {
-     *   "success": true,
-     *   "data": ["2026", "2025", "2024"]
-     * }
      */
     public function years(Request $request): JsonResponse
     {
         return response()->json([
             'success' => true,
             'data' => $this->transparencyService->availableYears(
-                $this->cooperativeId($request)
+                $this->cooperativeId($request),
+                $this->userId($request)
             ),
         ]);
     }
@@ -57,7 +57,7 @@ class CooperativeTransparencyController extends Controller
      */
     public function services(Request $request): JsonResponse
     {
-        $this->cooperativeId($request); // ensure the member belongs to a coop
+        $this->cooperativeId($request);
 
         return response()->json([
             'success' => true,
@@ -66,9 +66,7 @@ class CooperativeTransparencyController extends Controller
     }
 
     /**
-     * Fund summary for a year, scoped to the member's own cooperative.
-     * Returns per-service allocation breakdown (configured vs actual
-     * percentage) plus a grand allocation summary + total fund.
+     * Fund summary for a year, scoped to the member's own records.
      *
      * @tags Cooperative > Transparency
      *
@@ -84,6 +82,7 @@ class CooperativeTransparencyController extends Controller
 
         $summary = $this->transparencyService->summary(
             cooperativeId: $this->cooperativeId($request),
+            userId: $this->userId($request),
             year: (int) $validated['year'],
             serviceSlug: $validated['service'] ?? null,
         );
