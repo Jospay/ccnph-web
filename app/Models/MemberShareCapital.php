@@ -107,4 +107,11 @@ class MemberShareCapital extends Model implements Payable
 
         return $this->user?->cooperative_id;
     }
+
+    public function userId(): ?int
+    {
+        $this->loadMissing('user');
+
+        return $this->user?->user_id;
+    }
 }
