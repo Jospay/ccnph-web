@@ -69,4 +69,9 @@ class Checkout extends Model implements Payable
     {
         return $this->user?->cooperative_id;
     }
+
+    public function userId(): ?int
+    {
+        return $this->user_id;
+    }
 }
