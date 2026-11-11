@@ -549,7 +549,7 @@ class CustomerOrderController extends Controller
 
                         app(CooperativeRevenueAllocatorService::class)->allocate(
                             serviceSlug: self::STORE_SERVICE_SLUG,
-                            amount: round((float) $item->price * (int) $item->quantity, 2),
+                            amount: $this->netItemRevenue($order, $item),
                             revenueable: $item,
                             userId: $request->user()->id,
                             cooperativeId: $item->product?->cooperative_id
@@ -611,6 +611,35 @@ class CustomerOrderController extends Controller
             'success' => true,
             'message' => 'Thank you for your feedback!',
         ]);
+    }
+
+    /**
+     * Net revenue of one order item = item goods amount minus its proportional
+     * share of the order's membership, shared capital and point discounts.
+     * Shipping is not part of the revenue.
+     */
+    private function netItemRevenue(Order $order, OrderItem $item): float
+    {
+        $gross = round((float) $item->price * (int) $item->quantity, 2);
+
+        $orderSubtotal = (float) $order->subtotal;
+        $orderDiscount = round(
+            (float) $order->membership_discount
+            + (float) $order->shared_capital_discount
+            + (float) $order->point_discount,
+            2
+        );
+
+        if ($orderSubtotal <= 0 || $orderDiscount <= 0) {
+            return $gross;
+        }
+
+        // never discount more than the goods amount
+        $orderDiscount = min($orderDiscount, $orderSubtotal);
+
+        $itemDiscount = round($orderDiscount * ($gross / $orderSubtotal), 2);
+
+        return max(0, round($gross - $itemDiscount, 2));
     }
 
     public function updateStatus(Request $request, Order $order)
