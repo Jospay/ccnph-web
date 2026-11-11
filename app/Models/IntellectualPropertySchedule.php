@@ -61,4 +61,11 @@ class IntellectualPropertySchedule extends Model implements Payable
 
         return $this->intellectualProperty?->user?->cooperative_id;
     }
+
+    public function userId(): ?int
+    {
+        $this->loadMissing('intellectualProperty');
+
+        return $this->intellectualProperty?->user_id;
+    }
 }
