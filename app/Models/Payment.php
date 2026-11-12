@@ -88,4 +88,9 @@ class Payment extends Model
     {
         return $this->morphMany(RevenueBreakdown::class, 'revenueable');
     }
+
+    public function method(): BelongsTo
+    {
+        return $this->paymentMethod();
+    }
 }
