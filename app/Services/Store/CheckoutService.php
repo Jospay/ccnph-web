@@ -196,8 +196,9 @@ class CheckoutService
                 ->where('status', OrderStatus::PENDING->value)
                 ->get()
                 ->each(fn ($order) => $order->update([
-                    'status' => OrderStatus::CONFIRMED,
+                    'status' => OrderStatus::PROCESSING,
                     'confirmed_at' => now(),
+                    'processing_at' => now(),
                 ]));
 
             $locked->update(['status' => CheckoutStatus::PAID]);
