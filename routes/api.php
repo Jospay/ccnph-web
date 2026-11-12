@@ -17,6 +17,7 @@ use App\Http\Controllers\API\Loan\LoanController;
 use App\Http\Controllers\API\Membership\MembershipController;
 use App\Http\Controllers\API\News\NewsController;
 use App\Http\Controllers\API\Notification\NotificationController;
+use App\Http\Controllers\API\Notification\StoreNotificationController;
 use App\Http\Controllers\API\Payment\PaymentMethodController;
 use App\Http\Controllers\API\Payment\PaymentWebhookController;
 use App\Http\Controllers\API\PaymentController;
@@ -284,6 +285,14 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/', [NotificationController::class, 'index']);
             Route::patch('/{id}/read', [NotificationController::class, 'markAsRead']);
             Route::post('/read-all', [NotificationController::class, 'markAllAsRead']);
+        });
+
+    Route::prefix('store-notifications')
+        ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER) // adjust to the roles that should see store notifications
+        ->group(function () {
+            Route::get('/', [StoreNotificationController::class, 'index']);
+            Route::patch('/{id}/read', [StoreNotificationController::class, 'markAsRead']);
+            Route::post('/read-all', [StoreNotificationController::class, 'markAllAsRead']);
         });
 
     // CCNPH Online Store
