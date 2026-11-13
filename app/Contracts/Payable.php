@@ -13,4 +13,6 @@ interface Payable
     public function cooperativeServiceSlug(): ?string;
 
     public function cooperativeId(): ?int;
+
+    public function userId(): ?int;
 }

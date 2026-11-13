@@ -48,7 +48,10 @@ class CartResource extends JsonResource
                         'name' => $product->name,
                         'slug' => $product->slug,
                         // Adding seller dynamically from your store relation
-                        'seller' => $store?->name ?? 'FISMPC Store',
+                        'seller' => $store?->name ?? 'CCNPH Store',
+                        // Local / National label (enum cast -> string value)
+                        'cooperative_id' => $product->cooperative_id,
+                        'cooperative_scope' => $product->cooperative_scope?->value,
                     ] : null,
                 ];
             })->values()->toArray(),

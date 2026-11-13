@@ -354,36 +354,16 @@ class ProfileController extends Controller
     public function registerAuthDevice(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'device_id' => [
-                'required',
-                'string',
-                'max:255',
-            ],
-
-            'platform' => [
-                'required',
-                'in:android,ios',
-            ],
-
-            'public_key' => [
-                'required',
-                'string',
-            ],
-
-            'device_name' => [
-                'nullable',
-                'string',
-                'max:255',
-            ],
-
-            'password' => [
-                'required',
-                'string',
-            ],
+            'device_id' => ['required', 'string', 'max:255'],
+            'platform' => ['required', 'in:android,ios'],
+            'public_key' => ['required', 'string'],
+            'device_name' => ['nullable', 'string', 'max:255'],
+            'password' => ['required', 'string'],
         ]);
 
         $user = $request->user();
 
+        // 1. Verify password
         if (! Hash::check($validated['password'], $user->password)) {
             return response()->json([
                 'success' => false,
@@ -391,6 +371,18 @@ class ProfileController extends Controller
             ], 422);
         }
 
+        $existingDeviceOwner = UserAuthDevice::where('device_id', $validated['device_id'])
+            ->where('user_id', '!=', $user->id)
+            ->first();
+
+        if ($existingDeviceOwner) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This device is already linked to another account. Please remove it from the other account before registering here.',
+            ], 422);
+        }
+
+        // 3. Register or update device for the current user
         $device = $user->authDevices()->updateOrCreate(
             [
                 'device_id' => $validated['device_id'],

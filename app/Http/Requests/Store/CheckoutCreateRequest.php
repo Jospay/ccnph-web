@@ -64,6 +64,7 @@ class CheckoutCreateRequest extends FormRequest
                 'integer',
                 'min:1',
             ],
+            'return_url' => ['nullable', 'string', 'max:2048'],
         ];
     }
 }

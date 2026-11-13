@@ -2,17 +2,20 @@
 
 namespace App\Http\Controllers\Web\Seller;
 
+use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
-use Illuminate\Validation\Rule;
+use App\Http\Requests\Seller\Order\ActionOrderRequest;
 use App\Http\Resources\Seller\OrderIndexResource;
 use App\Http\Resources\Seller\OrderShowResource;
-use App\Http\Requests\Seller\Order\ActionOrderRequest;
 use App\Models\Order;
 use App\Models\PaymentMethod;
-use App\Enums\OrderStatus;
+use App\Notifications\StoreNotification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use Throwable;
 
 class OrderController extends Controller
 {
@@ -40,9 +43,9 @@ class OrderController extends Controller
             'shop' => $user->shop,
             'orders' => OrderIndexResource::collection($orders),
             'counts' => $this->getSummaryCounts($user->shop->id),
-            'filters' => $filters
+            'filters' => $filters,
         ]);
-        
+
     }
 
     private function buildBaseQuery(int $shopId, array $filters): Builder
@@ -59,7 +62,7 @@ class OrderController extends Controller
             );
     }
 
-    private function applyStatusFilter(Builder $query, string $status): Builder 
+    private function applyStatusFilter(Builder $query, string $status): Builder
     {
         return match ($status) {
             'to-confirm' => $query->whereIn('status', [
@@ -82,10 +85,10 @@ class OrderController extends Controller
             ->pluck('total', 'status');
 
         return [
-            'to_confirm'   => (int) ($counts->get(OrderStatus::PENDING->value, 0)) 
+            'to_confirm' => (int) ($counts->get(OrderStatus::PENDING->value, 0))
                             + ($counts->get(OrderStatus::CONFIRMED->value, 0)),
-            'to_pack'      =>(int) $counts->get(OrderStatus::PROCESSING->value, 0),
-            'to_ship'   => (int) $counts->get(OrderStatus::PACKED->value, 0),
+            'to_pack' => (int) $counts->get(OrderStatus::PROCESSING->value, 0),
+            'to_ship' => (int) $counts->get(OrderStatus::PACKED->value, 0),
             'cancellation' => (int) $counts->get(OrderStatus::CANCELLED->value, 0),
         ];
     }
@@ -105,7 +108,8 @@ class OrderController extends Controller
         return OrderShowResource::make($order);
     }
 
-    public function action(ActionOrderRequest $request, Order $order) {
+    public function action(ActionOrderRequest $request, Order $order)
+    {
         $user = $request->user();
 
         abort_unless(
@@ -115,9 +119,9 @@ class OrderController extends Controller
 
         $order->loadMissing('checkout.payment.method');
         $action = $request->validated('action');
-        $payment = $order->checkout?->payment; 
-        
-        if (!$payment || $payment->payment_method_id !== PaymentMethod::CASH_ON_DELIVERY) {
+        $payment = $order->checkout?->payment;
+
+        if (! $payment || $payment->payment_method_id !== PaymentMethod::CASH_ON_DELIVERY) {
             return back()->with(
                 'error',
                 'Online payment workflow is not yet implemented.'
@@ -147,6 +151,8 @@ class OrderController extends Controller
             'confirmed_at' => now(),
             'processing_at' => now(),
         ]);
+
+        $this->notifyBuyerOrderAccepted($order);
     }
 
     private function packCodOrder(Order $order): void
@@ -173,7 +179,8 @@ class OrderController extends Controller
         ]);
     }
 
-    public function cancel(Request $request, Order $order) {
+    public function cancel(Request $request, Order $order)
+    {
         $user = $request->user();
 
         abort_unless(
@@ -185,7 +192,7 @@ class OrderController extends Controller
             abort(422, 'Invalid order state');
         }
 
-         $validated = $request->validate([
+        $validated = $request->validate([
             'cancellation_reason' => [
                 'required',
                 'string',
@@ -196,12 +203,46 @@ class OrderController extends Controller
         $order->update([
             'status' => OrderStatus::CANCELLED,
             'cancelled_at' => now(),
-            'cancellation_reason' => $validated['cancellation_reason']
+            'cancellation_reason' => $validated['cancellation_reason'],
         ]);
 
         return back()->with(
             'success',
             'Order cancelled successfully.'
         );
+    }
+
+    private function notifyBuyerOrderAccepted(Order $order): void
+    {
+        try {
+            $order->loadMissing(['user', 'shop']);
+
+            $buyer = $order->user;
+
+            if (! $buyer) {
+                return;
+            }
+
+            $buyer->notify(new StoreNotification(
+                type: 'order_confirmed',
+                title: 'Order Confirmed',
+                body: ($order->shop?->name ?? 'The seller')
+    .' has confirmed your order #'.$order->order_number.' and is now preparing it.',
+                actionType: 'TRACK_ORDER',
+                route: '/track-order?orderId='.$order->id,
+                extraData: [
+                    'order_id' => $order->id,
+                    'order_number' => $order->order_number,
+                    'shop_id' => $order->shop_id,
+                    'status' => OrderStatus::PROCESSING->value,
+                ],
+            ));
+        } catch (Throwable $e) {
+            // A notification failure must never break the order update.
+            Log::error('Failed to send order accepted notification', [
+                'order_id' => $order->id,
+                'exception' => $e,
+            ]);
+        }
     }
 }

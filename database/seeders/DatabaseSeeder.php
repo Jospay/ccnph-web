@@ -40,6 +40,7 @@ class DatabaseSeeder extends Seeder
             TransactionChannelSeeder::class,
             TransactionFeeSeeder::class,
             AttributeSeeder::class,
+            CooperativeDiscountSeeder::class,
         ]);
 
         User::factory()->create([

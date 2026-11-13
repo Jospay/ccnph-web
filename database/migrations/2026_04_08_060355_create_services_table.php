@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->text('description')->nullable();
             $table->string('icon')->nullable();
+            $table->boolean('is_active_transparency')->default(false);
             $table->timestamps();
         });
     }

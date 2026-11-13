@@ -52,6 +52,16 @@ class ProductShowResource extends JsonResource
                     ]),
                 ];
             })->values(),
+            'cooperative_id' => $this->cooperative_id,
+            'cooperative_scope' => $this->cooperative_scope?->value,
+            'cooperative' => $this->cooperative ? [
+                'id' => $this->cooperative->id,
+                'name' => $this->cooperative->name,
+                'slug' => $this->cooperative->slug,
+                'logo' => $this->cooperative->logo
+                    ? asset('storage/'.$this->cooperative->logo)
+                    : null,
+            ] : null,
             'store' => [
                 'id' => $this->store->id,
                 'name' => $this->store->name,

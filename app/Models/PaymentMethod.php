@@ -30,13 +30,28 @@ class PaymentMethod extends Model
 
     public const PAY_ONLINE = 10;
 
-    public const CLIENT_SIDE_METHODS = [
-        self::CARD,
+    public const POINT = 11;
+
+    public const CLIENT_SIDE_METHODS = [self::CARD];
+
+    public const OFFLINE_METHODS = [self::CASH, self::WALLET];
+
+    // Third-party (PayMongo) methods used by the store checkout
+    public const ONLINE_METHODS = [
+        self::QR_CODE,
+        self::MAYA,
+        self::BILLEASE,
+        self::GRAB_PAY,
     ];
 
-    public const OFFLINE_METHODS = [
-        self::CASH,
-        self::WALLET,
+    // Everything the store checkout screen may show
+    public const STORE_CHECKOUT_METHODS = [
+        self::CASH_ON_DELIVERY,
+        self::POINT,
+        self::QR_CODE,
+        self::MAYA,
+        self::BILLEASE,
+        self::GRAB_PAY,
     ];
 
     public function isOffline(): bool
@@ -47,5 +62,10 @@ class PaymentMethod extends Model
     public function isClientSide(): bool
     {
         return in_array($this->id, self::CLIENT_SIDE_METHODS);
+    }
+
+    public function isOnline(): bool
+    {
+        return in_array($this->id, self::ONLINE_METHODS);
     }
 }

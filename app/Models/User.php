@@ -232,4 +232,9 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Cooperative::class);
     }
+
+    public function revenueBreakdowns(): HasMany
+    {
+        return $this->hasMany(RevenueBreakdown::class);
+    }
 }

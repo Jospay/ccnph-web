@@ -13,6 +13,7 @@ export * from './seller/shop';
 export * from './seller/order';
 export * from './seller/dashboard';
 export * from './seller/review';
+export * from './driver';
 
 export type ApiResponse<T> = {
   data: T;

@@ -61,6 +61,7 @@ class ShopProductController extends Controller
     {
         $product->load([
             'store',
+            'cooperative:id,name,slug,logo',
             'categories',
             'images',
             'variants.attributeValues.attribute',

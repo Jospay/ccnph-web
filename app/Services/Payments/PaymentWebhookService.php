@@ -90,6 +90,8 @@ class PaymentWebhookService
                     $this->revenueAllocator->allocate(
                         serviceSlug: $slug,
                         amount: $payment->amount / 100,
+                        revenueable: $payment,
+                        userId: $payable->userId(),
                         cooperativeId: $payable->cooperativeId(),
                     );
                 }

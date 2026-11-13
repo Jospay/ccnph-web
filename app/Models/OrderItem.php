@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany; // NEW
 
 #[Fillable([
     'order_id',
@@ -52,5 +53,15 @@ class OrderItem extends Model
     public function review(): HasOne
     {
         return $this->hasOne(Review::class, 'order_item_id');
+    }
+
+    public function checkout(): BelongsTo
+    {
+        return $this->belongsTo(Checkout::class);
+    }
+
+    public function revenueBreakdowns(): MorphMany
+    {
+        return $this->morphMany(RevenueBreakdown::class, 'revenueable');
     }
 }

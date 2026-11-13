@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
     'gateway_payment_intent_id',
     'gateway_payment_id',
     'gateway_response',
+    'meta',
     'sender_name',
     'sender_account_number',
 ])]
@@ -44,6 +45,7 @@ class Payment extends Model
             'fee' => 'integer',
             'payment_date' => 'date',
             'gateway_response' => 'array',
+            'meta' => 'array',
         ];
     }
 
@@ -80,5 +82,15 @@ class Payment extends Model
     public function checkout(): BelongsTo
     {
         return $this->belongsTo(Checkout::class);
+    }
+
+    public function revenueBreakdowns(): MorphMany
+    {
+        return $this->morphMany(RevenueBreakdown::class, 'revenueable');
+    }
+
+    public function method(): BelongsTo
+    {
+        return $this->paymentMethod();
     }
 }

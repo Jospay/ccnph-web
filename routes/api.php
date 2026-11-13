@@ -17,9 +17,11 @@ use App\Http\Controllers\API\Loan\LoanController;
 use App\Http\Controllers\API\Membership\MembershipController;
 use App\Http\Controllers\API\News\NewsController;
 use App\Http\Controllers\API\Notification\NotificationController;
+use App\Http\Controllers\API\Notification\StoreNotificationController;
 use App\Http\Controllers\API\Payment\PaymentMethodController;
 use App\Http\Controllers\API\Payment\PaymentWebhookController;
 use App\Http\Controllers\API\PaymentController;
+use App\Http\Controllers\API\PrivacyPolicyController;
 use App\Http\Controllers\API\Settings\AccountDeletionController;
 use App\Http\Controllers\API\Settings\ProfileController;
 use App\Http\Controllers\API\ShareCapital\ShareCapitalController;
@@ -28,13 +30,13 @@ use App\Http\Controllers\API\Store\CollectionProductController;
 use App\Http\Controllers\API\Store\CustomerCartController;
 use App\Http\Controllers\API\Store\CustomerCheckoutController;
 use App\Http\Controllers\API\Store\CustomerOrderController;
+use App\Http\Controllers\API\Store\CustomerPointController;
 use App\Http\Controllers\API\Store\ProductReviewController;
 use App\Http\Controllers\API\Store\ShopHomeController;
 use App\Http\Controllers\API\Store\ShopProductController;
 use App\Http\Controllers\API\Store\ShopStoreController;
 use App\Http\Controllers\API\SupportChat\SupportChatController;
 use App\Http\Controllers\API\TermsAndConditionController;
-use App\Http\Controllers\API\PrivacyPolicyController;
 use App\Http\Controllers\API\Transfer\PaymongoTransferWebhookController;
 use App\Http\Controllers\API\Transfer\TransferController;
 use App\Http\Controllers\API\Verification\PhoneVerificationController;
@@ -55,7 +57,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/register/set-password', [RegisteredUserController::class, 'setPassword'])->middleware('throttle:5,1');
     Route::get('/terms-and-conditions', [TermsAndConditionController::class, 'show']);
     Route::get('/privacy-policy', [PrivacyPolicyController::class, 'show']);
-    
+
     Route::post('/account/reactivate/send', [ReactivationController::class, 'send'])->middleware('throttle:5,1');
     Route::post('/account/reactivate/verify', [ReactivationController::class, 'verify'])->middleware('throttle:5,1');
     Route::post('/account/reactivate/resend', [ReactivationController::class, 'resend'])->middleware('throttle:3,1');
@@ -224,10 +226,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/news/{id}', [NewsController::class, 'show'])
         ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER);
 
-    // FISMPC Online Store
+    // CCNPH Online Store
     Route::prefix('store')
         ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER)
         ->group(function () {
+
+            Route::get('points', [CustomerPointController::class, 'index']);
+            Route::post('points/visibility', [CustomerPointController::class, 'toggleVisibility']);
+            Route::get('points/config', [CustomerPointController::class, 'config']);
+            Route::get('points/transactions', [CustomerPointController::class, 'transactions']);
+            Route::post('points/load', [CustomerPointController::class, 'load']);
+
             Route::get('home', [ShopHomeController::class, 'index']);
             Route::get('/top-deals', [ShopHomeController::class, 'topDeals']);
             Route::get('products', [ShopProductController::class, 'index']);
@@ -245,6 +254,8 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/checkout/select', [CustomerCheckoutController::class, 'select']);
             Route::get('/checkout', [CustomerCheckoutController::class, 'index']);
             Route::post('/checkout', [CustomerCheckoutController::class, 'store']);
+            Route::get('/checkout/{checkout}/payment-status', [CustomerCheckoutController::class, 'paymentStatus']);
+            Route::post('/checkout/{checkout}/cancel', [CustomerCheckoutController::class, 'cancelPayment']);
 
             Route::get('/orders', [CustomerOrderController::class, 'index']);
             Route::get('/orders/{order}', [CustomerOrderController::class, 'show']);
@@ -276,7 +287,15 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/read-all', [NotificationController::class, 'markAllAsRead']);
         });
 
-    // FISMPC Online Store
+    Route::prefix('store-notifications')
+        ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER) // adjust to the roles that should see store notifications
+        ->group(function () {
+            Route::get('/', [StoreNotificationController::class, 'index']);
+            Route::patch('/{id}/read', [StoreNotificationController::class, 'markAsRead']);
+            Route::post('/read-all', [StoreNotificationController::class, 'markAllAsRead']);
+        });
+
+    // CCNPH Online Store
     // Route::prefix('store')
     //     ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER)
     //     ->group(function () {
@@ -287,7 +306,7 @@ Route::middleware('auth:sanctum')->group(function () {
     //         Route::post('/orders/{order}/status', [CustomerOrderController::class, 'updateStatus']);
     //     });
 
-    // FISMPC Online Store
+    // CCNPH Online Store
     // Route::prefix('store')
     //     ->middleware('role.api:'.UserType::BASIC.','.UserType::MEMBER)
     //     ->group(function () {

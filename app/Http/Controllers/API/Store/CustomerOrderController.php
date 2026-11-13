@@ -7,9 +7,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\Store\OrderIndexResource;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\Review;
 use App\Models\Shop;
+use App\Services\Cooperative\CooperativeRevenueAllocatorService; // NEW
+use App\Services\Store\CheckoutService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -19,6 +22,113 @@ use Illuminate\Validation\Rule;
 
 class CustomerOrderController extends Controller
 {
+    // NEW: service slug used for the allocation config
+    private const STORE_SERVICE_SLUG = 'ccnph-online-store';
+
+    /**
+     * Only orders the customer should see:
+     *  - Cash on Delivery orders
+     *  - orders whose payment is paid (points, QR, Maya, BillEase, GrabPay)
+     *  - older orders that have no checkout payment at all
+     * Online orders still waiting for (or failed) third-party payment are hidden.
+     */
+    private function visibleOrders(Builder $query): Builder
+    {
+        return $query->where(function (Builder $q) {
+            $q->whereDoesntHave('checkout.payment')
+                ->orWhereHas('checkout.payment', function (Builder $payment) {
+                    $payment->where('payment_method_id', PaymentMethod::CASH_ON_DELIVERY)
+                        ->orWhere('status_id', CheckoutService::PAYMENT_STATUS_PAID);
+                });
+        });
+    }
+
+    /**
+     * 404 for orders that are not visible yet (unpaid online orders).
+     */
+    private function ensureVisible(Order $order): void
+    {
+        abort_unless(
+            $this->visibleOrders(Order::query())->whereKey($order->id)->exists(),
+            404,
+            'Order not found.'
+        );
+    }
+
+    /**
+     * Payment info + price breakdown for ONE order (track order screen).
+     *
+     * - payment.fee is stored in cents and belongs to the whole checkout, so when a
+     *   checkout has several shop orders the online processing fee is split
+     *   between them in proportion to each order's total.
+     * - breakdown has the same shape as the checkout payment screen
+     *   (PaymentBreakdown), so the same card can render it.
+     *
+     * @return array{payment: array|null, breakdown: array}
+     */
+    private function paymentSummary(Order $order): array
+    {
+        $checkout = $order->checkout;
+        $payment = $checkout?->payment;
+        $method = $payment?->paymentMethod;
+
+        $orderTotal = round((float) $order->total, 2);
+
+        // online processing fee share of this order
+        $fee = 0.0;
+        if ($payment && $method && $method->isOnline()) {
+            $checkoutFee = round(((int) ($payment->fee ?? 0)) / 100, 2);
+            $checkoutTotal = (float) ($checkout->grand_total ?? 0);
+
+            $fee = $checkoutTotal > 0
+                ? round($checkoutFee * ($orderTotal / $checkoutTotal), 2)
+                : $checkoutFee;
+        }
+
+        $breakdown = [
+            'subtotal' => round((float) $order->subtotal, 2),
+            'shipping_fee' => round((float) $order->shipping_fee, 2),
+            'membership_discount' => round((float) $order->membership_discount, 2),
+            'shared_capital_discount' => round((float) $order->shared_capital_discount, 2),
+            'point_discount' => round((float) $order->point_discount, 2),
+            'order_total' => $orderTotal,
+            'fee' => $fee,
+            'amount' => round($orderTotal + $fee, 2),
+        ];
+
+        if (! $payment || ! $method) {
+            return ['payment' => null, 'breakdown' => $breakdown];
+        }
+
+        $isPaid = (int) $payment->status_id === CheckoutService::PAYMENT_STATUS_PAID;
+        $isCod = (int) $method->id === PaymentMethod::CASH_ON_DELIVERY;
+
+        // COD is paid in cash when the order is received
+        if ($isCod && $order->status === OrderStatus::COMPLETED) {
+            $isPaid = true;
+        }
+
+        $statusLabel = $isPaid
+            ? 'Paid'
+            : ($isCod ? 'Pay on delivery' : 'Pending');
+
+        return [
+            'payment' => [
+                'method_id' => (int) $method->id,
+                'method' => $method->name,
+                'is_online' => $method->isOnline(),
+                'is_cod' => $isCod,
+                'is_points' => (int) $method->id === PaymentMethod::POINT,
+                'status' => $isPaid ? 'paid' : 'pending',
+                'status_label' => $statusLabel,
+                'paid_at' => $isPaid && $payment->payment_date
+                    ? $payment->payment_date->toIso8601String()
+                    : null,
+            ],
+            'breakdown' => $breakdown,
+        ];
+    }
+
     public function index(Request $request)
     {
         $user = $request->user();
@@ -56,7 +166,7 @@ class CustomerOrderController extends Controller
 
         // 1. Calculate Badges
         // Count orders in 'completed' status that STILL HAVE at least one item WITHOUT a review
-        $toRateCount = Order::query()
+        $toRateCount = $this->visibleOrders(Order::query())
             ->where('user_id', $user->id)
             ->where('status', $completedStatus)
             ->whereHas('items', function ($query) {
@@ -65,7 +175,7 @@ class CustomerOrderController extends Controller
             ->count();
 
         // Raw query for other simple badge counts
-        $badgeCountsRaw = Order::query()
+        $badgeCountsRaw = $this->visibleOrders(Order::query())
             ->where('user_id', $user->id)
             ->selectRaw('
             COUNT(CASE WHEN status = ? THEN 1 END) as to_pay,
@@ -86,16 +196,19 @@ class CustomerOrderController extends Controller
             'to_pay' => (int) ($badgeCountsRaw->to_pay ?? 0),
             'to_ship' => (int) ($badgeCountsRaw->to_ship ?? 0),
             'to_receive' => (int) ($badgeCountsRaw->to_receive ?? 0),
-            'to_rate' => $toRateCount, // 👈 Accurately excludes already-rated orders
+            'to_rate' => $toRateCount,
         ];
 
         // 2. Fetch paginated orders with relationships
-        $paginator = Order::query()
+        $paginator = $this->visibleOrders(Order::query())
             ->where('user_id', $user->id)
             ->with([
                 'store:id,name',
-                'items:id,order_id,product_name,product_image,variant_name,price,quantity',
+                'items:id,order_id,product_id,product_name,product_image,variant_name,price,quantity',
+                'items.product:id,cooperative_id,cooperative_scope',
                 'items.review:id,order_item_id',
+                // needed for the Total Payment (online fee share) on each order
+                'checkout.payment',
             ])
             ->when(
                 $filters['status'] !== 'all',
@@ -106,7 +219,6 @@ class CustomerOrderController extends Controller
 
         // 3. Compute `is_rated` boolean on each order
         $paginator->getCollection()->transform(function (Order $order) {
-            // Determine if the order status equals OrderStatus::COMPLETED
             $isCompleted = ($order->status instanceof OrderStatus)
                 ? $order->status === OrderStatus::COMPLETED
                 : $order->status === OrderStatus::COMPLETED->value;
@@ -176,9 +288,13 @@ class CustomerOrderController extends Controller
             ], 403);
         }
 
+        $this->ensureVisible($order);
+
         $order->load([
             'store:id,name',
-            'items:id,order_id,product_name,product_image,variant_name,price,quantity',
+            'items:id,order_id,product_id,product_name,product_image,variant_name,price,quantity',
+            'items.product:id,cooperative_id,cooperative_scope',
+            'checkout.payment.paymentMethod',
         ]);
 
         $fullAddress = collect([
@@ -190,6 +306,9 @@ class CustomerOrderController extends Controller
             $order->region,
             $order->postal_code,
         ])->filter()->implode(', ');
+
+        // payment method used + price breakdown (discounts, shipping, online fee)
+        $paymentSummary = $this->paymentSummary($order);
 
         return response()->json([
             'success' => true,
@@ -207,14 +326,23 @@ class CustomerOrderController extends Controller
                     'total' => (float) $order->total,
                     'created_at' => $order->created_at ? $order->created_at->toIso8601String() : null,
                     'store' => $order->store,
+                    'note' => $order->notes,
+
+                    // payment method + full price breakdown
+                    'payment' => $paymentSummary['payment'],
+                    'breakdown' => $paymentSummary['breakdown'],
+
                     'items' => $order->items->map(fn ($item) => [
                         'id' => $item->id,
+                        'product_id' => $item->product_id,
                         'product_name' => $item->product_name,
-                        // 'product_image' => $item->product_image ? Storage::url($item->product_image) : null,
-                        'product_image' => $item->product_image ? asset('storage'.$item->product_image) : null,
+                        'product_image' => $item->product_image ? asset('storage/'.$item->product_image) : null,
                         'variant_name' => $item->variant_name,
                         'price' => (float) $item->price,
                         'quantity' => $item->quantity,
+                        // Local / National label (null if the product was deleted)
+                        'cooperative_id' => $item->product?->cooperative_id,
+                        'cooperative_scope' => $item->product?->cooperative_scope?->value,
                     ])->values()->all(),
                     'shipping_name' => $order->recipient_name,
                     'shipping_phone' => $order->recipient_phone,
@@ -256,10 +384,13 @@ class CustomerOrderController extends Controller
             ], 403);
         }
 
-        // Load store, items, and their associated reviews + images
+        $this->ensureVisible($order);
+
+        // Load store, items, their product scope, and their associated reviews + images
         $order->load([
             'store:id,name',
-            'items:id,order_id,product_name,product_image,variant_name',
+            'items:id,order_id,product_id,product_name,product_image,variant_name',
+            'items.product:id,cooperative_id,cooperative_scope',
             'items.review.images',
         ]);
 
@@ -273,9 +404,13 @@ class CustomerOrderController extends Controller
                     'items' => $order->items->map(fn ($item) => [
                         'id' => $item->id,
                         'order_id' => $item->order_id,
+                        'product_id' => $item->product_id,
                         'product_name' => $item->product_name,
                         'product_image' => $item->product_image ? asset('storage/'.$item->product_image) : null,
                         'variant_name' => $item->variant_name,
+                        // Local / National label (null if the product was deleted)
+                        'cooperative_id' => $item->product?->cooperative_id,
+                        'cooperative_scope' => $item->product?->cooperative_scope?->value,
                         // Pass the review data if it exists
                         'review' => $item->review ? [
                             'id' => $item->review->id,
@@ -286,105 +421,15 @@ class CustomerOrderController extends Controller
                             'images' => $item->review->images->map(
                                 fn ($img) => asset('storage/'.$img->image)
                             )->values()->all(),
+                            'created_at' => $item->review->created_at
+                                ? $item->review->created_at->format('M d, Y g:i A')
+                                : null,
                         ] : null,
                     ])->values()->all(),
                 ],
             ],
         ]);
     }
-
-    // public function storeRating(Request $request, Order $order)
-    // {
-    //     if ($order->user_id !== $request->user()->id) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Unauthorized action.',
-    //         ], 403);
-    //     }
-
-    //     $validated = $request->validate([
-    //         'items' => ['required', 'array', 'min:1'],
-    //         'items.*.order_item_id' => ['required', 'exists:order_items,id'],
-    //         'items.*.rating' => ['required', 'integer', 'min:1', 'max:5'],
-    //         'items.*.comment' => ['nullable', 'string', 'max:1000'],
-    //         'items.*.is_anonymous' => ['nullable', 'boolean'],
-    //         'items.*.video' => ['nullable', 'file', 'mimes:mp4,mov,avi', 'max:20480'],
-    //         'items.*.images' => ['nullable', 'array', 'max:5'],
-    //         'items.*.images.*' => ['file', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
-    //     ]);
-
-    //     // Pre-check: don't let the same order_item get rated twice
-    //     $orderItemIds = collect($validated['items'])->pluck('order_item_id');
-    //     $alreadyRatedIds = Review::where('user_id', $request->user()->id)
-    //         ->whereIn('order_item_id', $orderItemIds)
-    //         ->pluck('order_item_id')
-    //         ->toArray();
-
-    //     if (! empty($alreadyRatedIds)) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'One or more items in this order have already been rated.',
-    //             'errors' => [
-    //                 'items' => ['You already submitted a review for this order.'],
-    //             ],
-    //         ], 422);
-    //     }
-
-    //     try {
-    //         DB::transaction(function () use ($validated, $order, $request) {
-    //             foreach ($validated['items'] as $index => $itemData) {
-    //                 $item = OrderItem::where('id', $itemData['order_item_id'])
-    //                     ->where('order_id', $order->id)
-    //                     ->first();
-
-    //                 if (! $item) {
-    //                     continue;
-    //                 }
-
-    //                 $videoPath = null;
-    //                 if ($request->hasFile("items.{$index}.video")) {
-    //                     $videoPath = $request->file("items.{$index}.video")->store('feedback_products/videos', 'public');
-    //                 }
-
-    //                 // updateOrCreate as a safety net against race conditions / double taps
-    //                 $review = $item->review()->updateOrCreate(
-    //                     ['order_item_id' => $item->id],
-    //                     [
-    //                         'user_id' => $request->user()->id,
-    //                         'shop_id' => $order->shop_id,
-    //                         'product_id' => $item->product_id ?? null,
-    //                         'rating' => $itemData['rating'],
-    //                         'review' => $itemData['comment'] ?? null,
-    //                         'video' => $videoPath,
-    //                         'is_anonymous' => $itemData['is_anonymous'] ?? false,
-    //                     ]
-    //                 );
-
-    //                 if ($request->hasFile("items.{$index}.images")) {
-    //                     foreach ($request->file("items.{$index}.images") as $imageFile) {
-    //                         $imagePath = $imageFile->store('feedback_products/images', 'public');
-    //                         $review->images()->create([
-    //                             'image' => $imagePath,
-    //                         ]);
-    //                     }
-    //                 }
-    //             }
-    //         });
-    //     } catch (QueryException $e) {
-    //         if ((string) $e->getCode() === '23000') {
-    //             return response()->json([
-    //                 'success' => false,
-    //                 'message' => 'You have already submitted a review for one of these items.',
-    //             ], 422);
-    //         }
-    //         throw $e;
-    //     }
-
-    //     return response()->json([
-    //         'success' => true,
-    //         'message' => 'Thank you for your feedback!',
-    //     ]);
-    // }
 
     public function storeRating(Request $request, Order $order)
     {
@@ -407,6 +452,16 @@ class CustomerOrderController extends Controller
                 'success' => false,
                 'message' => 'Unauthorized action.',
             ], 403);
+        }
+
+        $this->ensureVisible($order);
+
+        // NEW: only completed orders can be rated (and therefore book revenue)
+        if ($order->status !== OrderStatus::COMPLETED) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only completed orders can be rated.',
+            ], 422);
         }
 
         // 3. Request Validation
@@ -488,6 +543,20 @@ class CustomerOrderController extends Controller
                         ]
                     );
 
+                    // NEW: record revenue only the first time this item is rated
+                    if ($review->wasRecentlyCreated) {
+                        $item->loadMissing('product:id,cooperative_id');
+
+                        app(CooperativeRevenueAllocatorService::class)->allocate(
+                            serviceSlug: self::STORE_SERVICE_SLUG,
+                            amount: $this->netItemRevenue($order, $item),
+                            revenueable: $item,
+                            userId: $request->user()->id,
+                            cooperativeId: $item->product?->cooperative_id
+                                ?? $request->user()->cooperative_id,
+                        );
+                    }
+
                     // Handle Image Uploads
                     if ($request->hasFile("items.{$index}.images")) {
                         foreach ($request->file("items.{$index}.images") as $imageFile) {
@@ -544,6 +613,35 @@ class CustomerOrderController extends Controller
         ]);
     }
 
+    /**
+     * Net revenue of one order item = item goods amount minus its proportional
+     * share of the order's membership, shared capital and point discounts.
+     * Shipping is not part of the revenue.
+     */
+    private function netItemRevenue(Order $order, OrderItem $item): float
+    {
+        $gross = round((float) $item->price * (int) $item->quantity, 2);
+
+        $orderSubtotal = (float) $order->subtotal;
+        $orderDiscount = round(
+            (float) $order->membership_discount
+            + (float) $order->shared_capital_discount
+            + (float) $order->point_discount,
+            2
+        );
+
+        if ($orderSubtotal <= 0 || $orderDiscount <= 0) {
+            return $gross;
+        }
+
+        // never discount more than the goods amount
+        $orderDiscount = min($orderDiscount, $orderSubtotal);
+
+        $itemDiscount = round($orderDiscount * ($gross / $orderSubtotal), 2);
+
+        return max(0, round($gross - $itemDiscount, 2));
+    }
+
     public function updateStatus(Request $request, Order $order)
     {
         if ($order->user_id !== $request->user()->id) {
@@ -552,6 +650,8 @@ class CustomerOrderController extends Controller
                 'message' => 'Unauthorized action.',
             ], 403);
         }
+
+        $this->ensureVisible($order);
 
         $validated = $request->validate([
             'status' => [

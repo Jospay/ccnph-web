@@ -13,8 +13,10 @@ return new class extends Migration
     {
         Schema::create('revenue_breakdowns', function (Blueprint $table) {
             $table->id();
+            $table->morphs('revenueable'); // revenueable_type, revenueable_id
             $table->foreignId('allocation_service_id')->constrained('allocation_services')->onDelete('restrict');
             $table->foreignId('cooperative_id')->nullable()->constrained('cooperatives')->onDelete('restrict');
+            $table->foreignId('user_id')->constrained('users')->onDelete('restrict');
             $table->decimal('amount', 15, 2);
             $table->timestamps();
         });

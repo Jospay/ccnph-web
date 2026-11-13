@@ -24,10 +24,13 @@ class PaymentGatewayFactory
         return match ($method->id) {
             PaymentMethod::CASH => 'cash',
             PaymentMethod::WALLET => 'wallet',
+            PaymentMethod::POINT => 'point',
+            PaymentMethod::CASH_ON_DELIVERY => 'cod',
 
             PaymentMethod::CARD, PaymentMethod::QR_CODE,
             PaymentMethod::MAYA, PaymentMethod::BILLEASE,
             PaymentMethod::GRAB_PAY, PaymentMethod::DOB => 'paymongo',
+
             default => throw new \InvalidArgumentException(
                 "No gateway for payment method {$method->id}"
             ),

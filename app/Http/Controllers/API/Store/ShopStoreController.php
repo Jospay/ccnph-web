@@ -53,7 +53,16 @@ class ShopStoreController extends Controller
                     'followers_count' => $followersCount,
                     'is_followed' => $isFollowed,
                     'created_at' => $store->created_at,
+                    'cooperative' => $store->cooperative ? [
+                        'id' => $store->cooperative->id,
+                        'name' => $store->cooperative->name,
+                        'slug' => $store->cooperative->slug,
+                        'logo' => $store->cooperative->logo
+                            ? asset('storage/'.$store->cooperative->logo)
+                            : null,
+                    ] : null,
                 ],
+
                 'products' => ProductCardResource::collection($products),
                 'pagination' => [
                     'current_page' => $products->currentPage(),
@@ -108,19 +117,14 @@ class ShopStoreController extends Controller
 
         return $store->products()
             ->select([
-                'id',
-                'shop_id',
-                'name',
-                'slug',
-                'rating',
-                'sold_count',
-                'is_featured',
-                'is_active',
-                'created_at',
+                'id', 'shop_id', 'cooperative_id', 'cooperative_scope',
+                'name', 'slug', 'rating', 'sold_count',
+                'is_featured', 'is_active', 'created_at',
             ])
             ->with([
                 'images:id,product_id,image,sort_order',
                 'defaultVariant:id,product_id,price,compare_price',
+                'cooperative:id,name',
             ])
             ->withSum('variants as total_stock', 'stock')
             ->withExists(['collections as is_liked' => function ($query) use ($userId) {
