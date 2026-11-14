@@ -5,6 +5,7 @@ import ConnectWithUs from '@/components/landing/ConnectWithUs.vue';
 import Footer from '@/components/landing/Footer.vue';
 import HomeSection from '@/components/landing/HomeSection.vue';
 import MissionVision from '@/components/landing/MissionVision.vue';
+import MobileTutorial from '@/components/landing/MobileTutorial.vue';
 import Navbar from '@/components/landing/Navbar.vue';
 
 withDefaults(
@@ -23,6 +24,7 @@ withDefaults(
     <HomeSection id="home" :data="$page.props.home" />
     <About id="about" />
     <MissionVision />
+    <MobileTutorial id="tutorials" />
     <CcnphEcosystem />
     <ConnectWithUs />
 
