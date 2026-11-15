@@ -67,7 +67,7 @@ return new class extends Migration
 
             $table->unique(['delivery_client_id', 'client_reference']); // booking twice returns the same parcel
             $table->index(['status', 'delivery_current_station_id']);
-            $table->index(['delivery_client_id', 'status', 'delivery_settlement_id']);
+            $table->index(['delivery_client_id', 'status', 'delivery_settlement_id'], 'shipments_client_status_settlement_idx');
         });
     }
 

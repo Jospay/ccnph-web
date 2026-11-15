@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('delivery_shipment_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
 
-            $table->unique(['delivery_trip_id','delivery_shipment_id']);
+            $table->unique(['delivery_trip_id', 'delivery_shipment_id'],'trip_shipments_trip_shipment_unique');
         });
     }
 
