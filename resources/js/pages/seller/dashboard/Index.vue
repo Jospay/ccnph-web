@@ -21,7 +21,6 @@ import type {
   OrdersSummary,
   SalesSummary,
 } from '@/types';
-import NavBar from '@/components/landing/NavBar.vue';
 
 const props = defineProps<{
   shop: Shop;
