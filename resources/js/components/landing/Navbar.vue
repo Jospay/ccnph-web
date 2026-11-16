@@ -24,21 +24,22 @@ import seller from '@/routes/seller';
 const page = usePage();
 const user = computed(() => page.props.auth.user);
 
+const isSeller = computed(
+  () => page.props.auth.userType === 'member' && page.props.auth.is_seller,
+);
+
 const dashboardRoute = computed(() => {
-  const userType = page.props.auth.userType;
-  const isSeller = page.props.auth.is_seller;
-
-  if (userType === 'member' && isSeller) {
-    return seller.dashboard.index();
-  }
-
-  return dashboard.index();
+  return isSeller.value ? seller.dashboard.index() : dashboard.index();
 });
 
 const isScrolled = ref(false);
+const isScrolledState = computed(() => isSeller.value || isScrolled.value);
+
 const isMobileMenuOpen = ref(false);
 
 const handleScroll = () => {
+  if (isSeller.value) return;
+
   isScrolled.value = window.scrollY > 50;
 };
 
@@ -65,7 +66,7 @@ onUnmounted(() => {
     aria-label="Main navigation"
     :class="[
       'fixed top-0 left-0 z-50 w-full transition-all duration-500 ease-in-out',
-      isScrolled || isMobileMenuOpen
+      isScrolledState || isMobileMenuOpen
         ? 'bg-white/95 shadow-md backdrop-blur-md'
         : 'bg-transparent',
     ]"
@@ -73,7 +74,7 @@ onUnmounted(() => {
     <div
       :class="[
         'mx-auto flex max-w-[1360px] items-center justify-between px-4 transition-all duration-500 sm:px-6',
-        isScrolled ? 'h-[70px] md:h-[90px]' : 'h-[80px] md:h-[116px]',
+        isScrolledState ? 'h-[70px] md:h-[90px]' : 'h-[80px] md:h-[116px]',
       ]"
     >
       <!-- Logo Link -->
@@ -81,12 +82,12 @@ onUnmounted(() => {
         href="/"
         aria-label="Cooperatives Cooperation Network Philippines"
         class="shrink-0 transition-transform duration-500"
-        :class="isScrolled ? 'scale-95' : 'scale-100'"
+        :class="isScrolledState ? 'scale-95' : 'scale-100'"
         @click="closeMobileMenu"
       >
         <img
           :src="
-            isScrolled || isMobileMenuOpen
+            isScrolledState || isMobileMenuOpen
               ? '/assets/Sample/NavLogo.webp'
               : '/assets/Sample/NavLogo2.webp'
           "
@@ -98,7 +99,7 @@ onUnmounted(() => {
       <!-- Desktop Navigation -->
       <ul
         class="hidden items-center gap-8 text-[16px] font-semibold transition-colors duration-500 lg:flex"
-        :class="isScrolled ? 'text-black' : 'text-white'"
+        :class="isScrolledState ? 'text-black' : 'text-white'"
       >
         <li>
           <Link href="/#home" class="nav-link">Home</Link>
@@ -130,7 +131,7 @@ onUnmounted(() => {
               :href="login()"
               class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-md border-2 transition-all duration-500"
               :class="
-                isScrolled
+                isScrolledState
                   ? 'border-[#3438a8] text-[#3438a8]'
                   : 'border-white text-white'
               "
@@ -198,7 +199,7 @@ onUnmounted(() => {
             :href="login()"
             class="flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border-2 transition-all duration-300"
             :class="
-              isScrolled || isMobileMenuOpen
+              isScrolledState || isMobileMenuOpen
                 ? 'border-[#3438a8] text-[#3438a8]'
                 : 'border-white text-white'
             "
@@ -264,7 +265,7 @@ onUnmounted(() => {
           aria-label="Toggle Navigation Menu"
           class="rounded-md p-2 transition-colors"
           :class="
-            isScrolled || isMobileMenuOpen
+            isScrolledState || isMobileMenuOpen
               ? 'text-gray-900 hover:bg-gray-100'
               : 'text-white hover:bg-white/10'
           "
