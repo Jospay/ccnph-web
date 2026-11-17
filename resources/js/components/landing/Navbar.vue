@@ -17,6 +17,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Sun, Moon, Monitor } from 'lucide-vue-next';
+import { useAppearance } from '@/composables/useAppearance';
 import { logout, login } from '@/routes';
 import dashboard from '@/routes/dashboard';
 import seller from '@/routes/seller';
@@ -59,6 +61,14 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll);
 });
+
+const { appearance, updateAppearance } = useAppearance();
+
+const appearanceOptions = [
+  { value: 'light', label: 'Light', Icon: Sun },
+  { value: 'dark', label: 'Dark', Icon: Moon },
+  { value: 'system', label: 'System', Icon: Monitor },
+] as const;
 </script>
 
 <template>
@@ -175,6 +185,30 @@ onUnmounted(() => {
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
+
+                <div class="px-2 py-2">
+                  <div
+                    class="grid grid-cols-3 gap-1 rounded-lg bg-neutral-100 p-1 dark:bg-neutral-800"
+                  >
+                    <button
+                      v-for="{ value, label, Icon } in appearanceOptions"
+                      :key="value"
+                      type="button"
+                      @click="updateAppearance(value)"
+                      :class="[
+                        'flex flex-col items-center justify-center gap-1 rounded-md px-2 py-2 text-xs transition-all',
+                        appearance === value
+                          ? 'bg-white text-blue-600 shadow-sm dark:bg-neutral-700 dark:text-blue-400'
+                          : 'text-neutral-500 hover:bg-neutral-200 dark:text-neutral-400 dark:hover:bg-neutral-700',
+                      ]"
+                    >
+                      <component :is="Icon" class="h-4 w-4" />
+                      <span>{{ label }}</span>
+                    </button>
+                  </div>
+                </div>
+
+                <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <Link
                     :href="logout()"
@@ -243,6 +277,30 @@ onUnmounted(() => {
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+
+              <div class="px-2 py-2">
+                <div
+                  class="grid grid-cols-3 gap-1 rounded-lg bg-neutral-100 p-1 dark:bg-neutral-800"
+                >
+                  <button
+                    v-for="{ value, label, Icon } in appearanceOptions"
+                    :key="value"
+                    type="button"
+                    @click="updateAppearance(value)"
+                    :class="[
+                      'flex flex-col items-center justify-center gap-1 rounded-md px-2 py-2 text-xs transition-all',
+                      appearance === value
+                        ? 'bg-white text-blue-600 shadow-sm dark:bg-neutral-700 dark:text-blue-400'
+                        : 'text-neutral-500 hover:bg-neutral-200 dark:text-neutral-400 dark:hover:bg-neutral-700',
+                    ]"
+                  >
+                    <component :is="Icon" class="h-4 w-4" />
+                    <span>{{ label }}</span>
+                  </button>
+                </div>
+              </div>
+
               <DropdownMenuSeparator />
               <DropdownMenuItem>
                 <Link
