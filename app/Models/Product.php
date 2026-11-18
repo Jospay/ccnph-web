@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CooperativeScope;
+use App\Enums\CooperativeNationalStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'shop_id',
     'cooperative_id',
     'cooperative_scope',
+    'national_status',
     'name',
     'slug',
     'is_active',
@@ -25,6 +27,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'rating',
     'reviews_count',
     'sold_count',
+    'national_reject_reason',
 ])]
 class Product extends Model
 {
@@ -43,6 +46,7 @@ class Product extends Model
     {
         return [
             'cooperative_scope' => CooperativeScope::class,
+            'national_status' => CooperativeNationalStatus::class,
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
             'views' => 'integer',

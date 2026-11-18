@@ -4,6 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use App\Enums\CooperativeScope;
+use App\Enums\CooperativeNationalScope;
 
 return new class extends Migration
 {
@@ -17,6 +18,7 @@ return new class extends Migration
             $table->foreignId('shop_id')->constrained()->cascadeOnDelete();
             $table->foreignId('cooperative_id')->nullable()->constrained()->nullOnDelete();
             $table->string('cooperative_scope'); // check enums for value
+            $table->string('national_status')->nullable(); // check enums for value
             $table->string('name');
             $table->string('slug')->unique();
             $table->boolean('is_active')->default(true);
@@ -27,6 +29,7 @@ return new class extends Migration
             $table->decimal('rating', 2, 1)->default(0);
             $table->unsignedBigInteger('reviews_count')->default(0);
             $table->unsignedBigInteger('sold_count')->default(0);
+            $table->text('national_reject_reason')->nullable();
             $table->timestamps();
         });
     }
