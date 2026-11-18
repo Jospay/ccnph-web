@@ -18,6 +18,7 @@ const form = useForm<ProductForm>({
   description: '',
   category_ids: [],
   is_featured: false,
+  is_national: false,
   images: [],
   video: null,
   variants: [],
@@ -61,6 +62,7 @@ const submit = () => {
         v-model:description="form.description"
         v-model:category-ids="form.category_ids"
         v-model:is-featured="form.is_featured"
+        v-model:is-national="form.is_national"
         :categories="categories"
         :errors="form.errors"
       />

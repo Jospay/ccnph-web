@@ -183,6 +183,7 @@ export interface ProductForm {
   description: string;
   category_ids: number[];
   is_featured: boolean;
+  is_national: boolean;
   images: File[];
   video: File | null;
   variants: ProductVariantForm[];
