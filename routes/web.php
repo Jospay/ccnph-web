@@ -38,7 +38,7 @@ Route::inertia('/', 'Home', [
 
 Route::inertia('/about', 'landing/About')->name('about');
 Route::inertia('/cooperatives', 'landing/Cooperatives')->name('cooperatives');
-Route::inertia('/membership', 'landing/CooperativeRegister')->name('membership');
+Route::get('/membership', [CooperativeRegistrationController::class, 'create'])->name('membership');
 // Route::inertia('/news-media', 'landing/NewsMedia')->name('news-media');
 Route::get('/privacy-policy', function () {
     $policy = PrivacyPolicy::query()->latest('id')->first();
