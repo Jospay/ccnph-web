@@ -25,6 +25,7 @@ const form = useForm<ProductUpdateForm>({
   description: props.product.description,
   is_active: props.product.is_active,
   is_featured: props.product.is_featured,
+  is_national: props.product.is_national,
   category_ids: [...props.product.category_ids],
   deleted_image_ids: [],
   images: [],
@@ -90,6 +91,7 @@ const submit = () => {
         v-model:description="form.description"
         v-model:category-ids="form.category_ids"
         v-model:is-featured="form.is_featured"
+        v-model:is-national="form.is_national"
         v-model:is-active="form.is_active"
         :categories="categories"
         :errors="form.errors"
