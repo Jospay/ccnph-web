@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountDeletionController;
+use App\Http\Controllers\CooperativeRegistrationController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Web\BusinessTrainingController;
@@ -37,7 +38,7 @@ Route::inertia('/', 'Home', [
 
 Route::inertia('/about', 'landing/About')->name('about');
 Route::inertia('/cooperatives', 'landing/Cooperatives')->name('cooperatives');
-Route::inertia('/membership', 'landing/Membership')->name('membership');
+Route::inertia('/membership', 'landing/CooperativeRegister')->name('membership');
 // Route::inertia('/news-media', 'landing/NewsMedia')->name('news-media');
 Route::get('/privacy-policy', function () {
     $policy = PrivacyPolicy::query()->latest('id')->first();
@@ -81,6 +82,22 @@ Route::prefix('delete-account')->name('account-deletion.')->group(function () {
         ->middleware('throttle:6,1')
         ->name('destroy');
     Route::post('/cancel', [AccountDeletionController::class, 'cancel'])
+        ->name('cancel');
+});
+
+Route::prefix('cooperatives/register')->name('cooperatives.register.')->group(function () {
+    Route::get('/', [CooperativeRegistrationController::class, 'create'])
+        ->name('create');
+    Route::post('/', [CooperativeRegistrationController::class, 'store'])
+        ->middleware('throttle:6,1')
+        ->name('store');
+    Route::post('/otp/resend', [CooperativeRegistrationController::class, 'resendOtp'])
+        ->middleware('throttle:6,1')
+        ->name('otp.resend');
+    Route::post('/verify', [CooperativeRegistrationController::class, 'verify'])
+        ->middleware('throttle:10,1')
+        ->name('verify');
+    Route::post('/cancel', [CooperativeRegistrationController::class, 'cancel'])
         ->name('cancel');
 });
 
