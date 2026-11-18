@@ -2,6 +2,7 @@
 import { useForm, usePage } from '@inertiajs/vue3';
 import { AlertTriangle, Loader2, Trash2 } from 'lucide-vue-next';
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import AccountDeletionController from '@/actions/App/Http/Controllers/AccountDeletionController';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -14,7 +15,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import AccountDeletionController from '@/actions/App/Http/Controllers/AccountDeletionController';
 interface Props {
   identified: boolean;
   phoneLastFour: string | null;
