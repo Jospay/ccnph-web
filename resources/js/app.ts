@@ -18,7 +18,7 @@ createInertiaApp({
     switch (true) {
       case name === 'Home':
       case name === 'landing/Cooperatives':
-      case name === 'landing/Membership':
+      case name === 'landing/CooperativeRegister':
       case name === 'News/NewsDetails':
       case name === 'News/NewsMedia':
       case name === 'Terms/Index':
