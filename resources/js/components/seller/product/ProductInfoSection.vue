@@ -32,6 +32,7 @@ const name = defineModel<string>('name', { required: true });
 const description = defineModel<string>('description', { required: true });
 const categoryIds = defineModel<number[]>('categoryIds', { required: true });
 const isFeatured = defineModel<boolean>('isFeatured', { required: true });
+const isNational = defineModel<boolean>('isNational', { required: true });
 
 const isActive = defineModel<boolean | undefined>('isActive', {
   default: undefined,
@@ -83,6 +84,31 @@ const flatCategories = computed(() =>
         class="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-800"
       />
       <InputError :message="errors?.description" />
+    </div>
+
+    <div class="w-full">
+      <Label
+        class="flex cursor-pointer items-center gap-4 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-800/50"
+      >
+        <Checkbox
+          :model-value="isNational === true"
+          @update:model-value="(val) => (isNational = val === true)"
+          class="border-zinc-500"
+        />
+        <div class="flex flex-col select-none">
+          <span
+            class="text-sm font-bold text-zinc-900 transition-colors group-hover:text-[#009933] dark:text-white"
+          >
+            Feature as a National Product
+          </span>
+          <span class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
+            Checking this box will display the product outside of your
+            cooperative group.
+            <span class="text-sky-700"> (Need admin approval) </span>
+          </span>
+        </div>
+      </Label>
+      <InputError :message="errors?.is_national" class="mt-0.5" />
     </div>
 
     <div>
