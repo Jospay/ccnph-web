@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import type { InertiaForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
 import FormField from '@/components/cooperative/FormField.vue';
 import { inputClass, selectClass } from '@/components/cooperative/styles';
 import type { CooperativeRegistrationForm } from '@/types/cooperative-registration';
