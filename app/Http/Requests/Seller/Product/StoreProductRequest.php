@@ -50,6 +50,10 @@ class StoreProductRequest extends FormRequest
                 'required',
                 'boolean',
             ],
+            'is_national' => [
+                'required',
+                'boolean',
+            ],
             // media
             'images' => [
                 'required',

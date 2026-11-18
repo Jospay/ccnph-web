@@ -10,6 +10,8 @@ use App\Http\Resources\Seller\ProductShowResource;
 use App\Http\Resources\Seller\ProductEditResource;
 use App\Http\Requests\Seller\Product\StoreProductRequest;
 use App\Http\Requests\Seller\Product\UpdateProductRequest;
+use App\Enums\CooperativeNationalStatus;
+use App\Enums\CooperativeScope;
 use App\Models\User;
 use App\Models\Product;
 use App\Models\Category;
@@ -150,15 +152,23 @@ class ProductController extends Controller
     {
         $user = $request->user()->loadMissing('shop');
         $validated = $request->validated();
+        $isNational = $request->boolean('is_national');
 
-        DB::transaction(function () use ($validated, $user, $request) {
+        DB::transaction(function () use ($validated, $user, $request, $isNational) {
             // product
             $product = Product::create([
                 'shop_id' => $user->shop->id,
+                'cooperative_id' => $isNational
+                    ? $user->shop->cooperative_id
+                    : null,
+                'cooperative_scope' => $isNational
+                    ? CooperativeScope::NATIONAL
+                    : CooperativeScope::LOCAL,
+                'national_status' => $isNational
+                    ? CooperativeNationalStatus::FOR_APPROVAL
+                    : null,
                 'name' => $validated['name'],
-                'slug' => $this->generateUniqueSlug(
-                    $validated['name']
-                ),
+                'slug' => $this->generateUniqueSlug($validated['name']),
                 'description' => $validated['description'],
                 'is_active' => true,
                 'is_featured' => $validated['is_featured'],
