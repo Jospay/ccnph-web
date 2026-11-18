@@ -5,6 +5,7 @@ namespace App\Http\Resources\Seller;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage; 
+use App\Enums\CooperativeScope;
 
 class ProductEditResource extends JsonResource
 {
@@ -21,6 +22,8 @@ class ProductEditResource extends JsonResource
             'slug' => $this->slug,
             'description' => $this->description,
             'is_featured' => $this->is_featured,
+            'is_national' => $this->cooperative_id !== null
+                && $this->cooperative_scope === CooperativeScope::NATIONAL,
             'is_active' => $this->is_active,
             'category_ids' => $this->categories
                 ->pluck('id')
