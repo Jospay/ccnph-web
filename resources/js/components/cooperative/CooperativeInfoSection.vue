@@ -92,7 +92,7 @@ const onCertificate = (e: Event) => {
         <input
           v-model="form.acronym"
           type="text"
-          placeholder="e.g., FISMPC"
+          placeholder="e.g., CCNPH"
           :class="inputClass"
         />
       </FormField>
