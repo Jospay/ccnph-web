@@ -14,6 +14,7 @@ use App\Http\Controllers\Web\DeliveryAdmin\OrderAssignmentController;
 use App\Http\Controllers\Web\IntellectualPropertyController;
 use App\Http\Controllers\Web\LoanAssistanceController;
 use App\Http\Controllers\Web\LoanScheduleController;
+use App\Http\Controllers\Web\ShopManagementController;
 use App\Http\Controllers\Web\Seller\DashboardController as SellerDashboardController;
 use App\Http\Controllers\Web\Seller\OrderController as SellerOrderController;
 use App\Http\Controllers\Web\Seller\ProductController as SellerProductController;
@@ -295,6 +296,11 @@ Route::middleware([
         Route::get('/driver-management/dispatch/deliveries', [DeliveryController::class, 'index'])->name('delivery-admin.deliveries.index');
         Route::patch('/driver-management/dispatch/deliveries/{delivery}/reassign', [DeliveryController::class, 'reassign'])->name('delivery-admin.deliveries.reassign');
         Route::delete('/driver-management/dispatch/deliveries/{delivery}', [DeliveryController::class, 'unassign'])->name('delivery-admin.deliveries.unassign');
+    });
+
+    //  Online Store Domain
+    Route::prefix('ccnph-online-store')->name('ccnph-online-store.')->group(function () {
+        Route::get('/', [ShopManagementController::class, 'index'])->name('index');
     });
 
 });
