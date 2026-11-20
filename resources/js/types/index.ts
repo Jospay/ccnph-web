@@ -14,6 +14,7 @@ export * from './seller/order';
 export * from './seller/dashboard';
 export * from './seller/review';
 export * from './driver';
+export * from './online-store-management';
 
 export type ApiResponse<T> = {
   data: T;
