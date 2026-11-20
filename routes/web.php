@@ -301,6 +301,7 @@ Route::middleware([
     //  Online Store Domain
     Route::prefix('ccnph-online-store')->name('ccnph-online-store.')->group(function () {
         Route::get('/', [ShopManagementController::class, 'index'])->name('index');
+        Route::get('/{shop:slug}', [ShopManagementController::class, 'show'])->name('show');
     });
 
 });

@@ -12,6 +12,7 @@ use App\Models\Cooperative;
 use App\Models\UserType;
 use App\Models\Shop;
 use App\Http\Resources\ShopManagementIndexResource;
+use App\Http\Resources\ShopManagementShowResource;
 
 class ShopManagementController extends Controller
 {
@@ -64,5 +65,15 @@ class ShopManagementController extends Controller
             'filters' => $filters,
             'can_mutate' => $this->canMutate(),
         ]);
+    }
+
+    public function show(Shop $shop): ShopManagementShowResource
+    {
+        return new ShopManagementShowResource(
+            $shop->load([
+                'cooperative:id,name,logo',
+                'user:id,name,email,phone',
+            ])
+        );
     }
 }
