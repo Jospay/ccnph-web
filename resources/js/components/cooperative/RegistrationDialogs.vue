@@ -36,9 +36,17 @@ type View = 'confirm' | 'verify' | 'done';
 // ONE dialog, three views. The view is derived from state, so the dialog can never be
 // open with nothing to show.
 const view = computed<View | null>(() => {
-  if (props.confirmOpen) return 'confirm';
-  if (props.statusOpen && props.step === 'verify') return 'verify';
-  if (props.statusOpen && props.step === 'done') return 'done';
+  if (props.confirmOpen) {
+return 'confirm';
+}
+
+  if (props.statusOpen && props.step === 'verify') {
+return 'verify';
+}
+
+  if (props.statusOpen && props.step === 'done') {
+return 'done';
+}
 
   return null;
 });
@@ -50,16 +58,22 @@ const shownView = ref<View>('confirm');
 watch(
   view,
   (v) => {
-    if (v) shownView.value = v;
+    if (v) {
+shownView.value = v;
+}
   },
   { immediate: true },
 );
 
 const onOpenChange = (value: boolean) => {
-  if (value) return;
+  if (value) {
+return;
+}
 
   if (view.value === 'confirm') {
-    if (!props.submitting) emit('update:confirmOpen', false);
+    if (!props.submitting) {
+emit('update:confirmOpen', false);
+}
 
     return;
   }
