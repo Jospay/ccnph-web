@@ -40,7 +40,7 @@ class CooperativeRegistrationController extends Controller
             default => 'form',
         };
 
-        return Inertia::render('CooperativeRegister', [
+        return Inertia::render('landing/CooperativeRegister', [
             'step' => $step,
             'phoneLastFour' => $step === 'verify' ? substr($cooperative->leader_phone, -4) : null,
             'otpSentAt' => $step === 'verify' ? $cooperative->otp_sent_at?->toIso8601String() : null,
@@ -109,7 +109,7 @@ class CooperativeRegistrationController extends Controller
 
         $request->session()->forget(self::SESSION_KEY);
 
-        return redirect()->route('cooperatives.register.create')
+        return redirect()->route('membership')
             ->with(self::DONE_FLASH_KEY, true)
             ->with('success', 'Mobile number verified. Your registration is now pending approval.');
     }
@@ -127,7 +127,7 @@ class CooperativeRegistrationController extends Controller
 
         $request->session()->forget(self::SESSION_KEY);
 
-        return redirect()->route('cooperatives.register.create');
+        return redirect()->route('membership');
     }
 
     private function resolveSessionCooperative(Request $request): ?CooperativeRegister
@@ -149,7 +149,7 @@ class CooperativeRegistrationController extends Controller
 
     private function expiredSession(): RedirectResponse
     {
-        return redirect()->route('cooperatives.register.create')
+        return redirect()->route('membership')
             ->withErrors(['contact' => 'Your session expired. Please start over.']);
     }
 }

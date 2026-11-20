@@ -21,7 +21,11 @@ const props = defineProps<{
   otpSentAt: string | null;
 }>();
 
-const form = useForm<CooperativeRegistrationForm>({
+// The real "empty" values. Inertia overwrites the form's defaults with the
+// submitted data after every successful post, so form.reset() alone would
+// restore the filled-in values instead of blank ones. We keep the blank
+// state here and restore it explicitly.
+const blankForm = (): CooperativeRegistrationForm => ({
   cooperative_name: '',
   acronym: '',
   logo: null,
@@ -45,6 +49,8 @@ const form = useForm<CooperativeRegistrationForm>({
   password_confirmation: '',
 });
 
+const form = useForm<CooperativeRegistrationForm>(blankForm());
+
 // Keeps what the person typed across refreshes / revisits.
 // It is wiped only after a successful OTP verification (or if they clear their browser data).
 const draft = useRegistrationDraft(form);
@@ -66,7 +72,8 @@ watch(
   (step) => {
     if (step === 'done') {
       void draft.clear();
-      form.reset();
+      form.defaults(blankForm()); // restore the real blank defaults
+      form.reset(); // now reset() goes back to empty values
       form.clearErrors();
     }
   },
