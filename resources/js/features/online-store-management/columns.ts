@@ -1,10 +1,22 @@
 import type { ColumnDef } from '@tanstack/vue-table';
-import { ShoppingBagIcon, StarIcon } from 'lucide-vue-next';
 import { h } from 'vue';
 import { Badge } from '@/components/ui/badge';
-import type { ShopManagement } from '@/types';
+import { MoreHorizontal, ShoppingBagIcon, StarIcon } from 'lucide-vue-next';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import type { ShopManagementIndex } from '@/types';
 
-export const getShopColumns = (): ColumnDef<ShopManagement>[] => [
+export const getShopColumns = ({
+  showShopDetails,
+}: {
+  showShopDetails: (shopSlug: string) => void;
+}): ColumnDef<ShopManagementIndex>[] => [
   {
     accessorKey: 'name',
     header: 'Shop',
@@ -75,5 +87,37 @@ export const getShopColumns = (): ColumnDef<ShopManagement>[] => [
           `${row.getValue('sold_count')}`,
         ],
       ),
+  },
+  {
+    id: 'actions',
+    header: () => h('div', { class: 'text-center' }, 'Actions'),
+    cell: ({ row }) => {
+      const shop = row.original;
+
+      return h('div', { class: 'relative text-center' }, [
+        h(DropdownMenu, null, () => [
+          h(
+            DropdownMenuTrigger,
+            { asChild: true, class: 'cursor-pointer' },
+            () =>
+              h(Button, { variant: 'ghost', class: 'h-8 w-8 p-0' }, () => [
+                h('span', { class: 'sr-only' }, 'Open menu'),
+                h(MoreHorizontal, { class: 'h-4 w-4' }),
+              ]),
+          ),
+          h(DropdownMenuContent, { align: 'end', class: 'border-2' }, () => [
+            h(DropdownMenuLabel, { class: 'text-gray-500' }, () => 'Actions'),
+            h(
+              DropdownMenuItem,
+              {
+                class: 'cursor-pointer',
+                onClick: () => showShopDetails(shop.slug),
+              },
+              () => 'View Shop Details',
+            ),
+          ]),
+        ]),
+      ]);
+    },
   },
 ];
