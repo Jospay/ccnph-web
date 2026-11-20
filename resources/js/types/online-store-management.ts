@@ -1,5 +1,6 @@
-export interface ShopManagement {
+export interface ShopManagementIndex {
   id: number;
+  slug: string;
   name: string;
   cooperative_name: string | null;
   user_name: string | null;

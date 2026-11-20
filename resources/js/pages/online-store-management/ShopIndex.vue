@@ -14,7 +14,7 @@ import { getShopColumns } from '@/features/online-store-management/columns';
 import ccnphOnlineStore from '@/routes/ccnph-online-store';
 import type {
   CooperativeOption,
-  ShopManagement,
+  ShopManagementIndex,
   ShopStatusFilter,
 } from '@/types';
 
@@ -30,7 +30,7 @@ defineOptions({
 });
 
 const props = defineProps<{
-  shops: ShopManagement[];
+  shops: ShopManagementIndex[];
   cooperatives: CooperativeOption[];
   filters: {
     status: ShopStatusFilter;

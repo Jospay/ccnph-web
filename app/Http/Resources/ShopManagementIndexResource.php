@@ -16,6 +16,7 @@ class ShopManagementIndexResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'slug' => $this->slug,
             'name' => $this->name,
             'cooperative_name' => $this->cooperative->name ?? null,
             'user_name' => $this->user->name ?? null,
