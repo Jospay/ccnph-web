@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, useHttp } from '@inertiajs/vue3';
 import { useDebounceFn } from '@vueuse/core';
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import DataTable from '@/components/DataTable.vue';
+import DetailsDialog from '@/components/DetailsDialog.vue';
 import {
   Select,
   SelectContent,
@@ -11,10 +12,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { getShopColumns } from '@/features/online-store-management/columns';
+import { getShopDetails } from '@/features/online-store-management/details';
 import ccnphOnlineStore from '@/routes/ccnph-online-store';
 import type {
+  ApiResponse,
   CooperativeOption,
   ShopManagementIndex,
+  ShopManagementShow,
   ShopStatusFilter,
 } from '@/types';
 
@@ -62,7 +66,31 @@ const updateFilters = () => {
 const debouncedUpdate = useDebounceFn(updateFilters, 300);
 watch([selectedStatus, selectedCooperative], debouncedUpdate);
 
-const columns = getShopColumns();
+// state for details
+const selectedShop = ref<ShopManagementShow | null>(null);
+const isDetailsOpen = ref(false);
+const http = useHttp();
+
+const showShopDetails = async (slug: string) => {
+  isDetailsOpen.value = true;
+  selectedShop.value = null;
+
+  try {
+    const response = (await http.get(
+      ccnphOnlineStore.show.url(slug),
+    )) as ApiResponse<ShopManagementShow>;
+
+    selectedShop.value = response.data;
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+const columns = getShopColumns({ showShopDetails });
+
+const shopDetails = computed(() =>
+  selectedShop.value ? getShopDetails(selectedShop.value) : [],
+);
 </script>
 
 <template>
@@ -115,4 +143,39 @@ const columns = getShopColumns();
       search-placeholder="Search shop, cooperative, owner..."
     />
   </div>
+
+  <DetailsDialog
+    v-model:open="isDetailsOpen"
+    title="Shop Details"
+    description="Shop information and owner details."
+    width="sm:max-w-3xl"
+    :loading="http.processing || !selectedShop"
+    :items="shopDetails"
+    show-default
+  >
+    <!-- CUSTOM TOP (Cooperative) -->
+    <template #top>
+      <div class="my-4 flex items-center gap-4 rounded-xl border bg-card p-4">
+        <div
+          class="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border bg-muted"
+        >
+          <img
+            v-if="selectedShop?.cooperative_logo_url"
+            :src="selectedShop.cooperative_logo_url"
+            :alt="selectedShop.cooperative_name ?? 'Cooperative logo'"
+            class="h-full w-full object-cover"
+          />
+          <span v-else class="text-xl font-bold text-muted-foreground">
+            {{ selectedShop?.cooperative_name?.charAt(0) ?? '?' }}
+          </span>
+        </div>
+        <div>
+          <p class="text-xs text-muted-foreground">Cooperative</p>
+          <p class="text-lg font-bold">
+            {{ selectedShop?.cooperative_name ?? '-' }}
+          </p>
+        </div>
+      </div>
+    </template>
+  </DetailsDialog>
 </template>

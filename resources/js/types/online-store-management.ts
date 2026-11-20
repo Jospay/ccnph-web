@@ -10,6 +10,20 @@ export interface ShopManagementIndex {
   sold_count: number;
 }
 
+export interface ShopManagementShow {
+  id: number;
+  name: string;
+  description: string | null;
+  is_active: boolean;
+  is_official: boolean;
+  created_at: string | null;
+  cooperative_name: string | null;
+  cooperative_logo_url: string | null;
+  owner_name: string | null;
+  owner_email: string | null;
+  owner_phone: string | null;
+}
+
 export interface CooperativeOption {
   id: number;
   name: string;
