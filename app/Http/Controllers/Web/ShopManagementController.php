@@ -72,7 +72,7 @@ class ShopManagementController extends Controller
         return new ShopManagementShowResource(
             $shop->load([
                 'cooperative:id,name,logo',
-                'user:id,name,email,phone',
+                'user:id,name,email,phone,region,province,city,barangay,street,postal_code',
             ])
         );
     }
