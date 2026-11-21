@@ -408,9 +408,11 @@ class CustomerOrderController extends Controller
                         'product_name' => $item->product_name,
                         'product_image' => $item->product_image ? asset('storage/'.$item->product_image) : null,
                         'variant_name' => $item->variant_name,
+
                         // Local / National label (null if the product was deleted)
                         'cooperative_id' => $item->product?->cooperative_id,
                         'cooperative_scope' => $item->product?->cooperative_scope?->value,
+
                         // Pass the review data if it exists
                         'review' => $item->review ? [
                             'id' => $item->review->id,
@@ -423,6 +425,12 @@ class CustomerOrderController extends Controller
                             )->values()->all(),
                             'created_at' => $item->review->created_at
                                 ? $item->review->created_at->format('M d, Y g:i A')
+                                : null,
+
+                            // seller reply
+                            'reply' => $item->review->reply,
+                            'replied_at' => $item->review->replied_at
+                                ? $item->review->replied_at->format('M d, Y g:i A')
                                 : null,
                         ] : null,
                     ])->values()->all(),

@@ -34,6 +34,7 @@ class ProductShowResource extends JsonResource
                 'sort_order' => $img->sort_order,
             ]),
             'video' => $this->video ? Storage::url($this->video) : null,
+            'video_thumbnail' => $this->video_thumbnail ? Storage::url($this->video_thumbnail) : null,
             'variants' => $this->variants->map(function ($variant) {
                 return [
                     'id' => $variant->id,

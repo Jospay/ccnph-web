@@ -3,8 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Enums\CooperativeScope;
-use App\Enums\CooperativeNationalScope;
 
 return new class extends Migration
 {
@@ -25,6 +23,7 @@ return new class extends Migration
             $table->boolean('is_featured')->default(false);
             $table->longText('description')->nullable();
             $table->string('video')->nullable();
+            $table->string('video_thumbnail')->nullable();
             $table->unsignedBigInteger('views')->default(0);
             $table->decimal('rating', 2, 1)->default(0);
             $table->unsignedBigInteger('reviews_count')->default(0);

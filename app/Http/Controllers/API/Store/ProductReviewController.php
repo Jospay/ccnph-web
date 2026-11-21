@@ -67,6 +67,10 @@ class ProductReviewController extends Controller
                     'images' => $review->images->map(
                         fn ($img) => asset('storage/'.$img->image)
                     )->values()->all(),
+                    'reply' => $review->reply,
+                    'replied_at' => $review->replied_at
+                        ? $review->replied_at->format('M d, Y g:i A')
+                        : null,
                 ]),
                 'pagination' => [
                     'current_page' => $reviews->currentPage(),

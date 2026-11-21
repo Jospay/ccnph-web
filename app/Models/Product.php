@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use App\Enums\CooperativeScope;
 use App\Enums\CooperativeNationalStatus;
+use App\Enums\CooperativeScope;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'is_featured',
     'description',
     'video',
+    'video_thumbnail',
     'views',
     'rating',
     'reviews_count',
