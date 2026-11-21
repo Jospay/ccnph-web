@@ -319,8 +319,9 @@ class ProductController extends Controller
     public function update(UpdateProductRequest $request, Product $product)
     {
         $validated = $request->validated();
+        $isNational = $request->boolean('is_national');
 
-        DB::transaction(function () use ($validated, $product, $request) {
+        DB::transaction(function () use ($validated, $product, $request, $isNational) {
 
             // ── core fields ──────────────────────────────────────────────────
             $product->update([
@@ -328,6 +329,12 @@ class ProductController extends Controller
                 'slug'        => $product->name !== $validated['name']
                     ? $this->generateUniqueSlug($validated['name'], $product->id)
                     : $product->slug,
+                'cooperative_scope' => $isNational
+                    ? CooperativeScope::NATIONAL
+                    : CooperativeScope::LOCAL,
+                'national_status' => $isNational
+                    ? CooperativeNationalStatus::FOR_APPROVAL
+                    : null,
                 'description' => $validated['description'] ?? null,
                 'is_active'   => $validated['is_active'],
                 'is_featured' => $validated['is_featured'],
