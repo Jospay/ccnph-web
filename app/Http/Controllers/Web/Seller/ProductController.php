@@ -158,9 +158,7 @@ class ProductController extends Controller
             // product
             $product = Product::create([
                 'shop_id' => $user->shop->id,
-                'cooperative_id' => $isNational
-                    ? $user->shop->cooperative_id
-                    : null,
+                'cooperative_id' => $user->shop->cooperative_id ?? null,
                 'cooperative_scope' => $isNational
                     ? CooperativeScope::NATIONAL
                     : CooperativeScope::LOCAL,

@@ -13,8 +13,8 @@ class StoreProductRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $user = $this->user()->loadMissing(['store']);
-        return $user->store && $user->store->is_active;
+        $user = $this->user()->loadMissing(['shop']);
+        return $user->shop && $user->shop->is_active;
     }
 
     /**
