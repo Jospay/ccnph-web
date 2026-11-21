@@ -25,19 +25,20 @@ class ShopManagementController extends Controller
     public function index(Request $request): Response
     {
         $validated = $request->validate([
-            'status' => ['sometimes', 'string', Rule::in(['all', 'active', 'inactive'])],
-            'cooperative_id' => [
+            's' => ['sometimes', 'string', Rule::in(['all', 'active', 'inactive'])],
+            'c' => [
                 'sometimes',
+                'string',
                 Rule::when(
-                    $request->input('cooperative_id') !== 'all',
-                    ['integer', 'exists:cooperatives,id'],
+                    $request->input('c') !== 'all',
+                    [Rule::exists('cooperatives', 'slug')],
                 ),
             ],
         ]);
 
         $filters = [
-            'status' => $validated['status'] ?? 'all',
-            'cooperative_id' => (string) ($validated['cooperative_id'] ?? 'all'),
+            'status' => $validated['s'] ?? 'all',
+            'cooperative_slug' => $validated['c'] ?? 'all',
         ];
 
         $shops = Shop::query()
@@ -47,11 +48,20 @@ class ShopManagementController extends Controller
             ])
             ->when(
                 $filters['status'] !== 'all',
-                fn ($query) => $query->where('is_active', $filters['status'] === 'active'),
+                fn ($query) => $query->where(
+                    'is_active',
+                    $filters['status'] === 'active',
+                ),
             )
             ->when(
-                $filters['cooperative_id'] !== 'all',
-                fn ($query) => $query->where('cooperative_id', (int) $filters['cooperative_id']),
+                $filters['cooperative_slug'] !== 'all',
+                fn ($query) => $query->whereHas(
+                    'cooperative',
+                    fn ($cooperativeQuery) => $cooperativeQuery->where(
+                        'slug',
+                        $filters['cooperative_slug'],
+                    ),
+                ),
             )
             ->latest()
             ->get();
@@ -59,7 +69,7 @@ class ShopManagementController extends Controller
         return Inertia::render('online-store-management/ShopIndex', [
             'shops' => ShopManagementIndexResource::collection($shops)->resolve(),
             'cooperatives' => Cooperative::query()
-                ->select('id', 'name')
+                ->select('slug', 'name')
                 ->orderBy('name')
                 ->get(),
             'filters' => $filters,

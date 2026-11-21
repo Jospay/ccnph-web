@@ -22,7 +22,7 @@ export interface ShopManagementShow extends ShopManagementIndex {
 }
 
 export interface CooperativeOption {
-  id: number;
+  slug: string;
   name: string;
 }
 

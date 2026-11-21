@@ -38,21 +38,21 @@ const props = defineProps<{
   cooperatives: CooperativeOption[];
   filters: {
     status: ShopStatusFilter;
-    cooperative_id: string;
+    cooperative_slug: string;
   };
   can_mutate: boolean;
 }>();
 
 // state for select filters
 const selectedStatus = ref<ShopStatusFilter>(props.filters.status);
-const selectedCooperative = ref<string>(props.filters.cooperative_id);
+const selectedCooperative = ref<string>(props.filters.cooperative_slug);
 
 const updateFilters = () => {
   router.get(
     ccnphOnlineStore.index(),
     {
-      status: selectedStatus.value,
-      cooperative_id: selectedCooperative.value,
+      c: selectedCooperative.value,
+      s: selectedStatus.value,
     },
     {
       preserveScroll: true,
@@ -116,8 +116,8 @@ const shopDetails = computed(() =>
             <SelectItem value="all">All cooperatives</SelectItem>
             <SelectItem
               v-for="coop in cooperatives"
-              :key="coop.id"
-              :value="String(coop.id)"
+              :key="coop.slug"
+              :value="coop.slug"
             >
               {{ coop.name }}
             </SelectItem>
