@@ -43,7 +43,7 @@ class ShopManagementController extends Controller
 
         $shops = Shop::query()
             ->with([
-                'cooperative:id,name',
+                'cooperative:id,name,slug',
                 'user:id,name',
             ])
             ->when(

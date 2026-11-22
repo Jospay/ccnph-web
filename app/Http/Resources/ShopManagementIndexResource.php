@@ -19,6 +19,7 @@ class ShopManagementIndexResource extends JsonResource
             'slug' => $this->slug,
             'name' => $this->name,
             'cooperative_name' => $this->cooperative->name ?? null,
+            'cooperative_slug' => $this->cooperative->slug ?? null,
             'user_name' => $this->user->name ?? null,
             'is_active' => $this->is_active,
             'rating' => $this->rating,
