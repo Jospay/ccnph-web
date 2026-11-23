@@ -2,8 +2,10 @@
 import { Head, router, useHttp } from '@inertiajs/vue3';
 import { useDebounceFn } from '@vueuse/core';
 import { computed, ref, watch } from 'vue';
+import { CornerDownRightIcon } from 'lucide-vue-next';
 import DataTable from '@/components/DataTable.vue';
 import DetailsDialog from '@/components/DetailsDialog.vue';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -86,7 +88,10 @@ const showShopDetails = async (slug: string) => {
   }
 };
 
-const columns = getShopColumns({ showShopDetails });
+const viewCooperativeProducts = (slug: string) =>
+  router.visit(ccnphOnlineStore.products.index.url({ query: { c: slug } }));
+
+const columns = getShopColumns({ showShopDetails, viewCooperativeProducts });
 
 const shopDetails = computed(() =>
   selectedShop.value ? getShopDetails(selectedShop.value) : [],
@@ -141,7 +146,19 @@ const shopDetails = computed(() =>
       :columns="columns"
       :data="shops"
       search-placeholder="Search shop, cooperative, owner..."
-    />
+    >
+      <template #custom-actions>
+        <div class="flex w-full items-center gap-3 sm:w-auto sm:gap-4">
+          <Button
+            class="shrink-0"
+            @click="router.visit(ccnphOnlineStore.products.index.url())"
+          >
+            <CornerDownRightIcon class="h-4 w-4" />
+            <span>Go to products</span>
+          </Button>
+        </div>
+      </template>
+    </DataTable>
   </div>
 
   <DetailsDialog

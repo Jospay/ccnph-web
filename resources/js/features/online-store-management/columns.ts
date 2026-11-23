@@ -14,8 +14,10 @@ import type { ShopManagementIndex } from '@/types';
 
 export const getShopColumns = ({
   showShopDetails,
+  viewCooperativeProducts,
 }: {
   showShopDetails: (shopSlug: string) => void;
+  viewCooperativeProducts: (cooperativeSlug: string) => void;
 }): ColumnDef<ShopManagementIndex>[] => [
   {
     accessorKey: 'name',
@@ -115,6 +117,17 @@ export const getShopColumns = ({
               },
               () => 'View Shop Details',
             ),
+            shop.cooperative_slug
+              ? h(
+                  DropdownMenuItem,
+                  {
+                    class: 'cursor-pointer',
+                    onClick: () =>
+                      viewCooperativeProducts(shop.cooperative_slug!),
+                  },
+                  () => 'View Cooperative Products',
+                )
+              : null,
           ]),
         ]),
       ]);
