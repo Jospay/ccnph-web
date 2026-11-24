@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use App\Enums\CooperativeNationalStatus;
 use App\Http\Resources\ProductManagementIndexResource;
+use App\Http\Resources\ProductManagementShowResource;
 use App\Models\Cooperative;
 use App\Models\UserType;
 use App\Models\Shop;
@@ -88,5 +89,19 @@ class ProductManagementController extends Controller
             'filters' => $filters,
             'can_mutate' => $this->canMutate(),
         ]);
+    }
+
+    public function show(Product $product): ProductManagementShowResource
+    {
+        return new ProductManagementShowResource(
+            $product->load([
+                'shop:id,name,user_id,cooperative_id',
+                'shop.user:id,name,email,region,province,city,barangay,street,postal_code',
+                'shop.cooperative:id,name,logo',
+                'categories:id,name',
+                'images',
+                'variants.attributeValues:id,attribute_id,value',
+            ])
+        );
     }
 }
