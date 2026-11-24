@@ -79,6 +79,11 @@ class Product extends Model
             ->orderBy('sort_order');
     }
 
+    public function thumbnail(): HasOne
+    {
+        return $this->hasOne(ProductImage::class)->ofMany('sort_order', 'min');
+    }
+
     public function variants(): HasMany
     {
         return $this->hasMany(ProductVariant::class);
