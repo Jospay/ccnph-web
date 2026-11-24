@@ -18,7 +18,9 @@ const logoPreview = ref<string | null>(null);
 // Browsers don't let us fill a file input directly, but DataTransfer does the trick.
 // This keeps the visible input in sync when files are restored after a refresh or reset.
 function syncInput(input: HTMLInputElement | null, file: File | null) {
-  if (!input) return;
+  if (!input) {
+return;
+}
 
   if (!file) {
     input.value = '';
@@ -38,7 +40,10 @@ function syncInput(input: HTMLInputElement | null, file: File | null) {
 function applyLogo(file: File | null) {
   syncInput(logoInput.value, file);
 
-  if (logoPreview.value) URL.revokeObjectURL(logoPreview.value);
+  if (logoPreview.value) {
+URL.revokeObjectURL(logoPreview.value);
+}
+
   logoPreview.value = file ? URL.createObjectURL(file) : null;
 }
 
@@ -54,7 +59,9 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
-  if (logoPreview.value) URL.revokeObjectURL(logoPreview.value);
+  if (logoPreview.value) {
+URL.revokeObjectURL(logoPreview.value);
+}
 });
 
 const onLogo = (e: Event) => {

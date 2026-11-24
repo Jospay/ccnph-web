@@ -1,7 +1,7 @@
 import type { ColumnDef } from '@tanstack/vue-table';
+import { MoreHorizontal, ShoppingBagIcon, StarIcon } from 'lucide-vue-next';
 import { h } from 'vue';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, ShoppingBagIcon, StarIcon } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,

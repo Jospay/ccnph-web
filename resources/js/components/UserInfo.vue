@@ -19,7 +19,7 @@ const avatarSrc = computed(() => {
   if (!props.user.avatar) {
     return '';
   }
-  
+
   // If the path is already an external URL or starts with /, return it as is
   if (
     props.user.avatar.startsWith('http') ||
@@ -28,8 +28,8 @@ const avatarSrc = computed(() => {
     return props.user.avatar;
   }
 
-  // Otherwise, prepend a leading slash to make it absolute
-  return `/${props.user.avatar}`;
+  // Otherwise, serve it from the public storage disk
+  return `/storage/${props.user.avatar}`;
 });
 
 // Compute whether we should show the avatar image

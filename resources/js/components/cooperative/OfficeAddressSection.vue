@@ -41,11 +41,17 @@ const noProvinces = computed(
 async function fetchList(url: string): Promise<PsgcItem[]> {
   try {
     const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    if (!res.ok) {
+throw new Error(`HTTP ${res.status}`);
+}
+
     const data: PsgcItem[] = await res.json();
+
     return data.sort((a, b) => a.name.localeCompare(b.name));
   } catch (err) {
     console.error(`Failed to fetch ${url}`, err);
+
     return [];
   }
 }
@@ -98,7 +104,9 @@ async function onRegionChange() {
   cities.value = [];
   barangays.value = [];
 
-  if (regionCode.value) await loadProvinces(regionCode.value);
+  if (regionCode.value) {
+await loadProvinces(regionCode.value);
+}
 }
 
 async function onProvinceChange() {
@@ -125,7 +133,9 @@ async function onCityChange() {
   props.form.barangay = '';
   barangays.value = [];
 
-  if (cityCode.value) await loadBarangays(cityCode.value);
+  if (cityCode.value) {
+await loadBarangays(cityCode.value);
+}
 }
 
 function onBarangayChange() {
@@ -135,16 +145,23 @@ function onBarangayChange() {
 // Restore dropdown selections when the form already holds names
 // (restored draft after a refresh, or returning from a validation error).
 async function restoreSelections() {
-  if (!props.form.region) return;
+  if (!props.form.region) {
+return;
+}
 
   regionCode.value =
     regions.value.find((r) => r.name === props.form.region)?.code ?? '';
-  if (!regionCode.value) return;
+
+  if (!regionCode.value) {
+return;
+}
+
   await loadProvinces(regionCode.value);
 
   if (props.form.province) {
     provinceCode.value =
       provinces.value.find((p) => p.name === props.form.province)?.code ?? '';
+
     if (provinceCode.value) {
       await loadCities(
         `${PSGC}/provinces/${provinceCode.value}/cities-municipalities/`,
@@ -155,7 +172,10 @@ async function restoreSelections() {
   if (props.form.city) {
     cityCode.value =
       cities.value.find((c) => c.name === props.form.city)?.code ?? '';
-    if (cityCode.value) await loadBarangays(cityCode.value);
+
+    if (cityCode.value) {
+await loadBarangays(cityCode.value);
+}
   }
 
   if (props.form.barangay) {

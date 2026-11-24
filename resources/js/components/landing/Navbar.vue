@@ -7,6 +7,7 @@ import {
   MenuIcon,
   XIcon,
 } from 'lucide-vue-next';
+import { Sun, Moon, Monitor } from 'lucide-vue-next';
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import {
   DropdownMenu,
@@ -17,7 +18,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Sun, Moon, Monitor } from 'lucide-vue-next';
 import { useAppearance } from '@/composables/useAppearance';
 import { logout, login } from '@/routes';
 import dashboard from '@/routes/dashboard';
@@ -40,7 +40,9 @@ const isScrolledState = computed(() => isSeller.value || isScrolled.value);
 const isMobileMenuOpen = ref(false);
 
 const handleScroll = () => {
-  if (isSeller.value) return;
+  if (isSeller.value) {
+return;
+}
 
   isScrolled.value = window.scrollY > 50;
 };
