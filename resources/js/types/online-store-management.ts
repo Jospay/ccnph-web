@@ -55,3 +55,29 @@ export interface ProductManagementFilters {
   s: 'all' | 'active' | 'inactive';
   ns: string;
 }
+
+export interface ProductManagementVariant {
+  id: number;
+  sku: string;
+  is_default: boolean;
+  price: string | number;
+  compare_price: string | number | null;
+  stock: number;
+  weight: string | number | null;
+  image: string | null;
+  attributes: { id: number; value: string }[];
+}
+
+export interface ProductManagementShow extends ProductManagementIndex {
+  description: string | null;
+  national_reject_reason: string | null;
+  created_at: string | null;
+  categories: { id: number; name: string }[];
+  images: { id: number; url: string; sort_order: number }[];
+  variants: ProductManagementVariant[];
+  cooperative_name: string | null;
+  cooperative_logo_url: string | null;
+  owner_name: string | null;
+  owner_email: string | null;
+  owner_address: string | null;
+}

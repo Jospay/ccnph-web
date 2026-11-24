@@ -303,6 +303,7 @@ Route::middleware([
     Route::prefix('ccnph-online-store')->name('ccnph-online-store.')->group(function () {
         Route::get('/', [ShopManagementController::class, 'index'])->name('index');
         Route::get('/products', [ProductManagementController::class, 'index'])->name('products.index');
+        Route::get('/products/{product:slug}', [ProductManagementController::class, 'show'])->name('products.show');
         Route::get('/{shop:slug}', [ShopManagementController::class, 'show'])->name('show');
     });
 
