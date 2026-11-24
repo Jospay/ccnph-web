@@ -65,3 +65,11 @@ export interface FormField {
   minFileSize?: number;
   maxFileSize?: number;
 }
+
+export interface PaginatedData<T> {
+  data: T[];
+  links: { url: string | null; label: string; active: boolean }[];
+  from: number | null;
+  to: number | null;
+  total: number;
+}
