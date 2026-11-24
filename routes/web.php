@@ -15,6 +15,7 @@ use App\Http\Controllers\Web\IntellectualPropertyController;
 use App\Http\Controllers\Web\LoanAssistanceController;
 use App\Http\Controllers\Web\LoanScheduleController;
 use App\Http\Controllers\Web\ShopManagementController;
+use App\Http\Controllers\Web\ProductManagementController;
 use App\Http\Controllers\Web\Seller\DashboardController as SellerDashboardController;
 use App\Http\Controllers\Web\Seller\OrderController as SellerOrderController;
 use App\Http\Controllers\Web\Seller\ProductController as SellerProductController;
@@ -301,6 +302,7 @@ Route::middleware([
     //  Online Store Domain
     Route::prefix('ccnph-online-store')->name('ccnph-online-store.')->group(function () {
         Route::get('/', [ShopManagementController::class, 'index'])->name('index');
+        Route::get('/products', [ProductManagementController::class, 'index'])->name('products.index');
         Route::get('/{shop:slug}', [ShopManagementController::class, 'show'])->name('show');
     });
 
