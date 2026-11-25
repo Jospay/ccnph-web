@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, useHttp } from '@inertiajs/vue3';
 import { useDebounceFn } from '@vueuse/core';
 import {
   ArrowLeftIcon,
@@ -23,12 +23,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import AppLayout from '@/layouts/AppLayout.vue';
+import ProductDetailsDialog from '@/components/online-store-management/ProductDetailsDialog.vue';
 import ccnphOnlineStore from '@/routes/ccnph-online-store';
 import type {
+  ApiResponse,
   CooperativeOption,
   PaginatedData,
   ProductManagementFilters,
   ProductManagementIndex,
+  ProductManagementShow,
 } from '@/types';
 
 defineOptions({
@@ -103,6 +106,26 @@ const NATIONAL_STATUS_STYLES: Record<string, string> = {
   for_approval: 'bg-amber-500 hover:bg-amber-600',
   approved: 'bg-green-500 hover:bg-green-600',
   rejected: 'bg-rose-500 hover:bg-rose-600',
+};
+
+// --- details dialog ---
+const selectedProduct = ref<ProductManagementShow | null>(null);
+const isDetailsOpen = ref(false);
+const http = useHttp();
+
+const showProductDetails = async (slug: string) => {
+  isDetailsOpen.value = true;
+  selectedProduct.value = null;
+
+  try {
+    const response = (await http.get(
+      ccnphOnlineStore.products.show.url(slug),
+    )) as ApiResponse<ProductManagementShow>;
+
+    selectedProduct.value = response.data;
+  } catch (error) {
+    console.error(error);
+  }
 };
 </script>
 
@@ -200,7 +223,11 @@ const NATIONAL_STATUS_STYLES: Record<string, string> = {
         <div
           v-for="product in products.data"
           :key="product.id"
-          class="flex flex-col overflow-hidden rounded-2xl border-2 bg-card"
+          role="button"
+          tabindex="0"
+          class="flex cursor-pointer flex-col overflow-hidden rounded-2xl border-2 bg-card transition hover:border-[#009933] hover:shadow-md focus-visible:ring-2 focus-visible:ring-[#009933] focus-visible:outline-none"
+          @click="showProductDetails(product.slug)"
+          @keydown.enter="showProductDetails(product.slug)"
         >
           <div class="relative aspect-4/3 bg-muted">
             <img
@@ -335,5 +362,11 @@ const NATIONAL_STATUS_STYLES: Record<string, string> = {
 
       <Pagination :links="products.links" class="mt-0" />
     </div>
+
+    <ProductDetailsDialog
+      v-model:open="isDetailsOpen"
+      :product="selectedProduct"
+      :loading="http.processing || !selectedProduct"
+    />
   </AppLayout>
 </template>
